@@ -137,7 +137,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
     // Use comprehensive branch drag system that handles both single nodes and complex branches
-    const updatedNodes = handleBranchDrag(nodes, updatedNode.id, updatedNode.position);
+    const updatedNodes = handleBranchDrag(nodes, updatedNode.id, updatedNode.position, canvasState.orientation);
     
     // Apply any other node updates (title, description, etc.) that aren't position-related
     const finalNodes = updatedNodes.map(node => 
@@ -146,7 +146,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     
     setNodes(finalNodes);
     saveTree(finalNodes);
-  }, [nodes, saveTree]);
+  }, [nodes, canvasState.orientation, saveTree]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
