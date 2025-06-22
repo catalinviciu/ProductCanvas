@@ -56,7 +56,6 @@
 }
 
 .modern-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
   border-color: rgba(99, 102, 241, 0.2);
 }
@@ -397,6 +396,56 @@
   cursor: grabbing;
 }
 
+/* Prevent hover interference with interactive elements */
+.tree-node-container .space-y-3 {
+  pointer-events: auto;
+  position: relative;
+  z-index: 25;
+}
+
+.tree-node-container .space-y-3 * {
+  pointer-events: auto;
+}
+
+/* Ensure buttons always respond to clicks */
+.tree-node-container button {
+  pointer-events: auto !important;
+  position: relative;
+}
+
+/* Prevent parent hover effects from interfering with input focus */
+.modern-input:focus,
+.modern-input:active {
+  z-index: 30;
+  position: relative;
+}
+
+/* Improve button visibility and interaction */
+.group:hover .action-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.action-btn {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+}
+
+/* Ensure hover states don't prevent clicking */
+.modern-card * {
+  pointer-events: auto;
+}
+
+.modern-card .content-area {
+  pointer-events: none;
+}
+
+.modern-card .content-area * {
+  pointer-events: auto;
+}
+
 /* Grid snap visual feedback */
 .canvas-grid {
   background-image: 
@@ -428,10 +477,17 @@
 .action-btn {
   @apply w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100;
   transition: all 0.2s ease;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
 }
 
 .action-btn:hover {
   transform: scale(1.05);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
 }
 
 .modern-input {
@@ -454,16 +510,29 @@
   @apply px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg flex items-center;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  pointer-events: auto;
+  position: relative;
+  z-index: 20;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
 }
 
 .btn-secondary {
   @apply px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg flex items-center;
   transition: all 0.2s ease;
+  pointer-events: auto;
+  position: relative;
+  z-index: 20;
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 
 .content-area {
@@ -525,14 +594,21 @@
 }
 
 .collapse-btn {
-  @apply absolute w-7 h-7 flex items-center justify-center text-white rounded-full shadow-lg border-2 border-white z-10;
+  @apply absolute w-7 h-7 flex items-center justify-center text-white rounded-full shadow-lg border-2 border-white;
   background: linear-gradient(135deg, #3B82F6, #1D4ED8);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 30;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .collapse-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.collapse-btn:active {
+  transform: scale(0.95);
 }
 
 .collapse-btn-horizontal {

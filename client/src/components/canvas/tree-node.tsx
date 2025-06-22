@@ -435,9 +435,11 @@ const TreeNodeComponent = memo(function TreeNode({
             <button 
               className="action-btn"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 handleContextMenu(e);
               }}
+              onMouseDown={(e) => e.stopPropagation()}
               title="More options"
             >
               <i className="fas fa-ellipsis-h text-xs"></i>
@@ -545,8 +547,13 @@ const TreeNodeComponent = memo(function TreeNode({
         {collapseState.hasChildren && (
           <button
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               onToggleCollapse?.(node.id);
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
             }}
             className={`collapse-btn ${
               orientation === 'horizontal' 
