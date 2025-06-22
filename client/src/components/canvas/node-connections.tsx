@@ -15,9 +15,9 @@ const CONNECTION_CONFIG = {
   cardHeight: 144, // Fixed card height - no extension for children
   connectionOffset: 40,
   strokeWidth: {
-    shadow: 6,
-    main: 3,
-    hover: 4,
+    shadow: 10,
+    main: 6,
+    hover: 8,
   },
   colors: {
     main: '#6366F1',

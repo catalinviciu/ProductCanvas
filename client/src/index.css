@@ -48,7 +48,7 @@
 
 /* Modern Card Design System */
 .modern-card {
-  @apply bg-white rounded-xl shadow-sm relative;
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 relative;
   backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, box-shadow, filter;
@@ -57,7 +57,6 @@
   height: 144px; /* Fixed height - no extension for children */
   overflow: hidden; /* Prevent content overflow */
   padding: 12px; /* Reduced from 16px to 12px */
-  border: none; /* Remove border */
 }
 
 /* Edit mode enhanced styling */
@@ -227,14 +226,13 @@
   margin-top: 4px;
   padding: 2px 6px;
   background: rgba(255, 255, 255, 0.9);
-  border: none;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   font-size: 10px;
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 10;
   transition: all 0.2s ease;
-  outline: none;
 }
 
 .children-indicator-bottom-left.clickable {
@@ -242,20 +240,15 @@
   user-select: none;
 }
 
-.children-indicator-bottom-left.clickable:hover:not(:disabled) {
+.children-indicator-bottom-left.clickable:hover {
   background: rgba(99, 102, 241, 0.1);
   border-color: rgba(99, 102, 241, 0.3);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.children-indicator-bottom-left.clickable:active:not(:disabled) {
+.children-indicator-bottom-left.clickable:active {
   transform: translateY(0);
-}
-
-.children-indicator-bottom-left:disabled {
-  opacity: 0.7;
-  cursor: default;
 }
 
 .children-badge-external {
