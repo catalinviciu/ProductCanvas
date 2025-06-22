@@ -146,11 +146,11 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
 
   const layoutNodes: TreeNode[] = [];
   const nodeWidth = 280; // Card width + margin
-  const nodeHeight = 160; // Card height + margin
-  const levelSpacing = 200; // Vertical spacing between levels
-  const siblingSpacing = 320; // Horizontal spacing between siblings
+  const nodeHeight = 200; // Card height + margin (increased for vertical)
+  const levelSpacing = 220; // Vertical spacing between levels
+  const siblingSpacing = 300; // Horizontal spacing between siblings
 
-  // Build tree structure to calculate subtree widths for vertical layout
+  // Build tree structure to calculate subtree widths for vertical layout (same as horizontal)
   const getSubtreeWidth = (nodeId: string): number => {
     const node = nodeMap.get(nodeId);
     if (!node || node.children.length === 0) return 1;
@@ -170,39 +170,42 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
     };
     layoutNodes.push(layoutNode);
 
-    // Layout children vertically downward
+    // Layout children vertically downward (flipped perspective of horizontal)
     if (node.children.length > 0) {
       const childY = y + levelSpacing;
-      let childX = x;
-
-      // Calculate starting position to center children horizontally relative to parent
-      const totalChildWidth = node.children.reduce((sum, childId) => 
-        sum + getSubtreeWidth(childId) * siblingSpacing, 0) - siblingSpacing;
-      childX = x - totalChildWidth / 2;
-
-      // Ensure children don't overlap with existing nodes at this level
-      const existingNodesAtLevel = layoutNodes.filter(n => Math.abs(n.position.y - childY) < 50);
-      if (existingNodesAtLevel.length > 0) {
-        const maxX = Math.max(...existingNodesAtLevel.map(n => n.position.x));
-        childX = Math.max(childX, maxX + 350); // Add buffer space
-      }
+      
+      // Calculate total width needed for all children and their subtrees
+      const totalSubtreeWidth = node.children.reduce((sum, childId) => 
+        sum + getSubtreeWidth(childId), 0);
+      
+      // Start position for children - center them under the parent
+      let currentX = x - ((totalSubtreeWidth - 1) * siblingSpacing) / 2;
 
       node.children.forEach(childId => {
         const subtreeWidth = getSubtreeWidth(childId);
-        const centerOffset = (subtreeWidth - 1) * siblingSpacing / 2;
-        layoutTree(childId, childX + centerOffset, childY, level + 1);
-        childX += subtreeWidth * siblingSpacing;
+        // Position each child at the center of its allocated space
+        const childCenterX = currentX + ((subtreeWidth - 1) * siblingSpacing) / 2;
+        
+        layoutTree(childId, childCenterX, childY, level + 1);
+        currentX += subtreeWidth * siblingSpacing;
       });
     }
   };
 
-  // Layout each root tree
-  let rootX = 300;
+  // Layout each root tree with proper spacing
+  let currentX = 300;
   rootNodes.forEach((root, index) => {
     if (index > 0) {
-      rootX += getSubtreeWidth(root.id) * siblingSpacing + 400; // Extra spacing between trees
+      // Add spacing between separate root trees
+      currentX += getSubtreeWidth(root.id) * siblingSpacing + 400;
     }
-    layoutTree(root.id, rootX, 100, 0);
+    
+    // Center the root tree based on its total width
+    const rootSubtreeWidth = getSubtreeWidth(root.id);
+    const rootCenterX = currentX + ((rootSubtreeWidth - 1) * siblingSpacing) / 2;
+    
+    layoutTree(root.id, rootCenterX, 100, 0);
+    currentX += rootSubtreeWidth * siblingSpacing;
   });
 
   return layoutNodes;
@@ -420,13 +423,18 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     
     return findOptimalPosition(nodes, initialPosition);
   } else {
-    // Position child nodes below parent (vertical layout)
+    // Position child nodes below parent (vertical layout) - centered like horizontal
     const basePosition = {
       x: parentNode.position.x,
-      y: parentNode.position.y + 200
+      y: parentNode.position.y + 220
     };
 
-    const initialX = basePosition.x + (siblings.length * 320);
+    // Center children horizontally relative to parent, spacing them out
+    const totalSiblings = siblings.length + 1; // Include the new node
+    const totalWidth = (totalSiblings - 1) * 300; // 300px spacing between siblings
+    const startX = basePosition.x - (totalWidth / 2);
+    const initialX = startX + (siblings.length * 300);
+    
     const initialPosition = { x: initialX, y: basePosition.y };
     
     return findOptimalPosition(nodes, initialPosition);
@@ -831,78 +839,65 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
   if (!rootNode) return nodes;
 
   const updatedNodes = [...nodes];
-  const levelSpacing = 200; // Vertical spacing between levels
-  const minSiblingSpacing = 320; // Minimum horizontal spacing between siblings
+  const levelSpacing = 220; // Vertical spacing between levels
+  const siblingSpacing = 300; // Horizontal spacing between siblings
   const subtreeIds = new Set([rootNodeId, ...getAllDescendants(nodes, rootNodeId)]);
   
-  const otherNodes = nodes.filter(node => !subtreeIds.has(node.id));
-  const positionedSubtreeNodes = new Map<string, { x: number; y: number }>();
-
-  const hasCollisionWithOthers = (pos: { x: number; y: number }, margin: number = 30) => {
-    const testBounds = getNodeBounds({ id: 'temp', type: 'outcome', title: '', description: '', position: pos, children: [] }, margin);
-    return otherNodes.some(otherNode => {
-      const otherBounds = getNodeBounds(otherNode, margin);
-      return boundsOverlap(testBounds, otherBounds);
-    });
-  };
-
-  const hasCollisionWithSubtree = (pos: { x: number; y: number }, excludeId: string, margin: number = 30) => {
-    const testBounds = getNodeBounds({ id: 'temp', type: 'outcome', title: '', description: '', position: pos, children: [] }, margin);
-    
-    const entries = Array.from(positionedSubtreeNodes.entries());
-    for (let i = 0; i < entries.length; i++) {
-      const [nodeId, nodePos] = entries[i];
-      if (nodeId === excludeId) continue;
-      const nodeBounds = getNodeBounds({ id: nodeId, type: 'outcome', title: '', description: '', position: nodePos, children: [] }, margin);
-      if (boundsOverlap(testBounds, nodeBounds)) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  const layoutSubtree = (nodeId: string, x: number, y: number, level: number): number => {
+  // Use the same logic as calculateVerticalLayout but for a subtree
+  const layoutedNodes: TreeNode[] = [];
+  
+  const getSubtreeWidth = (nodeId: string): number => {
     const node = nodeMap.get(nodeId);
-    if (!node) return x;
-
-    let nodeX = x;
-    let attempts = 0;
-    while ((hasCollisionWithOthers({ x: nodeX, y }) || hasCollisionWithSubtree({ x: nodeX, y }, nodeId)) && attempts < 20) {
-      nodeX += minSiblingSpacing;
-      attempts++;
-    }
-
-    const finalPosition = snapToGrid({ x: nodeX, y });
-    positionedSubtreeNodes.set(nodeId, finalPosition);
+    if (!node || node.children.length === 0) return 1;
     
-    const nodeIndex = updatedNodes.findIndex(n => n.id === nodeId);
-    if (nodeIndex !== -1) {
-      updatedNodes[nodeIndex] = {
-        ...updatedNodes[nodeIndex],
-        position: finalPosition
-      };
-      nodeMap.set(nodeId, updatedNodes[nodeIndex]);
-    }
+    const childWidths = node.children.map(childId => getSubtreeWidth(childId));
+    return Math.max(1, childWidths.reduce((sum, width) => sum + width, 0));
+  };
 
-    // Layout children vertically below
+  const layoutTree = (nodeId: string, x: number, y: number, level: number) => {
+    const node = nodeMap.get(nodeId);
+    if (!node) return;
+
+    // Position current node
+    const layoutNode: TreeNode = {
+      ...node,
+      position: { x, y }
+    };
+    layoutedNodes.push(layoutNode);
+
+    // Layout children vertically downward (same as main vertical layout)
     if (node.children.length > 0) {
       const childY = y + levelSpacing;
-      let currentChildX = nodeX;
       
-      // Calculate total width needed for all children
-      const totalChildWidth = node.children.length * minSiblingSpacing;
-      currentChildX = nodeX - totalChildWidth / 2;
+      // Calculate total width needed for all children and their subtrees
+      const totalSubtreeWidth = node.children.reduce((sum, childId) => 
+        sum + getSubtreeWidth(childId), 0);
       
-      node.children.forEach((childId) => {
-        const childFinalX = layoutSubtree(childId, currentChildX, childY, level + 1);
-        currentChildX = Math.max(currentChildX, childFinalX + minSiblingSpacing);
+      // Start position for children - center them under the parent
+      let currentX = x - ((totalSubtreeWidth - 1) * siblingSpacing) / 2;
+
+      node.children.forEach(childId => {
+        const subtreeWidth = getSubtreeWidth(childId);
+        // Position each child at the center of its allocated space
+        const childCenterX = currentX + ((subtreeWidth - 1) * siblingSpacing) / 2;
+        
+        layoutTree(childId, childCenterX, childY, level + 1);
+        currentX += subtreeWidth * siblingSpacing;
       });
     }
-
-    return nodeX;
   };
 
-  layoutSubtree(rootNodeId, rootNode.position.x, rootNode.position.y, 0);
+  // Start layout from root position
+  layoutTree(rootNodeId, rootNode.position.x, rootNode.position.y, 0);
+  
+  // Update the nodes in the original array
+  layoutedNodes.forEach(layoutedNode => {
+    const nodeIndex = updatedNodes.findIndex(n => n.id === layoutedNode.id);
+    if (nodeIndex !== -1) {
+      updatedNodes[nodeIndex] = layoutedNode;
+    }
+  });
+  
   return updatedNodes;
 }
 
