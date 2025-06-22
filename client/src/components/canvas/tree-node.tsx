@@ -505,40 +505,25 @@ const TreeNodeComponent = memo(function TreeNode({
           </div>
         )}
 
-        {/* Enhanced Collapse/Expand Button - repositioned outside card */}
-        {collapseState.hasChildren && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleCollapse?.(node.id);
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className={`collapse-btn-outside ${
-              orientation === 'horizontal' 
-                ? 'collapse-btn-outside-horizontal' 
-                : 'collapse-btn-outside-vertical'
-            }`}
-            title={collapseState.allChildrenHidden ? 'Expand all children' : 'Collapse all children'}
-          >
-            <div className="collapse-btn-bg"></div>
-            <i className={`fas ${collapseState.allChildrenHidden ? 'fa-plus' : 'fa-minus'} text-xs`}></i>
-          </button>
-        )}
+
       </div>
 
       {/* Children indicator bottom left - clickable to toggle visibility */}
       {!isEditing && (
-        <div 
+        <button 
           className={`children-indicator-bottom-left ${collapseState.hasChildren ? 'clickable' : ''}`}
-          onClick={collapseState.hasChildren ? (e) => {
+          onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onToggleCollapse?.(node.id);
-          } : undefined}
+            if (collapseState.hasChildren && onToggleCollapse) {
+              onToggleCollapse(node.id);
+            }
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          disabled={!collapseState.hasChildren}
           title={collapseState.hasChildren ? 
             (node.isCollapsed ? 'Click to show children' : 'Click to hide children') : 
             'No children'
@@ -563,7 +548,7 @@ const TreeNodeComponent = memo(function TreeNode({
               }`}></i>
             </div>
           )}
-        </div>
+        </button>
       )}
     </div>
   );
