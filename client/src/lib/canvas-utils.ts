@@ -544,9 +544,9 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     return findOptimalPosition(visibleNodes, initialPosition);
   } else {
     // Position child nodes below parent (vertical layout) - centered like horizontal
-    const cardHeight = 144;
     const cardWidth = 300;
-    const levelSpacing = cardHeight + 120; // Match new vertical spacing
+    const actualCardHeight = 180; // Actual card height including footer
+    const levelSpacing = actualCardHeight + 84; // Match new vertical spacing
     const siblingSpacing = cardWidth + 60; // Match new horizontal spacing in vertical layout
     const basePosition = {
       x: parentNode.position.x,
