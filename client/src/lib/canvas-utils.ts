@@ -843,6 +843,13 @@ function calculateSubtreeHeight(nodes: TreeNode[], nodeId: string): number {
 
 // Reorganize a subtree to maintain clean hierarchical layout with collision avoidance
 export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string, orientation: 'horizontal' | 'vertical' = 'horizontal'): TreeNode[] {
+  // Only reorganize visible nodes to save canvas space
+  const visibleNodes = getVisibleNodes(nodes);
+  const rootNodeVisible = visibleNodes.find(n => n.id === rootNodeId);
+  
+  // If the root node isn't visible, don't reorganize
+  if (!rootNodeVisible) return nodes;
+  
   if (orientation === 'horizontal') {
     return reorganizeSubtreeHorizontal(nodes, rootNodeId);
   } else {
@@ -851,8 +858,10 @@ export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string, orienta
 }
 
 function reorganizeSubtreeHorizontal(nodes: TreeNode[], rootNodeId: string): TreeNode[] {
+  // Only reorganize based on visible nodes to save canvas space
+  const visibleNodes = getVisibleNodes(nodes);
   const nodeMap = new Map<string, TreeNode>();
-  nodes.forEach(n => nodeMap.set(n.id, n));
+  visibleNodes.forEach(n => nodeMap.set(n.id, n));
   
   const rootNode = nodeMap.get(rootNodeId);
   if (!rootNode) return nodes;
@@ -860,7 +869,7 @@ function reorganizeSubtreeHorizontal(nodes: TreeNode[], rootNodeId: string): Tre
   const updatedNodes = [...nodes];
   const levelSpacing = 350; // Horizontal spacing between levels
   const siblingSpacing = 180; // Vertical spacing between siblings
-  const subtreeIds = new Set([rootNodeId, ...getAllDescendants(nodes, rootNodeId)]);
+  const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   
   // Use the same logic as calculateHorizontalLayout but for a subtree
   const layoutedNodes: TreeNode[] = [];
@@ -916,8 +925,10 @@ function reorganizeSubtreeHorizontal(nodes: TreeNode[], rootNodeId: string): Tre
 }
 
 function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeNode[] {
+  // Only reorganize based on visible nodes to save canvas space
+  const visibleNodes = getVisibleNodes(nodes);
   const nodeMap = new Map<string, TreeNode>();
-  nodes.forEach(n => nodeMap.set(n.id, n));
+  visibleNodes.forEach(n => nodeMap.set(n.id, n));
   
   const rootNode = nodeMap.get(rootNodeId);
   if (!rootNode) return nodes;
@@ -925,7 +936,7 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
   const updatedNodes = [...nodes];
   const levelSpacing = 220; // Vertical spacing between levels
   const siblingSpacing = 300; // Horizontal spacing between siblings
-  const subtreeIds = new Set([rootNodeId, ...getAllDescendants(nodes, rootNodeId)]);
+  const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   
   // Use the same logic as calculateVerticalLayout but for a subtree
   const layoutedNodes: TreeNode[] = [];
@@ -986,16 +997,19 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
 }
 
 export function getHomePosition(nodes: TreeNode[], currentOrientation: 'horizontal' | 'vertical' = 'horizontal'): { zoom: number; pan: { x: number; y: number }; orientation: 'horizontal' | 'vertical' } {
-  // If no nodes, position at top-left corner
-  if (nodes.length === 0) {
+  // Only consider visible nodes for home positioning to save canvas space
+  const visibleNodes = getVisibleNodes(nodes);
+  
+  // If no visible nodes, position at top-left corner
+  if (visibleNodes.length === 0) {
     return { zoom: 1, pan: { x: 100, y: 100 }, orientation: currentOrientation };
   }
 
-  // Find outcome nodes
-  const outcomeNodes = nodes.filter(node => node.type === 'outcome');
+  // Find outcome nodes among visible nodes
+  const outcomeNodes = visibleNodes.filter(node => node.type === 'outcome');
   
   if (outcomeNodes.length === 0) {
-    // No outcome nodes, position at top-left corner
+    // No outcome nodes, return home position using first visible node
     return { zoom: 1, pan: { x: 100, y: 100 }, orientation: currentOrientation };
   }
 
