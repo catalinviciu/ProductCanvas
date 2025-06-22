@@ -364,16 +364,22 @@ export function ImpactTreeCanvas({
                 <button
                   key={`ghost-${hiddenChildId}`}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     onToggleChildVisibility(node.id, hiddenChildId);
                   }}
-                  className={`absolute w-4 h-4 rounded-full text-xs font-bold
-                           flex items-center justify-center
-                           shadow-sm hover:shadow-md transition-all duration-200
-                           border border-white z-10 bg-gray-400 hover:bg-gray-500 text-white opacity-60`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className={`absolute w-6 h-6 rounded-full text-xs font-bold
+                           flex items-center justify-center cursor-pointer
+                           shadow-md hover:shadow-lg transition-all duration-200
+                           border-2 border-white z-20 bg-gray-400 hover:bg-gray-500 text-white`}
                   style={{
-                    left: hiddenChild.position.x + (canvasState.orientation === 'horizontal' ? -24 : 128),
-                    top: hiddenChild.position.y + (canvasState.orientation === 'horizontal' ? 80 : -24),
+                    left: hiddenChild.position.x + (canvasState.orientation === 'horizontal' ? -28 : 124),
+                    top: hiddenChild.position.y + (canvasState.orientation === 'horizontal' ? 76 : -28),
+                    pointerEvents: 'all'
                   }}
                   title={`Show ${hiddenChild.title} branch`}
                 >

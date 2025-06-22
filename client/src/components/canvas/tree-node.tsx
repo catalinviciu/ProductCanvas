@@ -436,21 +436,27 @@ export function TreeNode({
           return (
             <button
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 onToggleChildVisibility?.(node.parentId!, node.id);
               }}
-              className={`absolute w-4 h-4 rounded-full text-xs font-bold
-                       flex items-center justify-center
-                       shadow-sm hover:shadow-md transition-all duration-200
-                       border border-white z-10 ${
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className={`absolute w-6 h-6 rounded-full text-xs font-bold
+                       flex items-center justify-center cursor-pointer
+                       shadow-md hover:shadow-lg transition-all duration-200
+                       border-2 border-white z-20 ${
                          isHidden 
-                           ? 'bg-gray-400 hover:bg-gray-500 text-white opacity-60' 
+                           ? 'bg-gray-400 hover:bg-gray-500 text-white' 
                            : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                        } ${
                          orientation === 'horizontal' 
-                           ? '-left-6 top-1/2 -translate-y-1/2' 
-                           : '-top-6 left-1/2 -translate-x-1/2'
+                           ? '-left-7 top-1/2 -translate-y-1/2' 
+                           : '-top-7 left-1/2 -translate-x-1/2'
                        }`}
+              style={{ pointerEvents: 'all' }}
               title={`${isHidden ? 'Show' : 'Hide'} ${node.title} branch`}
             >
               {isHidden ? '+' : '−'}
