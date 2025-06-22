@@ -406,34 +406,34 @@ const TreeNodeComponent = memo(function TreeNode({
           }}
         />
         
-        {/* Node Header */}
-        <div className="flex items-center justify-between mb-3 flex-shrink-0">
-          <div className="flex items-center space-x-2">
+        {/* Node Header - Compact */}
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+          <div className="flex items-center space-x-1.5">
             <div 
-              className="icon-container"
+              className="icon-container-compact"
               style={{ '--accent-color': config.color } as any}
             >
-              <i className={`${config.icon} text-sm`} />
+              <i className={`${config.icon} text-xs`} />
             </div>
             <div className="flex flex-col">
               <span 
-                className="text-xs font-semibold uppercase tracking-wider"
+                className="text-xs font-medium uppercase tracking-wide"
                 style={{ color: config.color }}
               >
                 {config.label}
               </span>
               {node.type === 'assumption' && testConfig && (
-                <span className="text-xs text-gray-500 mt-0.5">
-                  {testConfig.label} Test
+                <span className="text-xs text-gray-400 -mt-0.5">
+                  {testConfig.label}
                 </span>
               )}
             </div>
           </div>
           
           {/* Action buttons container */}
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center">
             <button 
-              className="action-btn opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              className="action-btn-compact opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -447,10 +447,10 @@ const TreeNodeComponent = memo(function TreeNode({
           </div>
         </div>
 
-        {/* Node Content - Fixed layout to prevent card height extension */}
+        {/* Node Content - Compact layout */}
         <div className="flex-1 flex flex-col min-h-0">
           {isEditing ? (
-            <div className="flex flex-col space-y-2 h-full" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col space-y-1.5 h-full" onClick={(e) => e.stopPropagation()}>
               <input
                 type="text"
                 value={editTitle}
@@ -458,7 +458,7 @@ const TreeNodeComponent = memo(function TreeNode({
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => e.stopPropagation()}
                 onFocus={(e) => e.stopPropagation()}
-                className="modern-input font-semibold flex-shrink-0"
+                className="modern-input-compact font-medium flex-shrink-0"
                 placeholder="Enter title..."
                 autoFocus
               />
@@ -468,18 +468,18 @@ const TreeNodeComponent = memo(function TreeNode({
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => e.stopPropagation()}
                 onFocus={(e) => e.stopPropagation()}
-                className="modern-input text-sm resize-none flex-1 min-h-0"
+                className="modern-input-compact text-xs resize-none flex-1 min-h-0"
                 placeholder="Add description..."
                 rows={2}
               />
-              <div className="flex space-x-2 flex-shrink-0">
+              <div className="flex space-x-1.5 flex-shrink-0">
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     handleSaveEdit();
                   }}
-                  className="btn-primary"
+                  className="btn-primary-compact"
                   type="button"
                 >
                   <i className="fas fa-check text-xs mr-1"></i>
@@ -491,7 +491,7 @@ const TreeNodeComponent = memo(function TreeNode({
                     e.stopPropagation();
                     handleCancelEdit();
                   }}
-                  className="btn-secondary"
+                  className="btn-secondary-compact"
                   type="button"
                 >
                   <i className="fas fa-times text-xs mr-1"></i>
@@ -500,48 +500,48 @@ const TreeNodeComponent = memo(function TreeNode({
               </div>
             </div>
           ) : (
-            <div className="content-area flex-1 overflow-hidden" onDoubleClick={handleDoubleClick}>
-              <h3 className="node-title">{node.title}</h3>
-              <p className="node-description">{node.description}</p>
+            <div className="content-area-compact flex-1 overflow-hidden" onDoubleClick={handleDoubleClick}>
+              <h3 className="node-title-compact">{node.title}</h3>
+              <p className="node-description-compact">{node.description}</p>
             </div>
           )}
         </div>
 
-        {/* Enhanced Node Footer - Fixed at bottom */}
+        {/* Enhanced Node Footer - Compact */}
         {!isEditing && (
-          <div className="node-footer flex-shrink-0">
-            <div className="flex items-center space-x-2">
-              <div className="children-indicator">
-                <div className={`children-badge ${
+          <div className="node-footer-compact flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="children-indicator-compact">
+                <div className={`children-badge-compact ${
                   collapseState.hasChildren ? 
                     (node.isCollapsed ? 'collapsed' : 'expanded') 
                     : 'empty'
                 }`}>
-                  <span className="children-count">{node.children.length}</span>
+                  <span className="children-count-compact">{node.children.length}</span>
                 </div>
-                <span className="children-label">
+                <span className="children-label-compact">
                   {node.children.length === 1 ? 'child' : 'children'}
                   {node.isCollapsed && collapseState.hasChildren && ' (hidden)'}
                 </span>
+                
+                {collapseState.hasChildren && (
+                  <div className="status-icon-compact ml-1" title={
+                    node.isCollapsed ? 'Children are hidden - click + to expand' : 'Moving this card will reorganize all children'
+                  }>
+                    <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
+                      node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
+                    }`}></i>
+                  </div>
+                )}
               </div>
               
-              {collapseState.hasChildren && (
-                <div className="status-icon" title={
-                  node.isCollapsed ? 'Children are hidden - click + to expand' : 'Moving this card will reorganize all children'
-                }>
-                  <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
-                    node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
-                  }`}></i>
+              {node.type === 'assumption' && testConfig && (
+                <div className="test-category-badge-compact">
+                  <i className={`${testConfig.icon} text-xs mr-1`} />
+                  <span>{testConfig.label}</span>
                 </div>
               )}
             </div>
-            
-            {node.type === 'assumption' && testConfig && (
-              <div className="test-category-badge">
-                <i className={`${testConfig.icon} text-xs mr-1`} />
-                <span>{testConfig.label}</span>
-              </div>
-            )}
           </div>
         )}
 
