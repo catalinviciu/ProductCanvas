@@ -91,6 +91,7 @@ export default function CanvasPage() {
           onContextMenu={handleContextMenu}
           onNodeCreate={handleNodeCreate}
           onNodeReattach={handleNodeReattach}
+          onToggleCollapse={handleToggleCollapse}
           onResetToHome={resetToHome}
         />
       </main>
@@ -110,6 +111,7 @@ export default function CanvasPage() {
         onEdit={openEditModal}
         onDelete={handleNodeDelete}
         onAddChild={handleAddChildFromContext}
+        onToggleCollapse={handleToggleCollapse}
       />
     </div>
   );

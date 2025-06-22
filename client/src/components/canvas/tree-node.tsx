@@ -353,19 +353,28 @@ export function TreeNode({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                node.children.length > 0 ? 'bg-blue-100 border border-blue-200' : 'bg-gray-100'
+                node.children.length > 0 ? 
+                  (node.isCollapsed ? 'bg-purple-100 border border-purple-200' : 'bg-blue-100 border border-blue-200') 
+                  : 'bg-gray-100'
               }`}>
                 <span className={`text-xs ${
-                  node.children.length > 0 ? 'text-blue-600 font-medium' : 'text-gray-600'
+                  node.children.length > 0 ? 
+                    (node.isCollapsed ? 'text-purple-600 font-medium' : 'text-blue-600 font-medium')
+                    : 'text-gray-600'
                 }`}>
                   {node.children.length}
                 </span>
               </div>
               <span className="text-xs text-gray-500">
                 {node.children.length === 1 ? 'child' : 'children'}
+                {node.isCollapsed && node.children.length > 0 && ' (hidden)'}
               </span>
               {node.children.length > 0 && (
-                <i className="fas fa-sitemap text-xs text-blue-500" title="Moving this card will reorganize all children"></i>
+                <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
+                  node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
+                }`} title={
+                  node.isCollapsed ? 'Children are hidden - click + to expand' : 'Moving this card will reorganize all children'
+                }></i>
               )}
             </div>
             

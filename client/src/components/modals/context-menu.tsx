@@ -9,6 +9,7 @@ interface ContextMenuProps {
   onEdit: (node: TreeNode) => void;
   onDelete: (nodeId: string) => void;
   onAddChild: (type: NodeType, testCategory?: TestCategory) => void;
+  onToggleCollapse?: (nodeId: string) => void;
 }
 
 export function ContextMenu({
@@ -19,6 +20,7 @@ export function ContextMenu({
   onEdit,
   onDelete,
   onAddChild,
+  onToggleCollapse,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showTestCategories, setShowTestCategories] = useState(false);
@@ -180,6 +182,27 @@ export function ContextMenu({
       </div>
       
       <div className="border-t border-gray-100 my-1"></div>
+      
+      {/* Collapse/Expand Option */}
+      {node && node.children.length > 0 && onToggleCollapse && (
+        <button 
+          onClick={() => {
+            onToggleCollapse(node.id);
+            onClose();
+          }}
+          className="w-full px-4 py-2 text-sm text-left hover:bg-purple-50 transition-colors flex items-center"
+        >
+          <i className={`fas ${node.isCollapsed ? 'fa-expand' : 'fa-compress'} mr-2 text-purple-600`}></i>
+          <div>
+            <div className="font-medium text-purple-600">
+              {node.isCollapsed ? 'Expand Branch' : 'Collapse Branch'}
+            </div>
+            <div className="text-xs text-gray-500">
+              {node.isCollapsed ? 'Show child cards' : 'Hide child cards'}
+            </div>
+          </div>
+        </button>
+      )}
       
       <button 
         onClick={() => {
