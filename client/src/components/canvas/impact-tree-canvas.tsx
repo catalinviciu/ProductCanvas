@@ -14,7 +14,7 @@ interface ImpactTreeCanvasProps {
   onNodeDelete: (nodeId: string) => void;
   onCanvasUpdate: (updates: Partial<CanvasState>) => void;
   onContextMenu: (node: TreeNodeType, position: { x: number; y: number }) => void;
-  onNodeCreate: (type: NodeType, testCategory?: TestCategory, parentNode?: TreeNodeType) => void;
+  onNodeCreate: (type: NodeType, testCategory?: TestCategory, parentNode?: TreeNodeType, customPosition?: { x: number; y: number }) => void;
 }
 
 export function ImpactTreeCanvas({
@@ -57,11 +57,10 @@ export function ImpactTreeCanvas({
     e.preventDefault();
     e.stopPropagation();
     
-    // Check if right-clicking on a node (has node-created class or is inside a TreeNode)
+    // Check if right-clicking on a tree node
     const target = e.target as HTMLElement;
-    const isOnNode = target.closest('.node-created') || 
-                     target.closest('[data-node-id]') ||
-                     target.closest('.absolute');
+    const isOnNode = target.closest('.tree-node-container') || 
+                     target.closest('.node-created');
     
     // Only show canvas context menu if NOT clicking on a node
     if (!isOnNode) {
@@ -76,9 +75,26 @@ export function ImpactTreeCanvas({
     if (canvasContextMenu) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (rect) {
-        const x = (canvasContextMenu.position.x - rect.left - canvasState.pan.x) / canvasState.zoom;
-        const y = (canvasContextMenu.position.y - rect.top - canvasState.pan.y) / canvasState.zoom;
-        onNodeCreate(type, testCategory);
+        // Calculate the world position where the node should be created
+        const screenX = canvasContextMenu.position.x - rect.left;
+        const screenY = canvasContextMenu.position.y - rect.top;
+        
+        // Transform screen coordinates to world coordinates
+        const worldX = (screenX - canvasState.pan.x) / canvasState.zoom;
+        const worldY = (screenY - canvasState.pan.y) / canvasState.zoom;
+        
+        // Create a temporary node with the calculated position for the onNodeCreate callback
+        const tempNode = {
+          id: 'temp',
+          type,
+          title: '',
+          description: '',
+          position: { x: worldX, y: worldY },
+          children: [],
+          testCategory
+        };
+        
+        onNodeCreate(type, testCategory, tempNode);
       }
     }
     setCanvasContextMenu(null);

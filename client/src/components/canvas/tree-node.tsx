@@ -184,7 +184,7 @@ export function TreeNode({
 
   return (
     <div
-      className={`absolute w-64 hover:shadow-lg transition-all ${
+      className={`absolute w-64 hover:shadow-lg transition-all tree-node-container ${
         config.className
       } ${isSelected ? 'ring-2 ring-blue-400' : ''} ${isDragging ? 'dragging' : ''} ${
         isEditing ? 'z-50' : ''

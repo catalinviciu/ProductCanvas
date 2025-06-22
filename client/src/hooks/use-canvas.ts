@@ -70,13 +70,13 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     });
   }, [nodes, connections, canvasState, updateTreeMutation, impactTree?.id]);
 
-  const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode) => {
+  const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
     const nodeId = generateNodeId(type);
     
-    // Calculate position - if no parent, place at center, otherwise offset from parent
-    const position = parentNode 
+    // Calculate position - use custom position if provided, otherwise use parent/default logic
+    const position = customPosition || (parentNode 
       ? { x: parentNode.position.x + 300, y: parentNode.position.y + 100 }
-      : { x: 200, y: 200 };
+      : { x: 200, y: 200 });
 
     const newNode = createNode(nodeId, type, position, testCategory, parentNode?.id);
     const updatedNodes = [...nodes, newNode];
