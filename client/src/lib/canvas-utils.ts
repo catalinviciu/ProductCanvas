@@ -265,50 +265,115 @@ export function snapToGrid(position: { x: number; y: number }, gridSize: number 
   };
 }
 
-// Check for overlapping nodes and adjust positions
+// Optimized collision detection using spatial hashing for better performance
+const COLLISION_GRID_SIZE = 300;
+
+interface SpatialGrid {
+  [key: string]: TreeNode[];
+}
+
+function createSpatialGrid(nodes: TreeNode[]): SpatialGrid {
+  const grid: SpatialGrid = {};
+  
+  nodes.forEach(node => {
+    const bounds = getNodeBounds(node, 20);
+    const startX = Math.floor(bounds.x / COLLISION_GRID_SIZE);
+    const startY = Math.floor(bounds.y / COLLISION_GRID_SIZE);
+    const endX = Math.floor((bounds.x + bounds.width) / COLLISION_GRID_SIZE);
+    const endY = Math.floor((bounds.y + bounds.height) / COLLISION_GRID_SIZE);
+    
+    for (let x = startX; x <= endX; x++) {
+      for (let y = startY; y <= endY; y++) {
+        const key = `${x},${y}`;
+        if (!grid[key]) grid[key] = [];
+        grid[key].push(node);
+      }
+    }
+  });
+  
+  return grid;
+}
+
+function getNearbyNodes(grid: SpatialGrid, position: { x: number; y: number }, width: number = 256, height: number = 160): TreeNode[] {
+  const startX = Math.floor((position.x - 20) / COLLISION_GRID_SIZE);
+  const startY = Math.floor((position.y - 20) / COLLISION_GRID_SIZE);
+  const endX = Math.floor((position.x + width + 20) / COLLISION_GRID_SIZE);
+  const endY = Math.floor((position.y + height + 20) / COLLISION_GRID_SIZE);
+  
+  const nearbyNodes = new Set<TreeNode>();
+  
+  for (let x = startX; x <= endX; x++) {
+    for (let y = startY; y <= endY; y++) {
+      const key = `${x},${y}`;
+      if (grid[key]) {
+        grid[key].forEach(node => nearbyNodes.add(node));
+      }
+    }
+  }
+  
+  return Array.from(nearbyNodes);
+}
+
+// Optimized overlap prevention with spatial partitioning
 export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosition: { x: number; y: number }): { x: number; y: number } {
   const padding = 40;
+  const spatialGrid = createSpatialGrid(nodes.filter(n => n.id !== targetNode.id));
   
   let adjustedPosition = { ...newPosition };
   let attempts = 0;
-  const maxAttempts = 50;
-
+  const maxAttempts = 20; // Reduced attempts for better performance
+  
   while (attempts < maxAttempts) {
+    const nearbyNodes = getNearbyNodes(spatialGrid, adjustedPosition);
     let hasOverlap = false;
-
-    for (const node of nodes) {
-      if (node.id === targetNode.id) continue;
-
-      // Use bounding box collision detection
-      const targetBounds = getNodeBounds({ ...targetNode, position: adjustedPosition }, padding / 2);
+    let bestDirection = { x: 0, y: 0 };
+    let minOverlap = Infinity;
+    
+    const targetBounds = getNodeBounds({ ...targetNode, position: adjustedPosition }, padding / 2);
+    
+    for (const node of nearbyNodes) {
       const nodeBounds = getNodeBounds(node, padding / 2);
       
       if (boundsOverlap(targetBounds, nodeBounds)) {
         hasOverlap = true;
         
-        // Calculate direction to move away from the overlapping node
-        const centerDistance = {
-          x: adjustedPosition.x - node.position.x,
-          y: adjustedPosition.y - node.position.y
-        };
+        // Calculate overlap amount for better direction calculation
+        const overlapX = Math.min(targetBounds.x + targetBounds.width, nodeBounds.x + nodeBounds.width) - 
+                        Math.max(targetBounds.x, nodeBounds.x);
+        const overlapY = Math.min(targetBounds.y + targetBounds.height, nodeBounds.y + nodeBounds.height) - 
+                        Math.max(targetBounds.y, nodeBounds.y);
+        const overlapArea = Math.max(0, overlapX) * Math.max(0, overlapY);
         
-        // Normalize the direction and apply a minimum push distance
-        const distance = Math.sqrt(centerDistance.x * centerDistance.x + centerDistance.y * centerDistance.y);
-        const pushDistance = 320; // Node width + padding
-        
-        if (distance > 0) {
-          adjustedPosition.x += (centerDistance.x / distance) * pushDistance;
-          adjustedPosition.y += (centerDistance.y / distance) * pushDistance;
-        } else {
-          // If nodes are at exact same position, push in a default direction
-          adjustedPosition.x += pushDistance;
-          adjustedPosition.y += pushDistance * 0.5;
+        if (overlapArea < minOverlap) {
+          minOverlap = overlapArea;
+          
+          // Calculate optimal direction to minimize movement
+          const centerDistance = {
+            x: adjustedPosition.x - node.position.x,
+            y: adjustedPosition.y - node.position.y
+          };
+          
+          const distance = Math.sqrt(centerDistance.x * centerDistance.x + centerDistance.y * centerDistance.y);
+          
+          if (distance > 0) {
+            bestDirection = {
+              x: (centerDistance.x / distance),
+              y: (centerDistance.y / distance)
+            };
+          } else {
+            bestDirection = { x: 1, y: 0.5 };
+          }
         }
-        break;
       }
     }
-
+    
     if (!hasOverlap) break;
+    
+    // Apply calculated movement with reduced distance for smoother positioning
+    const pushDistance = 280;
+    adjustedPosition.x += bestDirection.x * pushDistance;
+    adjustedPosition.y += bestDirection.y * pushDistance;
+    
     attempts++;
   }
 
@@ -368,14 +433,17 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
   }
 }
 
-// Find optimal position using the same collision detection logic as drag operations
+// Optimized position finding using spatial grid
 export function findOptimalPosition(
   nodes: TreeNode[], 
   preferredPosition: { x: number; y: number },
   margin: number = 50
 ): { x: number; y: number } {
-  // Check if preferred position has collisions with any existing nodes or their subtrees
+  const spatialGrid = createSpatialGrid(nodes);
+  
+  // Quick collision check using spatial grid
   const hasCollisionAtPosition = (pos: { x: number; y: number }) => {
+    const nearbyNodes = getNearbyNodes(spatialGrid, pos, 256, 160);
     const testBounds = getNodeBounds({ 
       id: 'temp', 
       type: 'outcome', 
@@ -385,7 +453,7 @@ export function findOptimalPosition(
       children: [] 
     }, margin);
     
-    return nodes.some(node => {
+    return nearbyNodes.some(node => {
       const nodeBounds = getNodeBounds(node, margin);
       return boundsOverlap(testBounds, nodeBounds);
     });
@@ -396,24 +464,29 @@ export function findOptimalPosition(
     return snapToGrid(preferredPosition);
   }
 
-  // Use expanding search pattern to find collision-free position
-  const searchRadius = 80;
-  const step = 40;
+  // Optimized search with reduced iterations
+  const searchRadius = 100;
+  const step = 50;
   
-  for (let radius = step; radius <= searchRadius * 4; radius += step) {
-    // Try positions in expanding circles, prioritizing horizontal and vertical directions
-    const angles = [
-      0,              // Right
-      Math.PI/2,      // Down
-      Math.PI,        // Left
-      3*Math.PI/2,    // Up
-      Math.PI/4,      // Down-right
-      3*Math.PI/4,    // Down-left
-      5*Math.PI/4,    // Up-left
-      7*Math.PI/4     // Up-right
-    ];
+  // Prioritize cardinal directions for better tree layouts
+  const priorityAngles = [0, Math.PI, Math.PI/2, 3*Math.PI/2];
+  const secondaryAngles = [Math.PI/4, 3*Math.PI/4, 5*Math.PI/4, 7*Math.PI/4];
+  
+  for (let radius = step; radius <= searchRadius * 3; radius += step) {
+    // Try priority directions first
+    for (const angle of priorityAngles) {
+      const testPos = {
+        x: preferredPosition.x + Math.cos(angle) * radius,
+        y: preferredPosition.y + Math.sin(angle) * radius
+      };
+      
+      if (!hasCollisionAtPosition(testPos)) {
+        return snapToGrid(testPos);
+      }
+    }
     
-    for (const angle of angles) {
+    // Then try diagonal positions
+    for (const angle of secondaryAngles) {
       const testPos = {
         x: preferredPosition.x + Math.cos(angle) * radius,
         y: preferredPosition.y + Math.sin(angle) * radius
@@ -425,16 +498,25 @@ export function findOptimalPosition(
     }
   }
   
-  // If still no position found, use fallback positioning
-  const fallbackPos = {
-    x: preferredPosition.x + 400,
-    y: preferredPosition.y + 200
-  };
+  // Enhanced fallback with multiple options
+  const fallbackPositions = [
+    { x: preferredPosition.x + 400, y: preferredPosition.y },
+    { x: preferredPosition.x, y: preferredPosition.y + 400 },
+    { x: preferredPosition.x - 400, y: preferredPosition.y },
+    { x: preferredPosition.x, y: preferredPosition.y - 400 },
+  ];
   
-  return snapToGrid(hasCollisionAtPosition(fallbackPos) ? 
-    { x: preferredPosition.x, y: preferredPosition.y + 400 } : 
-    fallbackPos
-  );
+  for (const fallbackPos of fallbackPositions) {
+    if (!hasCollisionAtPosition(fallbackPos)) {
+      return snapToGrid(fallbackPos);
+    }
+  }
+  
+  // Final fallback - move far away
+  return snapToGrid({ 
+    x: preferredPosition.x + 600, 
+    y: preferredPosition.y + 300 
+  });
 }
 
 // Get all descendants of a node recursively
@@ -475,7 +557,7 @@ export function boundsOverlap(bounds1: { x: number; y: number; width: number; he
            bounds2.y + bounds2.height <= bounds1.y);
 }
 
-// Find a collision-free position for moving a subtree
+// Optimized collision-free position finding for subtree movement
 export function findCollisionFreePosition(
   nodes: TreeNode[],
   movingNodeId: string,
@@ -490,11 +572,15 @@ export function findCollisionFreePosition(
   // Get all nodes in the moving subtree
   const descendantIds = getAllDescendants(nodes, movingNodeId);
   const subtreeIds = new Set([movingNodeId, ...descendantIds]);
+  const otherNodes = nodes.filter(node => !subtreeIds.has(node.id));
   
-  // Calculate the subtree bounds when moved to target position
-  const deltaX = targetPosition.x - movingNode.position.x;
-  const deltaY = targetPosition.y - movingNode.position.y;
+  // Early exit if no other nodes to collide with
+  if (otherNodes.length === 0) return snapToGrid(targetPosition);
   
+  // Create spatial grid for non-moving nodes only
+  const spatialGrid = createSpatialGrid(otherNodes);
+  
+  // Calculate subtree bounds more efficiently
   const getSubtreeBounds = (pos: { x: number; y: number }) => {
     const adjustedDeltaX = pos.x - movingNode.position.x;
     const adjustedDeltaY = pos.y - movingNode.position.y;
@@ -518,14 +604,12 @@ export function findCollisionFreePosition(
     return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
   };
   
-  // Get all other nodes (not in the moving subtree)
-  const otherNodes = nodes.filter(node => !subtreeIds.has(node.id));
-  
-  // Check if position causes collisions
+  // Optimized collision detection using spatial grid
   const hasCollision = (pos: { x: number; y: number }) => {
     const subtreeBounds = getSubtreeBounds(pos);
+    const nearbyNodes = getNearbyNodes(spatialGrid, pos, subtreeBounds.width, subtreeBounds.height);
     
-    return otherNodes.some(otherNode => {
+    return nearbyNodes.some(otherNode => {
       const otherBounds = getNodeBounds(otherNode, 30);
       return boundsOverlap(subtreeBounds, otherBounds);
     });
