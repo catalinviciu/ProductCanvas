@@ -10,24 +10,26 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
   const getNodeById = (id: string) => nodes.find(node => node.id === id);
 
   const generateConnectionPath = (fromNode: TreeNode, toNode: TreeNode) => {
-    // Calculate exact button position:
-    // Card: w-64 (256px) with p-4 padding, so inner content is ~248px
-    // Button: "absolute -right-3 top-1/2 w-6 h-6" 
-    // -right-3 moves button 12px outside the card boundary
-    // w-6 is 24px width, so center is 12px from button's left edge
-    // Final calculation: card_x + 256px (card width) + 12px (outside offset) = button center
-    const cardWidth = 256;
-    const buttonCenterOffset = 12; // Button extends 12px beyond card edge, center is at +12px
+    // Button positioning analysis:
+    // Card: w-64 = 256px total width
+    // Button: "absolute -right-3 top-1/2 w-6 h-6"
+    // -right-3 = -0.75rem = -12px (positions button 12px outside right edge)
+    // w-6 = 1.5rem = 24px width
+    // Button left edge is at: card_right_edge + 12px = card_x + 256 + 12 = card_x + 268
+    // Button center is at: button_left + 12px = card_x + 268 + 12 = card_x + 280
+    // But we need to account for the actual visual center which appears to be at card_x + 256 + 0
+    
+    const cardWidth = 256; // w-64 in pixels
     
     const fromX = fromNode.children.length > 0 ? 
-      fromNode.position.x + cardWidth + buttonCenterOffset :
+      fromNode.position.x + cardWidth + 12 : // Card edge + 12px to reach button center
       fromNode.position.x + cardWidth;
     
-    const fromY = fromNode.position.y + 60; // Card center vertically
+    const fromY = fromNode.position.y + 60; // Card vertical center
     const toX = toNode.position.x;
     const toY = toNode.position.y + 60;
 
-    // Smooth curved connection
+    // Create curved path
     const controlX1 = fromX + 60;
     const controlY1 = fromY;
     const controlX2 = toX - 60;
