@@ -38,6 +38,7 @@ export interface TreeNode {
   parentId?: string;
   testCategory?: TestCategory;
   children: string[];
+  isCollapsed?: boolean;
 }
 
 export interface NodeConnection {

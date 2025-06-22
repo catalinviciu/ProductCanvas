@@ -40,6 +40,7 @@ export function createNode(
     parentId,
     testCategory,
     children: [],
+    isCollapsed: false,
   };
 }
 
@@ -117,6 +118,55 @@ export function calculateNodeLayout(nodes: TreeNode[]): TreeNode[] {
   });
 
   return layoutNodes;
+}
+
+// Get visible nodes (excluding collapsed subtrees)
+export function getVisibleNodes(nodes: TreeNode[]): TreeNode[] {
+  const nodeMap = new Map<string, TreeNode>();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const visibleNodes: TreeNode[] = [];
+  const visitedNodes = new Set<string>();
+  
+  // Start with root nodes
+  const rootNodes = nodes.filter(n => !n.parentId);
+  
+  const traverseVisible = (nodeId: string) => {
+    if (visitedNodes.has(nodeId)) return;
+    visitedNodes.add(nodeId);
+    
+    const node = nodeMap.get(nodeId);
+    if (!node) return;
+    
+    visibleNodes.push(node);
+    
+    // Only traverse children if node is not collapsed
+    if (!node.isCollapsed && node.children.length > 0) {
+      node.children.forEach(childId => traverseVisible(childId));
+    }
+  };
+  
+  rootNodes.forEach(root => traverseVisible(root.id));
+  return visibleNodes;
+}
+
+// Get visible connections (only between visible nodes)
+export function getVisibleConnections(nodes: TreeNode[], connections: NodeConnection[]): NodeConnection[] {
+  const visibleNodes = getVisibleNodes(nodes);
+  const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+  
+  return connections.filter(conn => 
+    visibleNodeIds.has(conn.fromNodeId) && visibleNodeIds.has(conn.toNodeId)
+  );
+}
+
+// Toggle collapse state of a node
+export function toggleNodeCollapse(nodes: TreeNode[], nodeId: string): TreeNode[] {
+  return nodes.map(node => 
+    node.id === nodeId 
+      ? { ...node, isCollapsed: !node.isCollapsed }
+      : node
+  );
 }
 
 // Snap position to grid for clean alignment

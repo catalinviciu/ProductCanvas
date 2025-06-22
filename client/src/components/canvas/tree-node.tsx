@@ -10,6 +10,7 @@ interface TreeNodeProps {
   onDrag: (nodeId: string, position: { x: number; y: number }) => void;
   onContextMenu: (position: { x: number; y: number }) => void;
   onReattach?: (nodeId: string, newParentId: string | null) => void;
+  onToggleCollapse?: (nodeId: string) => void;
   isDropTarget?: boolean;
   isDraggedOver?: boolean;
 }
@@ -83,6 +84,7 @@ export function TreeNode({
   onDrag,
   onContextMenu,
   onReattach,
+  onToggleCollapse,
   isDropTarget = false,
   isDraggedOver = false,
 }: TreeNodeProps) {
@@ -391,6 +393,24 @@ export function TreeNode({
               <i className="fas fa-ellipsis-h text-gray-400 text-xs"></i>
             </button>
           </div>
+        )}
+
+        {/* Collapse/Expand Button */}
+        {node.children.length > 0 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse?.(node.id);
+            }}
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 
+                     bg-blue-500 hover:bg-blue-600 text-white rounded-full 
+                     flex items-center justify-center text-xs font-bold
+                     shadow-md hover:shadow-lg transition-all duration-200
+                     border-2 border-white z-10"
+            title={node.isCollapsed ? 'Expand children' : 'Collapse children'}
+          >
+            {node.isCollapsed ? '+' : '−'}
+          </button>
         )}
       </div>
     </div>

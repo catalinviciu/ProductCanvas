@@ -16,6 +16,7 @@ interface ImpactTreeCanvasProps {
   onContextMenu: (node: TreeNodeType, position: { x: number; y: number }) => void;
   onNodeCreate: (type: NodeType, testCategory?: TestCategory, parentNode?: TreeNodeType, customPosition?: { x: number; y: number }) => void;
   onNodeReattach: (nodeId: string, newParentId: string | null) => void;
+  onToggleCollapse: (nodeId: string) => void;
   onResetToHome: () => void;
 }
 
@@ -31,6 +32,7 @@ export function ImpactTreeCanvas({
   onContextMenu,
   onNodeCreate,
   onNodeReattach,
+  onToggleCollapse,
   onResetToHome,
 }: ImpactTreeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
