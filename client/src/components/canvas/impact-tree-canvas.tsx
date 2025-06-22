@@ -325,6 +325,7 @@ export function ImpactTreeCanvas({
             connections={visibleConnections}
             nodes={visibleNodes}
             zoom={canvasState.zoom}
+            orientation={canvasState.orientation}
           />
 
           {/* Tree Nodes */}

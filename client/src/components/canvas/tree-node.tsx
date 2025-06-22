@@ -13,6 +13,7 @@ interface TreeNodeProps {
   onToggleCollapse?: (nodeId: string) => void;
   isDropTarget?: boolean;
   isDraggedOver?: boolean;
+  orientation?: 'horizontal' | 'vertical';
 }
 
 const nodeTypeConfig = {
@@ -87,6 +88,7 @@ export function TreeNode({
   onToggleCollapse,
   isDropTarget = false,
   isDraggedOver = false,
+  orientation = 'horizontal',
 }: TreeNodeProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -411,11 +413,15 @@ export function TreeNode({
               e.stopPropagation();
               onToggleCollapse?.(node.id);
             }}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 
+            className={`absolute w-6 h-6 
                      bg-blue-500 hover:bg-blue-600 text-white rounded-full 
                      flex items-center justify-center text-xs font-bold
                      shadow-md hover:shadow-lg transition-all duration-200
-                     border-2 border-white z-10"
+                     border-2 border-white z-10 ${
+                       orientation === 'horizontal' 
+                         ? '-right-3 top-1/2 -translate-y-1/2' 
+                         : '-bottom-3 left-1/2 -translate-x-1/2'
+                     }`}
             title={node.isCollapsed ? 'Expand children' : 'Collapse children'}
           >
             {node.isCollapsed ? '+' : '−'}

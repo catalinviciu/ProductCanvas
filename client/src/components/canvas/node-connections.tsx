@@ -4,41 +4,49 @@ interface NodeConnectionsProps {
   connections: NodeConnection[];
   nodes: TreeNode[];
   zoom: number;
+  orientation?: 'horizontal' | 'vertical';
 }
 
-export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsProps) {
+export function NodeConnections({ connections, nodes, zoom, orientation = 'horizontal' }: NodeConnectionsProps) {
   const getNodeById = (id: string) => nodes.find(node => node.id === id);
 
   const generateConnectionPath = (fromNode: TreeNode, toNode: TreeNode) => {
-    // Calculate exact button center position:
-    // Button CSS: "absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6"
-    // -right-3 = -12px from card's right edge
-    // w-6 h-6 = 24px width/height
-    // Button center is at: card_right_edge + (-12px + 12px) = card_right_edge + 0px
-    
     const cardWidth = 256; // w-64 = 256px
     const nodeHeight = 120; // Approximate node height based on padding and content
     
-    // For nodes with children, start from collapse/expand button center
-    // For nodes without children, start from card's right edge
-    const fromX = fromNode.children.length > 0 ? 
-      fromNode.position.x + cardWidth : // Button center is exactly at card's right edge
-      fromNode.position.x + cardWidth; // Card edge for nodes without children
-    
-    // Button is positioned at top-1/2 (vertical center of card)
-    const fromY = fromNode.position.y + (nodeHeight / 2);
-    
-    // End at left edge of target node, vertically centered
-    const toX = toNode.position.x;
-    const toY = toNode.position.y + (nodeHeight / 2);
+    if (orientation === 'horizontal') {
+      // Horizontal layout: connections go from right to left
+      const fromX = fromNode.children.length > 0 ? 
+        fromNode.position.x + cardWidth : 
+        fromNode.position.x + cardWidth;
+      const fromY = fromNode.position.y + (nodeHeight / 2);
+      
+      const toX = toNode.position.x;
+      const toY = toNode.position.y + (nodeHeight / 2);
 
-    // Create smooth curved path
-    const controlX1 = fromX + 50;
-    const controlY1 = fromY;
-    const controlX2 = toX - 50;
-    const controlY2 = toY;
+      const controlX1 = fromX + 50;
+      const controlY1 = fromY;
+      const controlX2 = toX - 50;
+      const controlY2 = toY;
 
-    return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
+      return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
+    } else {
+      // Vertical layout: connections go from bottom to top
+      const fromX = fromNode.position.x + (cardWidth / 2);
+      const fromY = fromNode.children.length > 0 ? 
+        fromNode.position.y + nodeHeight : 
+        fromNode.position.y + nodeHeight;
+      
+      const toX = toNode.position.x + (cardWidth / 2);
+      const toY = toNode.position.y;
+
+      const controlX1 = fromX;
+      const controlY1 = fromY + 50;
+      const controlX2 = toX;
+      const controlY2 = toY - 50;
+
+      return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
+    }
   };
 
   if (!connections.length) return null;
