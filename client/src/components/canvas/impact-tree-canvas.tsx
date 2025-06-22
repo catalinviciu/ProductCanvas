@@ -75,8 +75,10 @@ export function ImpactTreeCanvas({
   }, [nodes, onNodeUpdate]);
 
   const canvasStyle = {
-    transform: `scale(${canvasState.zoom}) translate(${canvasState.pan.x}px, ${canvasState.pan.y}px)`,
+    transform: `translate(${canvasState.pan.x}px, ${canvasState.pan.y}px) scale(${canvasState.zoom})`,
     transformOrigin: '0 0',
+    width: '200%',
+    height: '200%',
   };
 
   return (
