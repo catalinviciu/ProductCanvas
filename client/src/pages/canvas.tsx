@@ -33,6 +33,7 @@ export default function CanvasPage() {
     handleAddChildFromContext,
     handleNodeReattach,
     handleToggleCollapse,
+    handleToggleChildVisibility,
     handleAutoLayout,
     handleOrientationToggle,
     closeContextMenu,
@@ -96,6 +97,7 @@ export default function CanvasPage() {
           onNodeCreate={handleNodeCreate}
           onNodeReattach={handleNodeReattach}
           onToggleCollapse={handleToggleCollapse}
+          onToggleChildVisibility={handleToggleChildVisibility}
           onResetToHome={resetToHome}
         />
       </main>
