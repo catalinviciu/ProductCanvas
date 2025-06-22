@@ -163,9 +163,9 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
 
   const layoutNodes: TreeNode[] = [];
   const nodeWidth = 280; // Card width + margin
-  const nodeHeight = 200; // Card height + margin (increased for vertical)
-  const levelSpacing = 220; // Vertical spacing between levels
-  const siblingSpacing = 300; // Horizontal spacing between siblings
+  const nodeHeight = 180; // Card height + margin 
+  const levelSpacing = 200; // Vertical spacing between levels
+  const siblingSpacing = 320; // Horizontal spacing between siblings (increased for better alignment)
 
   // Build tree structure to calculate subtree widths for vertical layout
   // Only consider visible (non-hidden) children for width calculation
@@ -1052,6 +1052,11 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
   });
   
   return updatedNodes;
+}
+
+// Auto-layout entire tree after drag-and-drop operations
+export function autoLayoutAfterDrop(nodes: TreeNode[], orientation: 'horizontal' | 'vertical' = 'horizontal'): TreeNode[] {
+  return calculateNodeLayout(nodes, orientation);
 }
 
 export function getHomePosition(nodes: TreeNode[], currentOrientation: 'horizontal' | 'vertical' = 'horizontal'): { zoom: number; pan: { x: number; y: number }; orientation: 'horizontal' | 'vertical' } {
