@@ -35,6 +35,7 @@ export function ImpactTreeCanvas({
   const [isPanning, setIsPanning] = useState(false);
   const [isPanMode, setIsPanMode] = useState(false);
   const [canvasContextMenu, setCanvasContextMenu] = useState<{isOpen: boolean, position: {x: number, y: number}} | null>(null);
+  const [miniMapDragging, setMiniMapDragging] = useState(false);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Close canvas context menu on any click
@@ -83,6 +84,40 @@ export function ImpactTreeCanvas({
     setCanvasContextMenu(null);
   }, [canvasContextMenu, canvasState, onNodeCreate]);
 
+  const handleMiniMapClick = useCallback((e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Convert minimap coordinates to canvas coordinates
+    const canvasX = (x / rect.width) * 1400 - 700; // Center the view
+    const canvasY = (y / rect.height) * 800 - 400;
+    
+    onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
+  }, [onCanvasUpdate]);
+
+  const handleMiniMapMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleMiniMapClick(e);
+    }
+    setMiniMapDragging(true);
+    e.preventDefault();
+  }, [handleMiniMapClick]);
+
+  const handleMiniMapMouseMove = useCallback((e: React.MouseEvent) => {
+    if (miniMapDragging) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Convert minimap coordinates to canvas coordinates
+      const canvasX = (x / rect.width) * 1400 - 700;
+      const canvasY = (y / rect.height) * 800 - 400;
+      
+      onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
+    }
+  }, [miniMapDragging, onCanvasUpdate]);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
       const newPan = {
@@ -96,6 +131,7 @@ export function ImpactTreeCanvas({
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
     setIsDragging(false);
+    setMiniMapDragging(false);
   }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -111,6 +147,44 @@ export function ImpactTreeCanvas({
       onNodeUpdate({ ...node, position: newPosition });
     }
   }, [nodes, onNodeUpdate]);
+
+  // Global mouse event handlers for mini map dragging
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (miniMapDragging) {
+        const miniMapElement = document.querySelector('.mini-map');
+        if (miniMapElement) {
+          const rect = miniMapElement.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          // Clamp coordinates within mini map bounds
+          const clampedX = Math.max(0, Math.min(rect.width, x));
+          const clampedY = Math.max(0, Math.min(rect.height, y));
+          
+          // Convert minimap coordinates to canvas coordinates with better centering
+          const canvasX = (clampedX / rect.width) * 1400 - 700;
+          const canvasY = (clampedY / rect.height) * 800 - 400;
+          
+          onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
+        }
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setMiniMapDragging(false);
+    };
+
+    if (miniMapDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
+    }
+  }, [miniMapDragging, onCanvasUpdate]);
 
   const canvasStyle = {
     transform: `translate(${canvasState.pan.x}px, ${canvasState.pan.y}px) scale(${canvasState.zoom})`,
@@ -208,27 +282,24 @@ export function ImpactTreeCanvas({
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 w-32 h-24">
           <div className="text-xs text-gray-500 mb-2">Mini Map</div>
           <div 
-            className="relative w-full h-full mini-map cursor-pointer"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-              
-              // Convert minimap coordinates to canvas coordinates
-              const canvasX = (x / rect.width) * 1400 - 400;
-              const canvasY = (y / rect.height) * 800 - 300;
-              
-              onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
-            }}
+            className="relative w-full h-full mini-map cursor-pointer select-none"
+            onMouseDown={handleMiniMapMouseDown}
+            onMouseMove={handleMiniMapMouseMove}
+            onMouseUp={() => setMiniMapDragging(false)}
+            onMouseLeave={() => setMiniMapDragging(false)}
           >
             {/* Viewport indicator */}
             <div 
-              className="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded"
+              className={`absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded cursor-move transition-all ${miniMapDragging ? 'bg-opacity-40 border-blue-600' : ''}`}
               style={{
                 left: `${Math.max(0, Math.min(80, (-canvasState.pan.x / 1400) * 100))}%`,
                 top: `${Math.max(0, Math.min(80, (-canvasState.pan.y / 800) * 100))}%`,
                 width: '20%',
                 height: '20%',
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                setMiniMapDragging(true);
               }}
             />
             {/* Node indicators */}
