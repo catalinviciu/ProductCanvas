@@ -196,7 +196,8 @@ export function ImpactTreeCanvas({
                     node.type === 'outcome' ? 'var(--primary-indigo)' :
                     node.type === 'opportunity' ? 'var(--secondary-purple)' :
                     node.type === 'solution' ? 'var(--accent-emerald)' :
-                    'var(--orange-test)'
+                    node.type === 'assumption' ? 'var(--orange-test)' :
+                    'var(--kpi-color)'
                 }}
               />
             ))}

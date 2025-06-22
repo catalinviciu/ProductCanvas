@@ -87,7 +87,7 @@ export class MemStorage implements IStorage {
           position: { x: 1100, y: 400 },
           parentId: "solution-1",
           testCategory: "usability",
-          children: []
+          children: ["kpi-1"]
         },
         {
           id: "assumption-2",
@@ -97,7 +97,7 @@ export class MemStorage implements IStorage {
           position: { x: 1100, y: 500 },
           parentId: "solution-2",
           testCategory: "value",
-          children: []
+          children: ["kpi-2"]
         },
         {
           id: "assumption-3",
@@ -107,6 +107,33 @@ export class MemStorage implements IStorage {
           position: { x: 1100, y: 600 },
           parentId: "solution-3", 
           testCategory: "feasibility",
+          children: ["kpi-3"]
+        },
+        {
+          id: "kpi-1",
+          type: "kpi",
+          title: "Tutorial Completion Rate",
+          description: "Percentage of users who complete onboarding tutorials",
+          position: { x: 1400, y: 400 },
+          parentId: "assumption-1",
+          children: []
+        },
+        {
+          id: "kpi-2",
+          type: "kpi", 
+          title: "Recommendation Click-Through Rate",
+          description: "Percentage of AI recommendations that users interact with",
+          position: { x: 1400, y: 500 },
+          parentId: "assumption-2",
+          children: []
+        },
+        {
+          id: "kpi-3",
+          type: "kpi",
+          title: "Dashboard Customization Usage",
+          description: "Percentage of users actively using personalization features",
+          position: { x: 1400, y: 600 },
+          parentId: "assumption-3",
           children: []
         }
       ],
@@ -118,7 +145,10 @@ export class MemStorage implements IStorage {
         { id: "conn-5", fromNodeId: "opportunity-2", toNodeId: "solution-3" },
         { id: "conn-6", fromNodeId: "solution-1", toNodeId: "assumption-1" },
         { id: "conn-7", fromNodeId: "solution-2", toNodeId: "assumption-2" },
-        { id: "conn-8", fromNodeId: "solution-3", toNodeId: "assumption-3" }
+        { id: "conn-8", fromNodeId: "solution-3", toNodeId: "assumption-3" },
+        { id: "conn-9", fromNodeId: "assumption-1", toNodeId: "kpi-1" },
+        { id: "conn-10", fromNodeId: "assumption-2", toNodeId: "kpi-2" },
+        { id: "conn-11", fromNodeId: "assumption-3", toNodeId: "kpi-3" }
       ],
       canvasState: { zoom: 1, pan: { x: 0, y: 0 } },
       createdAt: new Date(),

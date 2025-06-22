@@ -77,6 +77,7 @@ export function NodeEditModal({ node, isOpen, onClose, onSave }: NodeEditModalPr
                 <SelectItem value="opportunity">Opportunity</SelectItem>
                 <SelectItem value="solution">Solution</SelectItem>
                 <SelectItem value="assumption">Assumption Test</SelectItem>
+                <SelectItem value="kpi">KPI</SelectItem>
               </SelectContent>
             </Select>
           </div>

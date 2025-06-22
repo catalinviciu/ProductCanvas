@@ -82,7 +82,7 @@ export function ContextMenu({
             onClick={() => handleAddChild('outcome')}
             className="w-full px-3 py-2 text-sm text-left hover:bg-blue-50 rounded flex items-center transition-colors"
           >
-            <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--primary-indigo)' }}></div>
+            <i className="fas fa-bullseye mr-3 text-sm" style={{ color: 'var(--primary-indigo)' }}></i>
             <div>
               <div className="font-medium text-gray-900">Outcome</div>
               <div className="text-xs text-gray-500">Business goal or result</div>
@@ -92,7 +92,7 @@ export function ContextMenu({
             onClick={() => handleAddChild('opportunity')}
             className="w-full px-3 py-2 text-sm text-left hover:bg-purple-50 rounded flex items-center transition-colors"
           >
-            <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--secondary-purple)' }}></div>
+            <i className="fas fa-lightbulb mr-3 text-sm" style={{ color: 'var(--secondary-purple)' }}></i>
             <div>
               <div className="font-medium text-gray-900">Opportunity</div>
               <div className="text-xs text-gray-500">Market or user opportunity</div>
@@ -102,7 +102,7 @@ export function ContextMenu({
             onClick={() => handleAddChild('solution')}
             className="w-full px-3 py-2 text-sm text-left hover:bg-emerald-50 rounded flex items-center transition-colors"
           >
-            <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--accent-emerald)' }}></div>
+            <i className="fas fa-cog mr-3 text-sm" style={{ color: 'var(--accent-emerald)' }}></i>
             <div>
               <div className="font-medium text-gray-900">Solution</div>
               <div className="text-xs text-gray-500">Product or feature approach</div>
@@ -113,7 +113,7 @@ export function ContextMenu({
             className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center justify-between transition-colors"
           >
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--orange-test)' }}></div>
+              <i className="fas fa-flask mr-3 text-sm" style={{ color: 'var(--orange-test)' }}></i>
               <div>
                 <div className="font-medium text-gray-900">Assumption Test</div>
                 <div className="text-xs text-gray-500">Hypothesis to validate</div>
@@ -128,7 +128,7 @@ export function ContextMenu({
                 onClick={() => handleAddChild('assumption', 'viability')}
                 className="w-full px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded flex items-center transition-colors"
               >
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                <i className="fas fa-seedling mr-2 text-xs" style={{ color: 'var(--viability-color)' }}></i>
                 <div>
                   <div className="font-medium text-gray-900">Viability</div>
                   <div className="text-xs text-gray-500">Business model validation</div>
@@ -138,7 +138,7 @@ export function ContextMenu({
                 onClick={() => handleAddChild('assumption', 'value')}
                 className="w-full px-2 py-1.5 text-xs text-left hover:bg-green-50 rounded flex items-center transition-colors"
               >
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                <i className="fas fa-gem mr-2 text-xs" style={{ color: 'var(--value-color)' }}></i>
                 <div>
                   <div className="font-medium text-gray-900">Value</div>
                   <div className="text-xs text-gray-500">User value proposition</div>
@@ -148,7 +148,7 @@ export function ContextMenu({
                 onClick={() => handleAddChild('assumption', 'feasibility')}
                 className="w-full px-2 py-1.5 text-xs text-left hover:bg-purple-50 rounded flex items-center transition-colors"
               >
-                <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                <i className="fas fa-wrench mr-2 text-xs" style={{ color: 'var(--feasibility-color)' }}></i>
                 <div>
                   <div className="font-medium text-gray-900">Feasibility</div>
                   <div className="text-xs text-gray-500">Technical implementation</div>
@@ -158,7 +158,7 @@ export function ContextMenu({
                 onClick={() => handleAddChild('assumption', 'usability')}
                 className="w-full px-2 py-1.5 text-xs text-left hover:bg-pink-50 rounded flex items-center transition-colors"
               >
-                <div className="w-2 h-2 bg-pink-500 rounded-full mr-2"></div>
+                <i className="fas fa-user-check mr-2 text-xs" style={{ color: 'var(--usability-color)' }}></i>
                 <div>
                   <div className="font-medium text-gray-900">Usability</div>
                   <div className="text-xs text-gray-500">User experience validation</div>
@@ -166,6 +166,16 @@ export function ContextMenu({
               </button>
             </div>
           )}
+          <button 
+            onClick={() => handleAddChild('kpi')}
+            className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
+          >
+            <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
+            <div>
+              <div className="font-medium text-gray-900">KPI</div>
+              <div className="text-xs text-gray-500">Key performance indicator</div>
+            </div>
+          </button>
         </div>
       </div>
       
