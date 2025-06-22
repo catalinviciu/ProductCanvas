@@ -16,36 +16,72 @@ export function CanvasToolbar({
   onTogglePanMode,
 }: CanvasToolbarProps) {
   return (
-    <div className="absolute top-4 left-4 z-10 flex items-center space-x-2">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
-        <button 
-          className={`p-2 rounded-md transition-colors ${!isPanMode ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-50 text-gray-600'}`}
-          onClick={() => onTogglePanMode()}
-          title="Select Tool"
-        >
-          <i className="fas fa-mouse-pointer"></i>
-        </button>
-        <button 
-          className={`p-2 rounded-md transition-colors ${isPanMode ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-50 text-gray-600'}`}
-          onClick={onTogglePanMode}
-          title="Pan Tool"
-        >
-          <i className="fas fa-hand-paper"></i>
-        </button>
+    <div className="modern-toolbar">
+      {/* Tool Selection Group */}
+      <div className="toolbar-group">
+        <div className="toolbar-section">
+          <button 
+            className={`toolbar-btn ${!isPanMode ? 'toolbar-btn-active' : ''}`}
+            onClick={() => onTogglePanMode()}
+            title="Select Tool - Click and drag nodes"
+          >
+            <i className="fas fa-mouse-pointer"></i>
+            <span className="toolbar-btn-label">Select</span>
+          </button>
+          <button 
+            className={`toolbar-btn ${isPanMode ? 'toolbar-btn-active' : ''}`}
+            onClick={onTogglePanMode}
+            title="Pan Tool - Click and drag canvas"
+          >
+            <i className="fas fa-hand-paper"></i>
+            <span className="toolbar-btn-label">Pan</span>
+          </button>
+        </div>
       </div>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-2">
-        <span className="text-xs text-gray-500">
-          Zoom: {Math.round(zoom * 100)}%
-        </span>
+
+      {/* Zoom Controls Group */}
+      <div className="toolbar-group">
+        <div className="toolbar-section">
+          <button 
+            onClick={onZoomOut}
+            className="toolbar-btn toolbar-btn-icon"
+            title="Zoom Out"
+            disabled={zoom <= 0.1}
+          >
+            <i className="fas fa-minus"></i>
+          </button>
+          <div className="zoom-display">
+            <span className="zoom-percentage">{Math.round(zoom * 100)}%</span>
+            <div className="zoom-slider-container">
+              <div 
+                className="zoom-slider-fill" 
+                style={{ width: `${Math.min(zoom * 100, 200)}%` }}
+              />
+            </div>
+          </div>
+          <button 
+            onClick={onZoomIn}
+            className="toolbar-btn toolbar-btn-icon"
+            title="Zoom In"
+            disabled={zoom >= 3}
+          >
+            <i className="fas fa-plus"></i>
+          </button>
+        </div>
       </div>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
-        <button 
-          onClick={onResetView}
-          className="p-2 hover:bg-gray-50 rounded-md transition-colors"
-          title="Reset View"
-        >
-          <i className="fas fa-home text-gray-600"></i>
-        </button>
+
+      {/* Navigation Group */}
+      <div className="toolbar-group">
+        <div className="toolbar-section">
+          <button 
+            onClick={onResetView}
+            className="toolbar-btn toolbar-btn-primary"
+            title="Reset View - Fit all nodes to screen"
+          >
+            <i className="fas fa-home"></i>
+            <span className="toolbar-btn-label">Home</span>
+          </button>
+        </div>
       </div>
     </div>
   );

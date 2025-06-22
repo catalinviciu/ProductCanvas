@@ -378,154 +378,161 @@ const TreeNodeComponent = memo(function TreeNode({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="bg-white rounded-lg shadow-md p-4 node-created relative">
-        {/* Attachment Indicator */}
+      <div className="modern-card node-created relative group">
+        {/* Enhanced Attachment Indicator */}
         {(draggedOverNodeId === node.id || (isDropTarget && draggedNode)) && (
-          <div className="attachment-indicator">
+          <div className="enhanced-attachment-indicator">
+            <div className="pulse-ring"></div>
+            <div className="pulse-ring delay-75"></div>
             <i className="fas fa-plus text-white text-xs"></i>
           </div>
         )}
         
+        {/* Card Accent Border */}
+        <div 
+          className="absolute inset-0 rounded-xl opacity-20 bg-gradient-to-br"
+          style={{
+            background: `linear-gradient(135deg, ${config.color}22 0%, ${config.color}11 50%, transparent 100%)`
+          }}
+        />
+        
         {/* Node Header */}
-        <div className="flex items-center space-x-2 mb-2">
-          <i 
-            className={`${config.icon} text-sm`}
-            style={{ color: config.color }}
-          />
-          <span 
-            className="text-xs font-medium uppercase tracking-wide"
-            style={{ color: config.color }}
-          >
-            {config.label}
-          </span>
-          {node.type === 'assumption' && testConfig && (
-            <div className="ml-auto">
-              <i 
-                className={`${testConfig.icon} text-xs`}
-                style={{ color: testConfig.color }}
-                title={`${testConfig.label} Test`}
-              />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <div 
+              className="icon-container"
+              style={{ '--accent-color': config.color } as any}
+            >
+              <i className={`${config.icon} text-sm`} />
             </div>
-          )}
+            <div className="flex flex-col">
+              <span 
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: config.color }}
+              >
+                {config.label}
+              </span>
+              {node.type === 'assumption' && testConfig && (
+                <span className="text-xs text-gray-500 mt-0.5">
+                  {testConfig.label} Test
+                </span>
+              )}
+            </div>
+          </div>
+          
+          {/* Action buttons container */}
+          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button 
+              className="action-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleContextMenu(e);
+              }}
+              title="More options"
+            >
+              <i className="fas fa-ellipsis-h text-xs"></i>
+            </button>
+          </div>
         </div>
 
         {/* Node Content */}
         {isEditing ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <input
               type="text"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full font-semibold text-gray-900 border-none outline-none bg-gray-50 rounded px-2 py-1"
+              className="modern-input font-semibold"
+              placeholder="Enter title..."
               autoFocus
             />
             <textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full text-sm text-gray-600 border-none outline-none bg-gray-50 rounded px-2 py-1 resize-none"
-              rows={2}
+              className="modern-input text-sm resize-none"
+              placeholder="Add description..."
+              rows={3}
             />
             <div className="flex space-x-2">
               <button
                 onClick={handleSaveEdit}
-                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                className="btn-primary"
               >
+                <i className="fas fa-check text-xs mr-1"></i>
                 Save
               </button>
               <button
                 onClick={handleCancelEdit}
-                className="px-2 py-1 bg-gray-300 text-gray-700 text-xs rounded hover:bg-gray-400"
+                className="btn-secondary"
               >
+                <i className="fas fa-times text-xs mr-1"></i>
                 Cancel
               </button>
             </div>
           </div>
         ) : (
-          <>
-            <h3 className="font-semibold text-gray-900 mb-2">{node.title}</h3>
-            <p className="text-sm text-gray-600 mb-3">{node.description}</p>
-          </>
+          <div className="content-area">
+            <h3 className="node-title">{node.title}</h3>
+            <p className="node-description">{node.description}</p>
+          </div>
         )}
 
-        {/* Node Footer */}
+        {/* Enhanced Node Footer */}
         {!isEditing && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                collapseState.hasChildren ? 
-                  (node.isCollapsed ? 'bg-purple-100 border border-purple-200' : 'bg-blue-100 border border-blue-200') 
-                  : 'bg-gray-100'
-              }`}>
-                <span className={`text-xs ${
+          <div className="node-footer">
+            <div className="flex items-center space-x-2">
+              <div className="children-indicator">
+                <div className={`children-badge ${
                   collapseState.hasChildren ? 
-                    (node.isCollapsed ? 'text-purple-600 font-medium' : 'text-blue-600 font-medium')
-                    : 'text-gray-600'
+                    (node.isCollapsed ? 'collapsed' : 'expanded') 
+                    : 'empty'
                 }`}>
-                  {node.children.length}
+                  <span className="children-count">{node.children.length}</span>
+                </div>
+                <span className="children-label">
+                  {node.children.length === 1 ? 'child' : 'children'}
+                  {node.isCollapsed && collapseState.hasChildren && ' (hidden)'}
                 </span>
               </div>
-              <span className="text-xs text-gray-500">
-                {node.children.length === 1 ? 'child' : 'children'}
-                {node.isCollapsed && collapseState.hasChildren && ' (hidden)'}
-              </span>
+              
               {collapseState.hasChildren && (
-                <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
-                  node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
-                }`} title={
+                <div className="status-icon" title={
                   node.isCollapsed ? 'Children are hidden - click + to expand' : 'Moving this card will reorganize all children'
-                }></i>
+                }>
+                  <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
+                    node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
+                  }`}></i>
+                </div>
               )}
             </div>
             
             {node.type === 'assumption' && testConfig && (
-              <div className="text-xs">
-                <span 
-                  className="px-2 py-1 rounded-full text-xs font-medium"
-                  style={{
-                    backgroundColor: testConfig.bg,
-                    color: testConfig.color,
-                  }}
-                >
-                  {testConfig.label}
-                </span>
+              <div className="test-category-badge">
+                <i className={`${testConfig.icon} text-xs mr-1`} />
+                <span>{testConfig.label}</span>
               </div>
             )}
-            
-            <button 
-              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleContextMenu(e);
-              }}
-            >
-              <i className="fas fa-ellipsis-h text-gray-400 text-xs"></i>
-            </button>
           </div>
         )}
 
-
-
-        {/* Master Collapse/Expand Button */}
+        {/* Enhanced Collapse/Expand Button */}
         {collapseState.hasChildren && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleCollapse?.(node.id);
             }}
-            className={`absolute w-6 h-6 
-                     bg-blue-500 hover:bg-blue-600 text-white rounded-full 
-                     flex items-center justify-center text-xs font-bold
-                     shadow-md hover:shadow-lg transition-all duration-200
-                     border-2 border-white z-10 ${
-                       orientation === 'horizontal' 
-                         ? '-right-3 top-1/2 -translate-y-1/2' 
-                         : '-bottom-3 left-1/2 -translate-x-1/2'
-                     }`}
+            className={`collapse-btn ${
+              orientation === 'horizontal' 
+                ? 'collapse-btn-horizontal' 
+                : 'collapse-btn-vertical'
+            }`}
             title={collapseState.allChildrenHidden ? 'Expand all children' : 'Collapse all children'}
           >
-            {collapseState.allChildrenHidden ? '+' : '−'}
+            <div className="collapse-btn-bg"></div>
+            <i className={`fas ${collapseState.allChildrenHidden ? 'fa-plus' : 'fa-minus'} text-xs`}></i>
           </button>
         )}
       </div>
