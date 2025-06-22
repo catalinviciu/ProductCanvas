@@ -388,7 +388,7 @@ const TreeNodeComponent = memo(function TreeNode({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="modern-card node-created relative group">
+      <div className="modern-card node-created relative group flex flex-col">
         {/* Enhanced Attachment Indicator */}
         {(draggedOverNodeId === node.id || (isDropTarget && draggedNode)) && (
           <div className="enhanced-attachment-indicator">
@@ -407,7 +407,7 @@ const TreeNodeComponent = memo(function TreeNode({
         />
         
         {/* Node Header */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <div 
               className="icon-container"
