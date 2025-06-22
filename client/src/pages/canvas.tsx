@@ -39,6 +39,7 @@ export default function CanvasPage() {
     closeEditModal,
     openEditModal,
     resetToHome,
+    fitToScreen,
   } = useCanvas(impactTree);
 
   // Listen for custom reattach events from context menu
@@ -76,7 +77,7 @@ export default function CanvasPage() {
         projectName={impactTree.name}
         lastSaved={impactTree.updatedAt}
         onAutoLayout={handleAutoLayout}
-        onFitToScreen={resetToHome}
+        onFitToScreen={fitToScreen}
         orientation={canvasState.orientation}
         onOrientationToggle={handleOrientationToggle}
       />

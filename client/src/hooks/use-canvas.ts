@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, handleBranchDrag, reorganizeSubtree } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, handleBranchDrag, reorganizeSubtree, fitNodesToScreen } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -322,6 +322,16 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(undefined, undefined, homePosition);
   }, [nodes, canvasState.orientation, saveTree]);
 
+  const fitToScreen = useCallback(() => {
+    // Get canvas dimensions - use typical viewport dimensions if not available
+    const canvasWidth = window.innerWidth - 320; // Account for sidebar
+    const canvasHeight = window.innerHeight - 80; // Account for header
+    
+    const fitPosition = fitNodesToScreen(nodes, canvasWidth, canvasHeight, canvasState.orientation);
+    setCanvasState(fitPosition);
+    saveTree(undefined, undefined, fitPosition);
+  }, [nodes, canvasState.orientation, saveTree]);
+
   const handleAutoLayout = useCallback(() => {
     const layoutedNodes = calculateNodeLayout(nodes, canvasState.orientation);
     setNodes(layoutedNodes);
@@ -372,5 +382,6 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     closeEditModal,
     openEditModal,
     resetToHome,
+    fitToScreen,
   };
 }

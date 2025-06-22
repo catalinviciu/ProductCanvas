@@ -933,27 +933,38 @@ export function getHomePosition(nodes: TreeNode[], currentOrientation: 'horizont
   };
 }
 
-export function fitNodesToScreen(nodes: TreeNode[], canvasWidth: number, canvasHeight: number) {
-  if (nodes.length === 0) return getHomePosition(nodes);
+export function fitNodesToScreen(nodes: TreeNode[], canvasWidth: number, canvasHeight: number, currentOrientation: 'horizontal' | 'vertical' = 'horizontal') {
+  if (nodes.length === 0) return getHomePosition(nodes, currentOrientation);
 
-  const padding = 50;
+  // Get only visible nodes (not collapsed)
+  const visibleNodes = getVisibleNodes(nodes);
+  if (visibleNodes.length === 0) return getHomePosition(nodes, currentOrientation);
+
+  const padding = 100; // Increased padding for better visual spacing
+  const nodeWidth = 256;
+  const nodeHeight = 160;
   
-  const minX = Math.min(...nodes.map(n => n.position.x));
-  const maxX = Math.max(...nodes.map(n => n.position.x + 256)); // Node width
-  const minY = Math.min(...nodes.map(n => n.position.y));
-  const maxY = Math.max(...nodes.map(n => n.position.y + 120)); // Node height
+  const minX = Math.min(...visibleNodes.map(n => n.position.x));
+  const maxX = Math.max(...visibleNodes.map(n => n.position.x + nodeWidth));
+  const minY = Math.min(...visibleNodes.map(n => n.position.y));
+  const maxY = Math.max(...visibleNodes.map(n => n.position.y + nodeHeight));
   
   const contentWidth = maxX - minX;
   const contentHeight = maxY - minY;
   
+  // Prevent division by zero
+  if (contentWidth <= 0 || contentHeight <= 0) {
+    return getHomePosition(nodes, currentOrientation);
+  }
+  
   const scaleX = (canvasWidth - padding * 2) / contentWidth;
   const scaleY = (canvasHeight - padding * 2) / contentHeight;
-  const zoom = Math.min(scaleX, scaleY, 1);
+  const zoom = Math.min(Math.max(scaleX, 0.1), Math.max(scaleY, 0.1), 2); // Limit zoom between 0.1 and 2
   
   const pan = {
     x: (canvasWidth - contentWidth * zoom) / 2 - minX * zoom,
     y: (canvasHeight - contentHeight * zoom) / 2 - minY * zoom,
   };
   
-  return { zoom, pan };
+  return { zoom, pan, orientation: currentOrientation };
 }
