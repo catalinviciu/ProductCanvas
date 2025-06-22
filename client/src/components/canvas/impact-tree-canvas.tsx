@@ -1,9 +1,10 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, memo, useMemo } from "react";
 import { TreeNode } from "./tree-node";
 import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { CanvasContextMenu } from "../modals/canvas-context-menu";
 import { getVisibleNodes, getVisibleConnections } from "@/lib/canvas-utils";
+import { throttle } from "@/lib/performance-utils";
 import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ImpactTreeCanvasProps {
@@ -23,7 +24,7 @@ interface ImpactTreeCanvasProps {
   onResetToHome: () => void;
 }
 
-export function ImpactTreeCanvas({
+export const ImpactTreeCanvas = memo(function ImpactTreeCanvas({
   nodes,
   connections,
   canvasState,
@@ -49,9 +50,9 @@ export function ImpactTreeCanvas({
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
 
-  // Get only visible nodes and connections
-  const visibleNodes = getVisibleNodes(nodes);
-  const visibleConnections = getVisibleConnections(nodes, connections);
+  // Memoized visible nodes and connections for performance
+  const visibleNodes = useMemo(() => getVisibleNodes(nodes), [nodes]);
+  const visibleConnections = useMemo(() => getVisibleConnections(nodes, connections), [nodes, connections]);
 
   // Calculate dynamic canvas bounds based on nodes
   const getCanvasBounds = useCallback(() => {
@@ -187,15 +188,23 @@ export function ImpactTreeCanvas({
     }
   }, [miniMapDragging, onCanvasUpdate, getCanvasBounds]);
 
+  // Throttled mouse move handler for better performance
+  const throttledMouseMove = useCallback(
+    throttle((e: React.MouseEvent) => {
+      if (isPanning) {
+        const newPan = {
+          x: e.clientX - dragStart.x,
+          y: e.clientY - dragStart.y,
+        };
+        onCanvasUpdate({ pan: newPan });
+      }
+    }, 16),
+    [isPanning, dragStart, onCanvasUpdate]
+  );
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning) {
-      const newPan = {
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      };
-      onCanvasUpdate({ pan: newPan });
-    }
-  }, [isPanning, dragStart, onCanvasUpdate]);
+    throttledMouseMove(e);
+  }, [throttledMouseMove]);
 
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
@@ -210,13 +219,20 @@ export function ImpactTreeCanvas({
     onCanvasUpdate({ zoom: newZoom });
   }, [canvasState.zoom, onCanvasUpdate]);
 
+  // Throttled node drag handler for smoother performance
+  const throttledNodeDrag = useCallback(
+    throttle((nodeId: string, newPosition: { x: number; y: number }) => {
+      const node = nodes.find(n => n.id === nodeId);
+      if (node) {
+        onNodeUpdate({ ...node, position: newPosition });
+      }
+    }, 16),
+    [nodes, onNodeUpdate]
+  );
+
   const handleNodeDrag = useCallback((nodeId: string, newPosition: { x: number; y: number }) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (node) {
-      // Use the enhanced collision detection system that handles branches with sub-branches
-      onNodeUpdate({ ...node, position: newPosition });
-    }
-  }, [nodes, onNodeUpdate]);
+    throttledNodeDrag(nodeId, newPosition);
+  }, [throttledNodeDrag]);
 
   // Global mouse event handlers for mini map dragging
   useEffect(() => {
@@ -284,19 +300,28 @@ export function ImpactTreeCanvas({
         onTogglePanMode={() => setIsPanMode(!isPanMode)}
       />
 
-      {/* Canvas Grid Background */}
+      {/* Enhanced Canvas Grid Background */}
       <div 
-        className="absolute inset-0 canvas-grid"
+        className="absolute inset-0 canvas-grid opacity-40"
         style={{
           backgroundPosition: `${canvasState.pan.x}px ${canvasState.pan.y}px`,
           backgroundSize: `${20 * canvasState.zoom}px ${20 * canvasState.zoom}px`,
+          backgroundImage: `
+            radial-gradient(circle, #e5e7eb 1px, transparent 1px),
+            linear-gradient(to right, #f3f4f6 1px, transparent 1px),
+            linear-gradient(to bottom, #f3f4f6 1px, transparent 1px)
+          `,
         }}
       />
 
-      {/* Main Canvas */}
+      {/* Enhanced Main Canvas with improved styling */}
       <div
         ref={canvasRef}
-        className="relative w-full h-full cursor-grab active:cursor-grabbing"
+        className="relative w-full h-full transition-all duration-200 impact-tree-canvas"
+        style={{ 
+          cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default'),
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -308,20 +333,17 @@ export function ImpactTreeCanvas({
           e.preventDefault();
           const draggedNodeId = e.dataTransfer.getData('text/plain');
           if (draggedNodeId) {
-            onNodeReattach(draggedNodeId, null); // Detach from parent
-            // Force clear all drag states and selection
+            onNodeReattach(draggedNodeId, null);
             setDraggedNodeId(null);
             setDraggedOverNodeId(null);
             setTimeout(() => {
               onNodeSelect(null);
-              // Force browser to clear any remaining drag states
               if (document.activeElement) {
                 (document.activeElement as HTMLElement).blur();
               }
             }, 50);
           }
         }}
-        style={{ cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default') }}
       >
         {/* Canvas Background Layer - ensures right-click works everywhere */}
         <div 
@@ -504,4 +526,4 @@ export function ImpactTreeCanvas({
       />
     </div>
   );
-}
+});
