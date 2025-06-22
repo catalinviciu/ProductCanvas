@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, handleBranchDrag } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, handleBranchDrag, reorganizeSubtree } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -80,12 +80,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
     const nodeId = generateNodeId(type);
     
-    // Use smart positioning that prevents overlaps and maintains clean layout
+    // Use enhanced smart positioning with comprehensive collision detection
     const position = customPosition || getSmartNodePosition(nodes, parentNode);
     const snappedPosition = snapToGrid(position);
 
     const newNode = createNode(nodeId, type, snappedPosition, testCategory, parentNode?.id);
-    const updatedNodes = [...nodes, newNode];
+    let updatedNodes = [...nodes, newNode];
     
     let updatedConnections = connections;
     
@@ -100,6 +100,13 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       if (nodeIndex !== -1) {
         updatedNodes[nodeIndex] = updatedParent;
       }
+    }
+
+    // After adding the new node, reorganize the parent's subtree if it has children
+    // This ensures the new branch fits perfectly without overlaps
+    if (parentNode && parentNode.children && parentNode.children.length > 0) {
+      // Use the same reorganization system as drag operations
+      updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id);
     }
 
     setNodes(updatedNodes);

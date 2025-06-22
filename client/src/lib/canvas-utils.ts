@@ -234,7 +234,7 @@ export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosit
   return snapToGrid(adjustedPosition);
 }
 
-// Smart positioning for new nodes
+// Enhanced smart positioning for new nodes using comprehensive collision detection
 export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): { x: number; y: number } {
   if (!parentNode) {
     // Find a good position for root nodes
@@ -247,8 +247,10 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): 
     const rightmostRoot = rootNodes.reduce((max, node) => 
       node.position.x > max.position.x ? node : max, rootNodes[0]);
     
-    return preventOverlap(nodes, { id: 'temp', type: 'outcome', title: '', description: '', position: { x: 0, y: 0 }, children: [] }, 
-      { x: rightmostRoot.position.x + 400, y: rightmostRoot.position.y });
+    const initialPosition = { x: rightmostRoot.position.x + 400, y: rightmostRoot.position.y };
+    
+    // Use comprehensive collision detection for root node positioning
+    return findOptimalPosition(nodes, initialPosition);
   }
 
   // Position child nodes to the right of parent (horizontal layout)
@@ -258,35 +260,81 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): 
     y: parentNode.position.y
   };
 
-  // Find all nodes at the same horizontal level (within 50px of target X)
-  const levelNodes = nodes.filter(n => Math.abs(n.position.x - basePosition.x) < 50);
+  // Calculate optimal position considering all existing branches and their subtrees
+  const initialY = basePosition.y + (siblings.length * 200);
+  const initialPosition = { x: basePosition.x, y: initialY };
   
-  // Start with parent's Y position, then adjust for siblings
-  let targetY = basePosition.y + (siblings.length * 180);
-  
-  // Check for conflicts and adjust position
-  while (levelNodes.some(node => Math.abs(node.position.y - targetY) < 160)) {
-    targetY += 180; // Move down by one spacing unit
+  // Use comprehensive collision detection for child node positioning
+  return findOptimalPosition(nodes, initialPosition);
+}
+
+// Find optimal position using the same collision detection logic as drag operations
+export function findOptimalPosition(
+  nodes: TreeNode[], 
+  preferredPosition: { x: number; y: number },
+  margin: number = 50
+): { x: number; y: number } {
+  // Check if preferred position has collisions with any existing nodes or their subtrees
+  const hasCollisionAtPosition = (pos: { x: number; y: number }) => {
+    const testBounds = getNodeBounds({ 
+      id: 'temp', 
+      type: 'outcome', 
+      title: '', 
+      description: '', 
+      position: pos, 
+      children: [] 
+    }, margin);
+    
+    return nodes.some(node => {
+      const nodeBounds = getNodeBounds(node, margin);
+      return boundsOverlap(testBounds, nodeBounds);
+    });
+  };
+
+  // If preferred position is clear, use it
+  if (!hasCollisionAtPosition(preferredPosition)) {
+    return snapToGrid(preferredPosition);
   }
+
+  // Use expanding search pattern to find collision-free position
+  const searchRadius = 80;
+  const step = 40;
   
-  // Additional safety check - ensure minimum distance from all existing nodes
-  const minDistance = 160;
-  for (const node of levelNodes) {
-    if (Math.abs(node.position.y - targetY) < minDistance) {
-      if (targetY <= node.position.y) {
-        targetY = node.position.y - minDistance;
-      } else {
-        targetY = node.position.y + minDistance;
+  for (let radius = step; radius <= searchRadius * 4; radius += step) {
+    // Try positions in expanding circles, prioritizing horizontal and vertical directions
+    const angles = [
+      0,              // Right
+      Math.PI/2,      // Down
+      Math.PI,        // Left
+      3*Math.PI/2,    // Up
+      Math.PI/4,      // Down-right
+      3*Math.PI/4,    // Down-left
+      5*Math.PI/4,    // Up-left
+      7*Math.PI/4     // Up-right
+    ];
+    
+    for (const angle of angles) {
+      const testPos = {
+        x: preferredPosition.x + Math.cos(angle) * radius,
+        y: preferredPosition.y + Math.sin(angle) * radius
+      };
+      
+      if (!hasCollisionAtPosition(testPos)) {
+        return snapToGrid(testPos);
       }
     }
   }
-
-  const targetPosition = {
-    x: basePosition.x,
-    y: targetY
+  
+  // If still no position found, use fallback positioning
+  const fallbackPos = {
+    x: preferredPosition.x + 400,
+    y: preferredPosition.y + 200
   };
-
-  return preventOverlap(nodes, { id: 'temp', type: 'outcome', title: '', description: '', position: { x: 0, y: 0 }, children: [] }, targetPosition);
+  
+  return snapToGrid(hasCollisionAtPosition(fallbackPos) ? 
+    { x: preferredPosition.x, y: preferredPosition.y + 400 } : 
+    fallbackPos
+  );
 }
 
 // Get all descendants of a node recursively
