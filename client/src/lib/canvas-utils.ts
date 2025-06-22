@@ -316,37 +316,56 @@ export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosit
 }
 
 // Enhanced smart positioning for new nodes using comprehensive collision detection
-export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): { x: number; y: number } {
+export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, orientation: 'horizontal' | 'vertical' = 'horizontal'): { x: number; y: number } {
   if (!parentNode) {
     // Find a good position for root nodes
     const rootNodes = nodes.filter(n => !n.parentId);
     if (rootNodes.length === 0) {
-      return { x: 200, y: 100 };
+      return orientation === 'horizontal' ? { x: 200, y: 100 } : { x: 300, y: 100 };
     }
     
-    // Position to the right of existing root nodes
-    const rightmostRoot = rootNodes.reduce((max, node) => 
-      node.position.x > max.position.x ? node : max, rootNodes[0]);
-    
-    const initialPosition = { x: rightmostRoot.position.x + 400, y: rightmostRoot.position.y };
-    
-    // Use comprehensive collision detection for root node positioning
-    return findOptimalPosition(nodes, initialPosition);
+    if (orientation === 'horizontal') {
+      // Position to the right of existing root nodes
+      const rightmostRoot = rootNodes.reduce((max, node) => 
+        node.position.x > max.position.x ? node : max, rootNodes[0]);
+      
+      const initialPosition = { x: rightmostRoot.position.x + 400, y: rightmostRoot.position.y };
+      return findOptimalPosition(nodes, initialPosition);
+    } else {
+      // Position below existing root nodes in vertical layout
+      const bottommostRoot = rootNodes.reduce((max, node) => 
+        node.position.y > max.position.y ? node : max, rootNodes[0]);
+      
+      const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + 400 };
+      return findOptimalPosition(nodes, initialPosition);
+    }
   }
 
-  // Position child nodes to the right of parent (horizontal layout)
   const siblings = nodes.filter(n => n.parentId === parentNode.id);
-  const basePosition = {
-    x: parentNode.position.x + 350,
-    y: parentNode.position.y
-  };
-
-  // Calculate optimal position considering all existing branches and their subtrees
-  const initialY = basePosition.y + (siblings.length * 200);
-  const initialPosition = { x: basePosition.x, y: initialY };
   
-  // Use comprehensive collision detection for child node positioning
-  return findOptimalPosition(nodes, initialPosition);
+  if (orientation === 'horizontal') {
+    // Position child nodes to the right of parent (horizontal layout)
+    const basePosition = {
+      x: parentNode.position.x + 350,
+      y: parentNode.position.y
+    };
+
+    const initialY = basePosition.y + (siblings.length * 200);
+    const initialPosition = { x: basePosition.x, y: initialY };
+    
+    return findOptimalPosition(nodes, initialPosition);
+  } else {
+    // Position child nodes below parent (vertical layout)
+    const basePosition = {
+      x: parentNode.position.x,
+      y: parentNode.position.y + 200
+    };
+
+    const initialX = basePosition.x + (siblings.length * 320);
+    const initialPosition = { x: initialX, y: basePosition.y };
+    
+    return findOptimalPosition(nodes, initialPosition);
+  }
 }
 
 // Find optimal position using the same collision detection logic as drag operations

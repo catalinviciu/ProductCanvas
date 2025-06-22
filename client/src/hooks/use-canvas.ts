@@ -83,7 +83,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const nodeId = generateNodeId(type);
     
     // Use enhanced smart positioning with comprehensive collision detection
-    const position = customPosition || getSmartNodePosition(nodes, parentNode);
+    const position = customPosition || getSmartNodePosition(nodes, parentNode, canvasState.orientation);
     const snappedPosition = snapToGrid(position);
 
     const newNode = createNode(nodeId, type, snappedPosition, testCategory, parentNode?.id);
@@ -213,7 +213,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       // Calculate smart position for the reattached branch
       const newParent = updatedNodes[newParentIndex];
       if (newParent) {
-        const smartPosition = getSmartNodePosition(updatedNodes, newParent);
+        const smartPosition = getSmartNodePosition(updatedNodes, newParent, canvasState.orientation);
         
         // Apply collision-free positioning for the entire branch being moved
         if (nodeToReattach.children && nodeToReattach.children.length > 0) {
@@ -235,7 +235,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       }
     } else {
       // Moving to root level - find a good position among other root nodes
-      const rootPosition = getSmartNodePosition(updatedNodes);
+      const rootPosition = getSmartNodePosition(updatedNodes, undefined, canvasState.orientation);
       
       if (nodeToReattach.children && nodeToReattach.children.length > 0) {
         // Branch with children

@@ -343,6 +343,7 @@ export function ImpactTreeCanvas({
               onToggleCollapse={onToggleCollapse}
               isDropTarget={draggedNodeId !== null && draggedNodeId !== node.id}
               isDraggedOver={draggedOverNodeId === node.id}
+              orientation={canvasState.orientation}
             />
           ))}
         </div>
