@@ -1,7 +1,6 @@
 interface ProjectHeaderProps {
   projectName: string;
   lastSaved: Date | string;
-  onAutoLayout: () => void;
   onFitToScreen: () => void;
   orientation: 'horizontal' | 'vertical';
   onOrientationToggle: () => void;
@@ -10,7 +9,6 @@ interface ProjectHeaderProps {
 export function ProjectHeader({ 
   projectName, 
   lastSaved, 
-  onAutoLayout, 
   onFitToScreen,
   orientation,
   onOrientationToggle
@@ -58,13 +56,7 @@ export function ProjectHeader({
             <i className={`fas ${orientation === 'horizontal' ? 'fa-arrows-alt-h' : 'fa-arrows-alt-v'} mr-1`}></i>
             {orientation === 'horizontal' ? 'Horizontal' : 'Vertical'}
           </button>
-          <button 
-            onClick={onAutoLayout}
-            className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-          >
-            <i className="fas fa-magic mr-1"></i>
-            Auto Layout
-          </button>
+          
           <button 
             onClick={onFitToScreen}
             className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
