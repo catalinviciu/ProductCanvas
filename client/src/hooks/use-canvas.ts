@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -152,8 +152,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       node.id === updatedNode.id ? { ...updatedNode, position: node.position } : node
     );
     
-    setNodes(finalNodes);
-    saveTree(finalNodes);
+    // Auto-reorganize entire tree after drag-and-drop for better alignment
+    const reorganizedNodes = autoLayoutAfterDrop(finalNodes, canvasState.orientation);
+    
+    setNodes(reorganizedNodes);
+    saveTree(reorganizedNodes);
   }, [nodes, canvasState.orientation, saveTree]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
@@ -263,9 +266,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       }
     }
 
-    setNodes(updatedNodes);
+    // Auto-reorganize entire tree after reattachment for better alignment
+    const reorganizedNodes = autoLayoutAfterDrop(updatedNodes, canvasState.orientation);
+    
+    setNodes(reorganizedNodes);
     setConnections(updatedConnections);
-    saveTree(updatedNodes, updatedConnections);
+    saveTree(reorganizedNodes, updatedConnections);
     
     // Force clear all drag-related states after reattachment
     setTimeout(() => {
