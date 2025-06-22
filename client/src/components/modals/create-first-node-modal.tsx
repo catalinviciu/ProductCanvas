@@ -36,7 +36,7 @@ export function CreateFirstNodeModal({
             </div>
             <div>
               <div className="font-medium text-gray-900">Outcome</div>
-              <div className="text-xs text-gray-500">Business goal or result</div>
+              <div className="text-xs text-gray-500">Business or product result</div>
             </div>
           </button>
           
