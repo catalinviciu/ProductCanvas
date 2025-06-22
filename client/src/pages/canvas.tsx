@@ -6,6 +6,7 @@ import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
 import { ProjectHeader } from "@/components/header/project-header";
 import { NodeEditModal } from "@/components/modals/node-edit-modal";
 import { ContextMenu } from "@/components/modals/context-menu";
+import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
 import { useCanvas } from "@/hooks/use-canvas";
 import { type ImpactTree } from "@shared/schema";
 

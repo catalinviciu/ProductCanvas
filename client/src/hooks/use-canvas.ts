@@ -14,6 +14,10 @@ interface EditModalState {
   isOpen: boolean;
 }
 
+interface CreateFirstNodeModalState {
+  isOpen: boolean;
+}
+
 export function useCanvas(impactTree: ImpactTree | undefined) {
   const queryClient = useQueryClient();
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
@@ -23,6 +27,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     node: null,
   });
   const [editModal, setEditModal] = useState<EditModalState>({ isOpen: false });
+  const [createFirstNodeModal, setCreateFirstNodeModal] = useState<CreateFirstNodeModalState>({ isOpen: false });
 
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [connections, setConnections] = useState<NodeConnection[]>([]);
@@ -38,6 +43,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       const treeNodes = (impactTree.nodes as TreeNode[]) || [];
       setNodes(treeNodes);
       setConnections((impactTree.connections as NodeConnection[]) || []);
+      
+      // Show create first node modal if canvas is empty
+      setCreateFirstNodeModal({ isOpen: treeNodes.length === 0 });
       
       // Use saved canvas state if available, otherwise use home position
       const canvasStateData = impactTree.canvasState as any;
@@ -380,10 +388,20 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(updatedNodes);
   }, [nodes, saveTree]);
 
+  const closeCreateFirstNodeModal = useCallback(() => {
+    setCreateFirstNodeModal({ isOpen: false });
+  }, []);
+
+  const handleCreateFirstNode = useCallback((type: NodeType, testCategory?: TestCategory) => {
+    handleNodeCreate(type, testCategory);
+    closeCreateFirstNodeModal();
+  }, [handleNodeCreate]);
+
   return {
     selectedNode,
     contextMenu,
     editModal,
+    createFirstNodeModal,
     canvasState,
     nodes,
     connections,
@@ -404,5 +422,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     openEditModal,
     resetToHome,
     fitToScreen,
+    closeCreateFirstNodeModal,
+    handleCreateFirstNode,
   };
 }
