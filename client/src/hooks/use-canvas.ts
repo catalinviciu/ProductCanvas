@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -80,12 +80,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
     const nodeId = generateNodeId(type);
     
-    // Calculate position - use custom position if provided, otherwise use parent/default logic
-    const position = customPosition || (parentNode 
-      ? { x: parentNode.position.x + 300, y: parentNode.position.y + 100 }
-      : { x: 200, y: 200 });
+    // Use smart positioning that prevents overlaps and maintains clean layout
+    const position = customPosition || getSmartNodePosition(nodes, parentNode);
+    const snappedPosition = snapToGrid(position);
 
-    const newNode = createNode(nodeId, type, position, testCategory, parentNode?.id);
+    const newNode = createNode(nodeId, type, snappedPosition, testCategory, parentNode?.id);
     const updatedNodes = [...nodes, newNode];
     
     let updatedConnections = connections;
@@ -128,8 +127,17 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
+    // Apply smart positioning to prevent overlaps when moving nodes
+    const adjustedPosition = preventOverlap(nodes, updatedNode, updatedNode.position);
+    const snappedPosition = snapToGrid(adjustedPosition);
+    
+    const finalNode = {
+      ...updatedNode,
+      position: snappedPosition
+    };
+    
     const updatedNodes = nodes.map(node => 
-      node.id === updatedNode.id ? updatedNode : node
+      node.id === updatedNode.id ? finalNode : node
     );
     
     setNodes(updatedNodes);
@@ -266,6 +274,17 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(undefined, undefined, homePosition);
   }, [nodes, saveTree]);
 
+  const handleAutoLayout = useCallback(() => {
+    const layoutedNodes = calculateNodeLayout(nodes);
+    setNodes(layoutedNodes);
+    saveTree(layoutedNodes);
+    
+    // Also adjust view to fit the newly organized tree
+    const homePosition = getHomePosition(layoutedNodes);
+    setCanvasState(homePosition);
+    saveTree(layoutedNodes, undefined, homePosition);
+  }, [nodes, saveTree]);
+
   return {
     selectedNode,
     contextMenu,
@@ -281,6 +300,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     handleContextMenu,
     handleAddChildFromContext,
     handleNodeReattach,
+    handleAutoLayout,
     closeContextMenu,
     closeEditModal,
     openEditModal,

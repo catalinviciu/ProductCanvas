@@ -32,6 +32,7 @@ export default function CanvasPage() {
     handleContextMenu,
     handleAddChildFromContext,
     handleNodeReattach,
+    handleAutoLayout,
     closeContextMenu,
     closeEditModal,
     openEditModal,
@@ -72,8 +73,8 @@ export default function CanvasPage() {
       <ProjectHeader 
         projectName={impactTree.name}
         lastSaved={impactTree.updatedAt}
-        onAutoLayout={() => {}}
-        onFitToScreen={() => {}}
+        onAutoLayout={handleAutoLayout}
+        onFitToScreen={resetToHome}
       />
       
       <main className="flex-1 bg-white relative overflow-hidden">
