@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
 
 interface TreeNodeProps {
@@ -77,18 +77,38 @@ export function TreeNode({
     }
   }, [node, onSelect, isEditing]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isDragging && !isEditing) {
-      const deltaX = e.clientX - dragRef.current.startX;
-      const deltaY = e.clientY - dragRef.current.startY;
-      
-      const newPosition = {
-        x: dragRef.current.nodeX + deltaX,
-        y: dragRef.current.nodeY + deltaY,
-      };
-      
-      onDrag(node.id, newPosition);
+  // Global mouse event handlers for smooth dragging
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isDragging && !isEditing) {
+        e.preventDefault();
+        const deltaX = e.clientX - dragRef.current.startX;
+        const deltaY = e.clientY - dragRef.current.startY;
+        
+        const newPosition = {
+          x: dragRef.current.nodeX + deltaX,
+          y: dragRef.current.nodeY + deltaY,
+        };
+        
+        onDrag(node.id, newPosition);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
     }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
   }, [isDragging, isEditing, node.id, onDrag]);
 
   const handleMouseUp = useCallback(() => {
@@ -134,7 +154,7 @@ export function TreeNode({
 
   return (
     <div
-      className={`absolute w-64 cursor-move hover:shadow-lg transition-all ${
+      className={`absolute w-64 hover:shadow-lg transition-all ${
         config.className
       } ${isSelected ? 'ring-2 ring-blue-400' : ''} ${isDragging ? 'dragging' : ''} ${
         isEditing ? 'z-50' : ''
@@ -143,11 +163,10 @@ export function TreeNode({
         left: node.position.x, 
         top: node.position.y,
         zIndex: isSelected ? 10 : 1,
+        cursor: isDragging ? 'grabbing' : 'grab',
+        userSelect: 'none',
       }}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
     >

@@ -128,8 +128,10 @@
 
 /* Drag and drop states */
 .dragging {
-  @apply opacity-75 shadow-2xl z-50;
-  transform: rotate(2deg);
+  @apply shadow-2xl z-50;
+  transform: scale(1.05) rotate(1deg);
+  transition: none;
+  opacity: 0.9;
 }
 
 .drag-over {
