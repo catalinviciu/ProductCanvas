@@ -75,7 +75,7 @@ export function CreateFirstNodeModal({
             </div>
             <div>
               <div className="font-medium text-gray-900">Assumption Test</div>
-              <div className="text-xs text-gray-500">Hypothesis to validate</div>
+              <div className="text-xs text-gray-500">Hypothesis to be tested</div>
             </div>
           </button>
           
