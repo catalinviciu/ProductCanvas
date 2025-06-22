@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, handleBranchDrag, reorganizeSubtree, fitNodesToScreen } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -360,6 +360,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(updatedNodes);
   }, [nodes, saveTree]);
 
+  const handleToggleChildVisibility = useCallback((parentId: string, childId: string) => {
+    const updatedNodes = toggleChildVisibility(nodes, parentId, childId);
+    setNodes(updatedNodes);
+    saveTree(updatedNodes);
+  }, [nodes, saveTree]);
+
   return {
     selectedNode,
     contextMenu,
@@ -376,6 +382,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     handleAddChildFromContext,
     handleNodeReattach,
     handleToggleCollapse,
+    handleToggleChildVisibility,
     handleAutoLayout,
     handleOrientationToggle,
     closeContextMenu,
