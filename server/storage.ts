@@ -1,4 +1,4 @@
-import { impactTrees, type ImpactTree, type InsertImpactTree } from "@shared/schema";
+import { type ImpactTree, type InsertImpactTree } from "@shared/schema";
 
 export interface IStorage {
   getImpactTree(id: number): Promise<ImpactTree | undefined>;
@@ -15,8 +15,6 @@ export class MemStorage implements IStorage {
   constructor() {
     this.impactTrees = new Map();
     this.currentId = 1;
-    
-    // Initialize with a sample impact tree
     this.createSampleTree();
   }
 
@@ -26,26 +24,17 @@ export class MemStorage implements IStorage {
       name: "Product Strategy Canvas",
       description: "User retention improvement strategy",
       nodes: [],
-      connections: [
-        { id: "conn-1", fromNodeId: "outcome-1", toNodeId: "opportunity-1" },
-        { id: "conn-2", fromNodeId: "outcome-1", toNodeId: "opportunity-2" },
-        { id: "conn-3", fromNodeId: "opportunity-1", toNodeId: "solution-1" },
-        { id: "conn-4", fromNodeId: "opportunity-2", toNodeId: "solution-2" },
-        { id: "conn-5", fromNodeId: "opportunity-2", toNodeId: "solution-3" },
-        { id: "conn-6", fromNodeId: "solution-1", toNodeId: "assumption-1" },
-        { id: "conn-7", fromNodeId: "solution-2", toNodeId: "assumption-2" },
-        { id: "conn-8", fromNodeId: "solution-3", toNodeId: "assumption-3" },
-        { id: "conn-9", fromNodeId: "assumption-1", toNodeId: "kpi-1" },
-        { id: "conn-10", fromNodeId: "assumption-2", toNodeId: "kpi-2" },
-        { id: "conn-11", fromNodeId: "assumption-3", toNodeId: "kpi-3" }
-      ],
-      canvasState: { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'horizontal' },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      connections: [],
+      canvasState: {
+        zoom: 1,
+        pan: { x: 0, y: 0 },
+        orientation: 'horizontal'
+      },
+      createdAt: new Date('2024-01-15T10:00:00Z'),
+      updatedAt: new Date('2024-01-20T14:30:00Z')
     };
-    
+
     this.impactTrees.set(1, sampleTree);
-    this.currentId = 2;
   }
 
   async getImpactTree(id: number): Promise<ImpactTree | undefined> {
@@ -57,14 +46,15 @@ export class MemStorage implements IStorage {
   }
 
   async createImpactTree(insertTree: InsertImpactTree): Promise<ImpactTree> {
-    const id = this.currentId++;
+    this.currentId++;
     const tree: ImpactTree = {
+      id: this.currentId,
       ...insertTree,
-      id,
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     };
-    this.impactTrees.set(id, tree);
+
+    this.impactTrees.set(this.currentId, tree);
     return tree;
   }
 
@@ -75,8 +65,9 @@ export class MemStorage implements IStorage {
     const updatedTree: ImpactTree = {
       ...existingTree,
       ...updates,
-      updatedAt: new Date(),
+      updatedAt: new Date()
     };
+
     this.impactTrees.set(id, updatedTree);
     return updatedTree;
   }
