@@ -22,6 +22,7 @@ export default function CanvasPage() {
     selectedNode,
     contextMenu,
     editModal,
+    createFirstNodeModal,
     canvasState,
     nodes,
     connections,
@@ -42,6 +43,8 @@ export default function CanvasPage() {
     openEditModal,
     resetToHome,
     fitToScreen,
+    closeCreateFirstNodeModal,
+    handleCreateFirstNode,
   } = useCanvas(impactTree);
 
   // Listen for custom reattach events from context menu
@@ -119,6 +122,12 @@ export default function CanvasPage() {
         onDelete={handleNodeDelete}
         onAddChild={handleAddChildFromContext}
         onToggleCollapse={handleToggleCollapse}
+      />
+
+      <CreateFirstNodeModal
+        isOpen={createFirstNodeModal.isOpen}
+        onClose={closeCreateFirstNodeModal}
+        onNodeCreate={handleCreateFirstNode}
       />
     </div>
   );

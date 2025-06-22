@@ -2,6 +2,7 @@ interface ProjectHeaderProps {
   projectName: string;
   lastSaved: Date | string;
   onFitToScreen: () => void;
+  onAutoLayout: () => void;
   orientation: 'horizontal' | 'vertical';
   onOrientationToggle: () => void;
 }
@@ -10,6 +11,7 @@ export function ProjectHeader({
   projectName, 
   lastSaved, 
   onFitToScreen,
+  onAutoLayout,
   orientation,
   onOrientationToggle
 }: ProjectHeaderProps) {
