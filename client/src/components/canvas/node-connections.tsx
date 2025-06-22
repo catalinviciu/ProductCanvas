@@ -1,4 +1,4 @@
-import { useMemo, memo } from 'react';
+import { useMemo } from 'react';
 import { type TreeNode, type NodeConnection } from "@shared/schema";
 
 interface NodeConnectionsProps {
@@ -25,7 +25,7 @@ const CONNECTION_CONFIG = {
   arrowSize: 4,
 } as const;
 
-export const NodeConnections = memo(function NodeConnections({ connections, nodes, zoom, orientation = 'horizontal' }: NodeConnectionsProps) {
+export function NodeConnections({ connections, nodes, zoom, orientation = 'horizontal' }: NodeConnectionsProps) {
   // Memoize node lookup map for better performance
   const nodeMap = useMemo(() => {
     const map = new Map<string, TreeNode>();
@@ -182,4 +182,4 @@ export const NodeConnections = memo(function NodeConnections({ connections, node
       })}
     </svg>
   );
-});
+}

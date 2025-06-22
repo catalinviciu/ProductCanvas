@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, memo } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
@@ -14,89 +14,73 @@ interface TreeNodeProps {
   onReattach?: (nodeId: string, newParentId: string | null) => void;
   onToggleCollapse?: (nodeId: string) => void;
   onToggleChildVisibility?: (parentId: string, childId: string) => void;
-  allNodes?: TreeNodeType[];
+  allNodes?: TreeNodeType[]; // Needed to get child node info for individual toggles
   isDropTarget?: boolean;
   isDraggedOver?: boolean;
   orientation?: 'horizontal' | 'vertical';
 }
 
-// Enhanced node type configuration with improved styling
-const NODE_TYPE_CONFIG = {
+const nodeTypeConfig = {
   outcome: {
-    color: '#6366F1',
-    bgColor: '#EEF2FF',
-    borderColor: '#C7D2FE',
+    color: 'var(--primary-indigo)',
     className: 'node-outcome',
     label: 'Outcome',
     icon: 'fas fa-bullseye',
-    gradient: 'from-indigo-50 to-indigo-100',
   },
   opportunity: {
-    color: '#8B5CF6',
-    bgColor: '#F3E8FF',
-    borderColor: '#DDD6FE',
+    color: 'var(--secondary-purple)', 
     className: 'node-opportunity',
     label: 'Opportunity',
     icon: 'fas fa-lightbulb',
-    gradient: 'from-purple-50 to-purple-100',
   },
   solution: {
-    color: '#059669',
-    bgColor: '#ECFDF5',
-    borderColor: '#BBF7D0',
+    color: 'var(--accent-emerald)',
     className: 'node-solution',
     label: 'Solution',
     icon: 'fas fa-cog',
-    gradient: 'from-emerald-50 to-emerald-100',
   },
   assumption: {
-    color: '#EA580C',
-    bgColor: '#FFF7ED',
-    borderColor: '#FED7AA',
+    color: 'var(--orange-test)',
     className: 'node-assumption',
     label: 'Assumption Test',
     icon: 'fas fa-flask',
-    gradient: 'from-orange-50 to-orange-100',
   },
   kpi: {
-    color: '#DC2626',
-    bgColor: '#FEF2F2',
-    borderColor: '#FECACA',
+    color: 'var(--kpi-color)',
     className: 'node-kpi',
     label: 'KPI',
     icon: 'fas fa-chart-line',
-    gradient: 'from-red-50 to-red-100',
   },
-} as const;
+};
 
-const TEST_CATEGORY_CONFIG = {
+const testCategoryConfig = {
   viability: { 
-    color: '#2563EB', 
-    bg: '#EFF6FF', 
+    color: 'var(--viability-color)', 
+    bg: 'hsl(217, 91%, 95%)', 
     label: 'Viability',
     icon: 'fas fa-seedling'
   },
   value: { 
-    color: '#059669', 
-    bg: '#ECFDF5', 
+    color: 'var(--value-color)', 
+    bg: 'hsl(142, 76%, 95%)', 
     label: 'Value',
     icon: 'fas fa-gem'
   },
   feasibility: { 
-    color: '#7C3AED', 
-    bg: '#F3E8FF', 
+    color: 'var(--feasibility-color)', 
+    bg: 'hsl(271, 81%, 95%)', 
     label: 'Feasibility',
     icon: 'fas fa-wrench'
   },
   usability: { 
-    color: '#DB2777', 
-    bg: '#FDF2F8', 
+    color: 'var(--usability-color)', 
+    bg: 'hsl(330, 81%, 95%)', 
     label: 'Usability',
     icon: 'fas fa-user-check'
   },
-} as const;
+};
 
-export const TreeNode = memo(function TreeNode({
+export function TreeNode({
   node,
   isSelected,
   onUpdate,
@@ -118,13 +102,12 @@ export const TreeNode = memo(function TreeNode({
   const [editDescription, setEditDescription] = useState(node.description);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  
+  const [isMovingWithParent, setIsMovingWithParent] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
 
-  const config = NODE_TYPE_CONFIG[node.type];
+  const config = nodeTypeConfig[node.type];
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) { // Left click
@@ -402,9 +385,9 @@ export const TreeNode = memo(function TreeNode({
           {node.type === 'assumption' && node.testCategory && (
             <div className="ml-auto">
               <i 
-                className={`${TEST_CATEGORY_CONFIG[node.testCategory].icon} text-xs`}
-                style={{ color: TEST_CATEGORY_CONFIG[node.testCategory].color }}
-                title={`${TEST_CATEGORY_CONFIG[node.testCategory].label} Test`}
+                className={`${testCategoryConfig[node.testCategory].icon} text-xs`}
+                style={{ color: testCategoryConfig[node.testCategory].color }}
+                title={`${testCategoryConfig[node.testCategory].label} Test`}
               />
             </div>
           )}
@@ -485,11 +468,11 @@ export const TreeNode = memo(function TreeNode({
                 <span 
                   className="px-2 py-1 rounded-full text-xs font-medium"
                   style={{
-                    backgroundColor: TEST_CATEGORY_CONFIG[node.testCategory].bg,
-                    color: TEST_CATEGORY_CONFIG[node.testCategory].color,
+                    backgroundColor: testCategoryConfig[node.testCategory].bg,
+                    color: testCategoryConfig[node.testCategory].color,
                   }}
                 >
-                  {TEST_CATEGORY_CONFIG[node.testCategory].label}
+                  {testCategoryConfig[node.testCategory].label}
                 </span>
               </div>
             )}
@@ -568,4 +551,4 @@ export const TreeNode = memo(function TreeNode({
       </div>
     </div>
   );
-});
+}
