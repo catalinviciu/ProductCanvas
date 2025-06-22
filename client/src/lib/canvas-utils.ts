@@ -91,8 +91,39 @@ export function calculateNodeLayout(nodes: TreeNode[]): TreeNode[] {
   return layoutNodes;
 }
 
+export function getHomePosition(nodes: TreeNode[]): { zoom: number; pan: { x: number; y: number } } {
+  // If no nodes, position at top-left corner
+  if (nodes.length === 0) {
+    return { zoom: 1, pan: { x: 100, y: 100 } };
+  }
+
+  // Find outcome nodes
+  const outcomeNodes = nodes.filter(node => node.type === 'outcome');
+  
+  if (outcomeNodes.length === 0) {
+    // No outcome nodes, position at top-left corner
+    return { zoom: 1, pan: { x: 100, y: 100 } };
+  }
+
+  // Find the outcome node closest to top-left (smallest x + y)
+  const topLeftOutcome = outcomeNodes.reduce((closest, current) => {
+    const closestDistance = closest.position.x + closest.position.y;
+    const currentDistance = current.position.x + current.position.y;
+    return currentDistance < closestDistance ? current : closest;
+  });
+
+  // Center the view on this outcome node
+  const centerX = topLeftOutcome.position.x + 128; // Half of node width
+  const centerY = topLeftOutcome.position.y + 100; // Half of node height
+  
+  return {
+    zoom: 1,
+    pan: { x: 400 - centerX, y: 300 - centerY } // Center in viewport
+  };
+}
+
 export function fitNodesToScreen(nodes: TreeNode[], canvasWidth: number, canvasHeight: number) {
-  if (nodes.length === 0) return { zoom: 1, pan: { x: 0, y: 0 } };
+  if (nodes.length === 0) return getHomePosition(nodes);
 
   const padding = 50;
   

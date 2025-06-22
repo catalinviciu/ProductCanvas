@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -185,6 +185,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setEditModal({ isOpen: true });
   }, []);
 
+  const resetToHome = useCallback(() => {
+    const homePosition = getHomePosition(nodes);
+    setCanvasState(homePosition);
+    saveTree(undefined, undefined, homePosition);
+  }, [nodes, saveTree]);
+
   return {
     selectedNode,
     contextMenu,
@@ -202,5 +208,6 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     closeContextMenu,
     closeEditModal,
     openEditModal,
+    resetToHome,
   };
 }
