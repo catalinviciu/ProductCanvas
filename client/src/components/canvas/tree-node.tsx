@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, memo, useMemo } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
@@ -80,7 +80,7 @@ const testCategoryConfig = {
   },
 };
 
-export function TreeNode({
+const TreeNodeComponent = memo(function TreeNode({
   node,
   isSelected,
   onUpdate,
@@ -102,12 +102,44 @@ export function TreeNode({
   const [editDescription, setEditDescription] = useState(node.description);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
-  const [isMovingWithParent, setIsMovingWithParent] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
 
-  const config = nodeTypeConfig[node.type];
+  // Memoize config to prevent unnecessary recalculations
+  const config = useMemo(() => nodeTypeConfig[node.type], [node.type]);
+  
+  // Memoize parent node lookup
+  const parentNode = useMemo(() => 
+    node.parentId ? allNodes.find(n => n.id === node.parentId) : null,
+    [node.parentId, allNodes]
+  );
+  
+  // Memoize visibility state calculations
+  const visibilityState = useMemo(() => {
+    if (!parentNode || parentNode.isCollapsed) return { showToggle: false, isHidden: false };
+    const isHidden = isChildHidden(parentNode, node.id);
+    return { showToggle: true, isHidden };
+  }, [parentNode, node.id]);
+  
+  // Memoize collapse state calculations
+  const collapseState = useMemo(() => {
+    const hasChildren = node.children.length > 0;
+    const allChildrenHidden = hasChildren ? areAllChildrenHidden(node) : false;
+    return { hasChildren, allChildrenHidden };
+  }, [node.children.length, node]);
+
+  // Memoize test category config
+  const testConfig = useMemo(() => 
+    node.testCategory ? testCategoryConfig[node.testCategory] : null,
+    [node.testCategory]
+  );
+
+  // Sync edit state with node changes
+  useEffect(() => {
+    setEditTitle(node.title);
+    setEditDescription(node.description);
+  }, [node.title, node.description]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) { // Left click
@@ -167,12 +199,7 @@ export function TreeNode({
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [isDragging, isEditing, node.id, onDrag]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-    setDraggedNode(null);
-  }, []);
+  }, [isDragging, isEditing, throttledDragHandler]);
 
   // Enhanced drop zone handlers for attachment
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -206,20 +233,15 @@ export function TreeNode({
     
     const draggedNodeId = e.dataTransfer.getData('text/plain');
     if (draggedNodeId && draggedNodeId !== node.id && onReattach) {
-      // Automatically handle the reattachment with smart positioning
       onReattach(draggedNodeId, node.id);
-      
-      // Clear drag state immediately
       setDraggedNode(null);
       setDraggedOverNodeId(null);
       
-      // Force clear browser drag state by triggering a blur/focus cycle
       setTimeout(() => {
         const activeElement = document.activeElement as HTMLElement;
         if (activeElement && activeElement.blur) {
           activeElement.blur();
         }
-        // Force canvas to regain focus to clear any lingering drag states
         const canvas = document.querySelector('.impact-tree-canvas') as HTMLElement;
         if (canvas) {
           canvas.focus();
@@ -230,7 +252,6 @@ export function TreeNode({
     }
   }, [node.id, onReattach]);
 
-  // Controlled drag start for attachment - only when Alt key is held
   const handleDragStart = useCallback((e: React.DragEvent) => {
     // Only allow HTML5 drag when Alt key is held for attachment
     if (e.altKey) {
@@ -238,7 +259,6 @@ export function TreeNode({
       e.dataTransfer.effectAllowed = 'move';
       setDraggedNode(node.id);
       
-      // Force clear the drag ghost to minimize visual artifacts
       const emptyImg = new Image();
       emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
       e.dataTransfer.setDragImage(emptyImg, 0, 0);
@@ -248,30 +268,24 @@ export function TreeNode({
   }, [node.id]);
 
   const handleDragEnd = useCallback((e: React.DragEvent) => {
-    // Clear all drag states immediately when drag ends
     setDraggedNode(null);
     setDraggedOverNodeId(null);
     
-    // Force complete drag state cleanup with multiple strategies
     const cleanup = () => {
-      // Strategy 1: Clear element-specific styles
       const draggedElement = e.target as HTMLElement;
       if (draggedElement) {
         draggedElement.style.transform = '';
         draggedElement.style.opacity = '1';
         draggedElement.style.pointerEvents = '';
-        // Force remove any :active or :focus-visible states
         draggedElement.blur();
       }
       
-      // Strategy 2: Force focus to canvas to break drag state
       const canvas = document.querySelector('.impact-tree-canvas');
       if (canvas) {
         (canvas as HTMLElement).focus();
         setTimeout(() => (canvas as HTMLElement).blur(), 10);
       }
       
-      // Strategy 3: Trigger mouse events to force state reset
       const mouseEvent = new MouseEvent('mouseup', {
         bubbles: true,
         cancelable: true,
@@ -279,13 +293,11 @@ export function TreeNode({
       });
       document.dispatchEvent(mouseEvent);
       
-      // Strategy 4: Clear selection if successful drop
       if (e.dataTransfer.dropEffect === 'move') {
         onSelect(null);
       }
     };
     
-    // Execute cleanup immediately and with delay for persistent states
     cleanup();
     setTimeout(cleanup, 50);
     setTimeout(cleanup, 200);
@@ -328,30 +340,40 @@ export function TreeNode({
     }
   }, [handleSaveEdit, handleCancelEdit]);
 
+  // Memoize dynamic className to prevent excessive recalculations
+  const nodeClassName = useMemo(() => {
+    const baseClass = `absolute w-64 transition-all duration-200 tree-node-container ${config.className}`;
+    const stateClasses = [];
+    
+    if (isSelected) stateClasses.push('ring-2 ring-blue-400 shadow-lg');
+    else stateClasses.push('hover:shadow-lg');
+    
+    if (isDragging) stateClasses.push('dragging scale-105 shadow-2xl rotate-1 z-50');
+    if (isEditing) stateClasses.push('z-50');
+    if (draggedOverNodeId === node.id) stateClasses.push('ring-2 ring-green-400 bg-green-50 scale-102');
+    if (isDropTarget && draggedNode) stateClasses.push('ring-2 ring-dashed ring-blue-300 animate-pulse');
+    if (isDraggedOver) stateClasses.push('ring-2 ring-yellow-400 bg-yellow-50');
+    
+    return `${baseClass} ${stateClasses.join(' ')}`;
+  }, [config.className, isSelected, isDragging, isEditing, draggedOverNodeId, node.id, isDropTarget, draggedNode, isDraggedOver]);
+
+  // Memoize style object to prevent unnecessary re-renders
+  const nodeStyle = useMemo(() => ({
+    left: node.position.x, 
+    top: node.position.y,
+    zIndex: isDragging ? 100 : isSelected ? 20 : isEditing ? 50 : 1,
+    cursor: isDragging ? 'grabbing' : isEditing ? 'text' : 'grab',
+    userSelect: 'none' as const,
+    transform: isDragging ? 'rotate(2deg) scale(1.05)' : 'none',
+    boxShadow: isDragging ? '0 20px 40px rgba(0,0,0,0.15)' : undefined,
+  }), [node.position.x, node.position.y, isDragging, isSelected, isEditing]);
+
   return (
     <div
-      className={`absolute w-64 transition-all duration-200 tree-node-container ${
-        config.className
-      } ${isSelected ? 'ring-2 ring-blue-400 shadow-lg' : 'hover:shadow-lg'} ${
-        isDragging ? 'dragging scale-105 shadow-2xl rotate-1 z-50' : ''
-      } ${isEditing ? 'z-50' : ''} ${
-        draggedOverNodeId === node.id ? 'ring-2 ring-green-400 bg-green-50 scale-102' : ''
-      } ${
-        isDropTarget && draggedNode ? 'ring-2 ring-dashed ring-blue-300 animate-pulse' : ''
-      } ${
-        isDraggedOver ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
-      }`}
-      style={{ 
-        left: node.position.x, 
-        top: node.position.y,
-        zIndex: isDragging ? 100 : isSelected ? 20 : isEditing ? 50 : 1,
-        cursor: isDragging ? 'grabbing' : isEditing ? 'text' : 'grab',
-        userSelect: 'none',
-        transform: isDragging ? 'rotate(2deg) scale(1.05)' : 'none',
-        boxShadow: isDragging ? '0 20px 40px rgba(0,0,0,0.15)' : undefined,
-      }}
+      className={nodeClassName}
+      style={nodeStyle}
       draggable={!isEditing}
-      title={`${config.label}: ${node.title}${!isEditing ? `\n\nDrag to move ${node.children.length > 0 ? '(children will follow)' : 'position'}\nHold Alt + drag to reattach to other cards` : ''}`}
+      title={`${config.label}: ${node.title}${!isEditing ? `\n\nDrag to move ${collapseState.hasChildren ? '(children will follow)' : 'position'}\nHold Alt + drag to reattach to other cards` : ''}`}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
@@ -382,12 +404,12 @@ export function TreeNode({
           >
             {config.label}
           </span>
-          {node.type === 'assumption' && node.testCategory && (
+          {node.type === 'assumption' && testConfig && (
             <div className="ml-auto">
               <i 
-                className={`${testCategoryConfig[node.testCategory].icon} text-xs`}
-                style={{ color: testCategoryConfig[node.testCategory].color }}
-                title={`${testCategoryConfig[node.testCategory].label} Test`}
+                className={`${testConfig.icon} text-xs`}
+                style={{ color: testConfig.color }}
+                title={`${testConfig.label} Test`}
               />
             </div>
           )}
@@ -438,12 +460,12 @@ export function TreeNode({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                node.children.length > 0 ? 
+                collapseState.hasChildren ? 
                   (node.isCollapsed ? 'bg-purple-100 border border-purple-200' : 'bg-blue-100 border border-blue-200') 
                   : 'bg-gray-100'
               }`}>
                 <span className={`text-xs ${
-                  node.children.length > 0 ? 
+                  collapseState.hasChildren ? 
                     (node.isCollapsed ? 'text-purple-600 font-medium' : 'text-blue-600 font-medium')
                     : 'text-gray-600'
                 }`}>
@@ -452,9 +474,9 @@ export function TreeNode({
               </div>
               <span className="text-xs text-gray-500">
                 {node.children.length === 1 ? 'child' : 'children'}
-                {node.isCollapsed && node.children.length > 0 && ' (hidden)'}
+                {node.isCollapsed && collapseState.hasChildren && ' (hidden)'}
               </span>
-              {node.children.length > 0 && (
+              {collapseState.hasChildren && (
                 <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
                   node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
                 }`} title={
@@ -463,16 +485,16 @@ export function TreeNode({
               )}
             </div>
             
-            {node.type === 'assumption' && node.testCategory && (
+            {node.type === 'assumption' && testConfig && (
               <div className="text-xs">
                 <span 
                   className="px-2 py-1 rounded-full text-xs font-medium"
                   style={{
-                    backgroundColor: testCategoryConfig[node.testCategory].bg,
-                    color: testCategoryConfig[node.testCategory].color,
+                    backgroundColor: testConfig.bg,
+                    color: testConfig.color,
                   }}
                 >
-                  {testCategoryConfig[node.testCategory].label}
+                  {testConfig.label}
                 </span>
               </div>
             )}
@@ -490,45 +512,38 @@ export function TreeNode({
         )}
 
         {/* Individual Child Toggle Button - Show on visible child nodes */}
-        {node.parentId && (() => {
-          const parentNode = allNodes.find(n => n.id === node.parentId);
-          if (!parentNode || parentNode.isCollapsed) return null;
-          
-          const isHidden = isChildHidden(parentNode, node.id);
-          
-          return (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onToggleChildVisibility?.(node.parentId!, node.id);
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className={`absolute w-6 h-6 rounded-full text-xs font-bold
-                       flex items-center justify-center cursor-pointer
-                       shadow-md hover:shadow-lg transition-all duration-200
-                       border-2 border-white z-20 ${
-                         isHidden 
-                           ? 'bg-gray-400 hover:bg-gray-500 text-white' 
-                           : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                       } ${
-                         orientation === 'horizontal' 
-                           ? '-left-7 top-1/2 -translate-y-1/2' 
-                           : '-top-7 left-1/2 -translate-x-1/2'
-                       }`}
-              style={{ pointerEvents: 'all' }}
-              title={`${isHidden ? 'Show' : 'Hide'} ${node.title} branch`}
-            >
-              {isHidden ? '+' : '−'}
-            </button>
-          );
-        })()}
+        {visibilityState.showToggle && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleChildVisibility?.(node.parentId!, node.id);
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className={`absolute w-6 h-6 rounded-full text-xs font-bold
+                     flex items-center justify-center cursor-pointer
+                     shadow-md hover:shadow-lg transition-all duration-200
+                     border-2 border-white z-20 ${
+                       visibilityState.isHidden 
+                         ? 'bg-gray-400 hover:bg-gray-500 text-white' 
+                         : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                     } ${
+                       orientation === 'horizontal' 
+                         ? '-left-7 top-1/2 -translate-y-1/2' 
+                         : '-top-7 left-1/2 -translate-x-1/2'
+                     }`}
+            style={{ pointerEvents: 'all' }}
+            title={`${visibilityState.isHidden ? 'Show' : 'Hide'} ${node.title} branch`}
+          >
+            {visibilityState.isHidden ? '+' : '−'}
+          </button>
+        )}
 
         {/* Master Collapse/Expand Button */}
-        {node.children.length > 0 && (
+        {collapseState.hasChildren && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -543,12 +558,15 @@ export function TreeNode({
                          ? '-right-3 top-1/2 -translate-y-1/2' 
                          : '-bottom-3 left-1/2 -translate-x-1/2'
                      }`}
-            title={areAllChildrenHidden(node) ? 'Expand all children' : 'Collapse all children'}
+            title={collapseState.allChildrenHidden ? 'Expand all children' : 'Collapse all children'}
           >
-            {areAllChildrenHidden(node) ? '+' : '−'}
+            {collapseState.allChildrenHidden ? '+' : '−'}
           </button>
         )}
       </div>
     </div>
   );
-}
+});
+
+// Export the memoized component
+export const TreeNode = TreeNodeComponent;
