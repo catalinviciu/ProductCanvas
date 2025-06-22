@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo, useCallback } from "react";
 import { type TreeNode, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ContextMenuProps {
@@ -12,7 +12,7 @@ interface ContextMenuProps {
   onToggleCollapse?: (nodeId: string) => void;
 }
 
-export function ContextMenu({
+export const ContextMenu = memo(function ContextMenu({
   isOpen,
   position,
   node,
@@ -93,51 +93,59 @@ export function ContextMenu({
 
   if (!isOpen || !node) return null;
 
-  const handleEdit = () => {
+  // Memoized handlers for better performance
+  const handleEdit = useCallback(() => {
     onEdit(node);
     onClose();
-  };
+  }, [node, onEdit, onClose]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     onDelete(node.id);
     onClose();
-  };
+  }, [node.id, onDelete, onClose]);
 
-  const handleAddChild = (type: NodeType, testCategory?: TestCategory) => {
+  const handleAddChild = useCallback((type: NodeType, testCategory?: TestCategory) => {
     onAddChild(type, testCategory);
     onClose();
-  };
+  }, [onAddChild, onClose]);
 
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[280px]"
+      className="fixed z-50 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50 py-3 min-w-[320px] max-w-[400px]"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       }}
     >
       <button 
         onClick={handleEdit}
-        className="w-full px-4 py-2 text-sm text-left hover:bg-gray-50 transition-colors flex items-center"
+        className="w-full px-4 py-3 text-sm text-left hover:bg-blue-50 transition-all duration-200 flex items-center group rounded-lg mx-2"
       >
-        <i className="fas fa-edit mr-2 text-gray-400"></i>
-        Edit Node
+        <i className="fas fa-edit mr-3 text-blue-500 group-hover:text-blue-600 transition-colors"></i>
+        <div>
+          <div className="font-medium text-gray-900 group-hover:text-blue-900">Edit Node</div>
+          <div className="text-xs text-gray-500">Modify title and description</div>
+        </div>
       </button>
       
-      <div className="border-t border-gray-100 my-1"></div>
+      <div className="border-t border-gray-100 my-2 mx-2"></div>
       
       <div className="px-4 py-2">
-        <div className="text-xs font-medium text-gray-500 mb-2">Add Child Node</div>
-        <div className="space-y-1">
+        <div className="text-xs font-semibold text-gray-600 mb-3 flex items-center space-x-2">
+          <i className="fas fa-plus text-gray-500"></i>
+          <span>Add Child Node</span>
+        </div>
+        <div className="space-y-2">
           <button 
             onClick={() => handleAddChild('outcome')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-blue-50 rounded flex items-center transition-colors"
+            className="w-full px-3 py-3 text-sm text-left hover:bg-indigo-50 rounded-lg flex items-center transition-all duration-200 group border border-transparent hover:border-indigo-200"
           >
-            <i className="fas fa-bullseye mr-3 text-sm" style={{ color: 'var(--primary-indigo)' }}></i>
+            <i className="fas fa-bullseye mr-3 text-sm text-indigo-600 group-hover:text-indigo-700 transition-colors"></i>
             <div>
-              <div className="font-medium text-gray-900">Outcome</div>
-              <div className="text-xs text-gray-500">Business goal or result</div>
+              <div className="font-semibold text-gray-900 group-hover:text-indigo-900">Outcome</div>
+              <div className="text-xs text-gray-500 group-hover:text-indigo-600">Business goal or result</div>
             </div>
           </button>
           <button 
@@ -294,4 +302,4 @@ export function ContextMenu({
       </button>
     </div>
   );
-}
+});
