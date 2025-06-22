@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect, memo, useMemo } from "react";
-import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
+import { type TreeNode as TreeNodeType, type TestCategory, type NodeType, nodeTypes, testCategories } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -99,6 +100,8 @@ const TreeNodeComponent = memo(function TreeNode({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(node.title);
   const [editDescription, setEditDescription] = useState(node.description);
+  const [editType, setEditType] = useState<NodeType>(node.type);
+  const [editTestCategory, setEditTestCategory] = useState<TestCategory>(node.testCategory || 'viability');
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
@@ -398,102 +401,186 @@ const TreeNodeComponent = memo(function TreeNode({
           </div>
         )}
         
-        {/* Card Accent Border */}
-        <div 
-          className="absolute inset-0 opacity-20 bg-gradient-to-br text-[#ffffff]"
-          style={{
-            background: `linear-gradient(135deg, ${config.color}22 0%, ${config.color}11 50%, transparent 100%)`
-          }}
-        />
-        
-        {/* Node Header - Compact */}
-        <div className="flex items-center justify-between mb-2 flex-shrink-0">
-          <div className="flex items-center space-x-1.5">
-            <div 
-              className="icon-container-compact"
-              style={{ '--accent-color': config.color } as any}
-            >
-              <i className={`${config.icon} text-xs`} />
-            </div>
-            <div className="flex flex-col">
-              <span 
-                className="text-xs font-medium uppercase tracking-wide"
-                style={{ color: config.color }}
-              >
-                {config.label}
-              </span>
-              {node.type === 'assumption' && testConfig && (
-                <span className="text-xs text-gray-400 -mt-0.5">
-                  {testConfig.label}
-                </span>
+        {/* Node Content - New Design */}
+        <div className="flex flex-col h-full p-4">
+          {!isEditing ? (
+            <>
+              {/* Main Content */}
+              <div className="flex items-start space-x-3 flex-1">
+                {/* Colored Icon Circle */}
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: config.color }}
+                >
+                  <i className={`${config.icon} text-white text-sm`} />
+                </div>
+                
+                {/* Text Content */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 text-base leading-tight mb-1">
+                    {config.label}
+                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    {node.title}
+                  </p>
+                  
+                  {/* Test category for assumptions */}
+                  {node.type === 'assumption' && testConfig && (
+                    <div className="flex items-center mt-2">
+                      <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+                        {testConfig.label}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Action buttons */}
+                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                  <button 
+                    className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsEditing(true);
+                    }}
+                    title="Edit"
+                  >
+                    <i className="fas fa-edit text-xs" />
+                  </button>
+                  <button 
+                    className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      onContextMenu(node, { x: rect.right, y: rect.bottom });
+                    }}
+                    title="More options"
+                  >
+                    <i className="fas fa-ellipsis-v text-xs" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Footer with children indicator */}
+              {collapseState.hasChildren && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <button 
+                    onClick={handleToggleCollapse}
+                    className="flex items-center space-x-2 text-xs text-gray-500 hover:text-gray-700"
+                    title={collapseState.isCollapsed ? 'Expand children' : 'Collapse children'}
+                  >
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${collapseState.isCollapsed ? 'bg-purple-50 border-purple-200 text-purple-600' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
+                      <span className="text-xs font-medium">{collapseState.totalChildren}</span>
+                    </div>
+                    <span>{collapseState.totalChildren === 1 ? 'child' : 'children'}</span>
+                    {collapseState.hasHiddenChildren && (
+                      <i className="fas fa-eye-slash text-gray-400" title="Some children hidden" />
+                    )}
+                  </button>
+                </div>
               )}
-            </div>
-          </div>
-          
-          {/* Action buttons container */}
-          <div className="flex items-center">
-            {!isEditing && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  onContextMenu(node, { x: rect.right, y: rect.bottom });
-                }}
-                className="action-btn-compact"
-                title="More options"
-              >
-                <i className="fas fa-ellipsis-v text-xs"></i>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Node Content - Compact layout */}
-        <div className="flex-1 flex flex-col min-h-0">
-          {isEditing ? (
-            <div className="edit-mode-container" onClick={(e) => e.stopPropagation()}>
-              <input
+            </>
+          ) : (
+            <div className="space-y-3 h-full flex flex-col">
+              {/* Type Selection */}
+              <div className="flex items-center space-x-2">
+                <Select 
+                  value={editType} 
+                  onValueChange={(value: NodeType) => setEditType(value)}
+                >
+                  <SelectTrigger className="w-40 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nodeTypes.map(type => {
+                      const typeConfig = nodeTypeConfig[type];
+                      return (
+                        <SelectItem key={type} value={type}>
+                          <div className="flex items-center space-x-2">
+                            <div 
+                              className="w-4 h-4 rounded-full flex items-center justify-center"
+                              style={{ backgroundColor: typeConfig.color }}
+                            >
+                              <i className={`${typeConfig.icon} text-white text-xs`} />
+                            </div>
+                            <span>{typeConfig.label}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                
+                {editType === 'assumption' && (
+                  <Select 
+                    value={editTestCategory} 
+                    onValueChange={(value: TestCategory) => setEditTestCategory(value)}
+                  >
+                    <SelectTrigger className="w-32 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {testCategories.map(category => {
+                        const categoryConfig = testCategoryConfig[category];
+                        return (
+                          <SelectItem key={category} value={category}>
+                            <div className="flex items-center space-x-1">
+                              <i className={`${categoryConfig.icon} text-xs`} style={{ color: categoryConfig.color }} />
+                              <span>{categoryConfig.label}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              
+              {/* Title Input */}
+              <input 
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onMouseDown={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
-                className="edit-title-input-single"
-                placeholder="Enter title..."
+                placeholder="Node title"
+                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 autoFocus
               />
-              <div className="edit-actions-container">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSaveEdit();
-                  }}
-                  className="edit-btn-save"
-                  type="button"
-                >
-                  <i className="fas fa-check"></i>
-                  Save
-                </button>
-                <button
+              
+              {/* Description Input */}
+              <textarea 
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Description (optional)"
+                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm resize-none flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+              />
+              
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end space-x-2 pt-2">
+                <button 
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     handleCancelEdit();
                   }}
-                  className="edit-btn-cancel"
-                  type="button"
+                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
                 >
-                  <i className="fas fa-times"></i>
                   Cancel
                 </button>
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSaveEdit();
+                  }}
+                  className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-md flex items-center space-x-1 transition-colors"
+                >
+                  <i className="fas fa-save text-xs" />
+                  <span>Save</span>
+                </button>
               </div>
-            </div>
-          ) : (
-            <div className="content-area-compact flex-1 overflow-hidden" onDoubleClick={handleDoubleClick}>
-              <h3 className="node-title-compact line-clamp-2">{node.title}</h3>
             </div>
           )}
         </div>
