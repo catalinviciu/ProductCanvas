@@ -989,7 +989,14 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
     const node = nodeMap.get(nodeId);
     if (!node || node.children.length === 0) return 1;
     
-    const childWidths = node.children.map(childId => getSubtreeWidth(childId));
+    // Filter out hidden children from width calculations
+    const visibleChildren = node.children.filter(childId => 
+      !node.hiddenChildren?.includes(childId)
+    );
+    
+    if (visibleChildren.length === 0) return 1;
+    
+    const childWidths = visibleChildren.map(childId => getSubtreeWidth(childId));
     return Math.max(1, childWidths.reduce((sum, width) => sum + width, 0));
   };
 
@@ -1006,23 +1013,30 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
 
     // Layout children vertically downward (same as main vertical layout)
     if (node.children.length > 0) {
-      const childY = y + levelSpacing;
+      // Only layout visible (non-hidden) children
+      const visibleChildren = node.children.filter(childId => 
+        !node.hiddenChildren?.includes(childId)
+      );
       
-      // Calculate total width needed for all children and their subtrees
-      const totalSubtreeWidth = node.children.reduce((sum, childId) => 
-        sum + getSubtreeWidth(childId), 0);
-      
-      // Start position for children - center them under the parent
-      let currentX = x - ((totalSubtreeWidth - 1) * siblingSpacing) / 2;
-
-      node.children.forEach(childId => {
-        const subtreeWidth = getSubtreeWidth(childId);
-        // Position each child at the center of its allocated space
-        const childCenterX = currentX + ((subtreeWidth - 1) * siblingSpacing) / 2;
+      if (visibleChildren.length > 0) {
+        const childY = y + levelSpacing;
         
-        layoutTree(childId, childCenterX, childY, level + 1);
-        currentX += subtreeWidth * siblingSpacing;
-      });
+        // Calculate total width needed for all visible children and their subtrees
+        const totalSubtreeWidth = visibleChildren.reduce((sum, childId) => 
+          sum + getSubtreeWidth(childId), 0);
+        
+        // Start position for children - center them under the parent
+        let currentX = x - ((totalSubtreeWidth - 1) * siblingSpacing) / 2;
+
+        visibleChildren.forEach(childId => {
+          const subtreeWidth = getSubtreeWidth(childId);
+          // Position each child at the center of its allocated space
+          const childCenterX = currentX + ((subtreeWidth - 1) * siblingSpacing) / 2;
+          
+          layoutTree(childId, childCenterX, childY, level + 1);
+          currentX += subtreeWidth * siblingSpacing;
+        });
+      }
     }
   };
 
