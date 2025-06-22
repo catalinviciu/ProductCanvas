@@ -346,7 +346,7 @@ const TreeNodeComponent = memo(function TreeNode({
 
   // Memoize dynamic className to prevent excessive recalculations
   const nodeClassName = useMemo(() => {
-    const baseClass = `absolute w-64 transition-all duration-200 tree-node-container ${config.className}`;
+    const baseClass = `absolute w-52 transition-all duration-200 tree-node-container ${config.className}`;
     const stateClasses = [];
     
     if (isSelected) stateClasses.push('ring-2 ring-blue-400 shadow-lg');

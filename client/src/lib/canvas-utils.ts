@@ -72,10 +72,10 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
   });
 
   const layoutNodes: TreeNode[] = [];
-  const nodeWidth = 280; // Card width + margin
+  const nodeWidth = 240; // Card width + margin (reduced for narrower cards)
   const nodeHeight = 160; // Card height + margin
-  const levelSpacing = 350; // Horizontal spacing between levels
-  const siblingSpacing = 180; // Vertical spacing between siblings
+  const levelSpacing = 300; // Horizontal spacing between levels (reduced)
+  const siblingSpacing = 160; // Vertical spacing between siblings (reduced)
 
   // Build tree structure to calculate subtree heights for horizontal layout
   // Only consider visible (non-hidden) children for height calculation
@@ -162,10 +162,10 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
   });
 
   const layoutNodes: TreeNode[] = [];
-  const nodeWidth = 280; // Card width + margin
-  const nodeHeight = 180; // Card height + margin 
-  const levelSpacing = 200; // Vertical spacing between levels
-  const siblingSpacing = 320; // Horizontal spacing between siblings (increased for better alignment)
+  const nodeWidth = 240; // Card width + margin (reduced for narrower cards)
+  const nodeHeight = 160; // Card height + margin 
+  const levelSpacing = 180; // Vertical spacing between levels (reduced)
+  const siblingSpacing = 280; // Horizontal spacing between siblings (reduced)
 
   // Build tree structure to calculate subtree widths for vertical layout
   // Only consider visible (non-hidden) children for width calculation
@@ -398,7 +398,7 @@ function createSpatialGrid(nodes: TreeNode[]): SpatialGrid {
   return grid;
 }
 
-function getNearbyNodes(grid: SpatialGrid, position: { x: number; y: number }, width: number = 256, height: number = 160): TreeNode[] {
+function getNearbyNodes(grid: SpatialGrid, position: { x: number; y: number }, width: number = 208, height: number = 160): TreeNode[] {
   const startX = Math.floor((position.x - 20) / COLLISION_GRID_SIZE);
   const startY = Math.floor((position.y - 20) / COLLISION_GRID_SIZE);
   const endX = Math.floor((position.x + width + 20) / COLLISION_GRID_SIZE);
@@ -476,7 +476,7 @@ export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosit
     if (!hasOverlap) break;
     
     // Apply calculated movement with reduced distance for smoother positioning
-    const pushDistance = 280;
+    const pushDistance = 240;
     adjustedPosition.x += bestDirection.x * pushDistance;
     adjustedPosition.y += bestDirection.y * pushDistance;
     
@@ -658,7 +658,7 @@ export function getNodeBounds(node: TreeNode, margin: number = 20): { x: number;
   return {
     x: node.position.x - margin,
     y: node.position.y - margin,
-    width: 256 + (margin * 2), // Standard node width is 256px
+    width: 208 + (margin * 2), // Standard node width is 208px (w-52)
     height: 160 + (margin * 2)  // Standard node height is 160px
   };
 }
