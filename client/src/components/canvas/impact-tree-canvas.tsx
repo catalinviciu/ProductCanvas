@@ -341,59 +341,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
     });
   }, [nodes, canvasBounds]);
 
-  // Memoize ghost toggle buttons for hidden children
-  const ghostToggleButtons = useMemo(() => {
-    const buttons: JSX.Element[] = [];
-    
-    nodes.forEach((node) => {
-      // Show ghost buttons for any node with hidden children, regardless of parent visibility
-      // This ensures buttons remain accessible even when tree structure changes
-      if (node.isCollapsed || !node.hiddenChildren?.length) return;
-      
-      // Only show ghost buttons if the parent node itself is visible
-      const isParentVisible = visibleNodes.some(vn => vn.id === node.id);
-      if (!isParentVisible) return;
-      
-      node.hiddenChildren.forEach((hiddenChildId) => {
-        const hiddenChild = nodes.find(n => n.id === hiddenChildId);
-        if (!hiddenChild) return;
-        
-        // Calculate position for ghost button relative to where the hidden child would be
-        const ghostButton = (
-          <button
-            key={`ghost-${hiddenChildId}`}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleChildVisibility(node.id, hiddenChildId);
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="absolute w-6 h-6 rounded-full text-xs font-bold
-                     flex items-center justify-center cursor-pointer
-                     shadow-md hover:shadow-lg transition-all duration-200
-                     border-2 border-white z-30 bg-gray-400 hover:bg-gray-500 text-white
-                     opacity-80 hover:opacity-100"
-            style={{
-              left: hiddenChild.position.x + (canvasState.orientation === 'horizontal' ? -28 : 124),
-              top: hiddenChild.position.y + (canvasState.orientation === 'horizontal' ? 48 : -28),
-              pointerEvents: 'all',
-              transform: canvasState.zoom !== 1 ? `scale(${canvasState.zoom})` : undefined
-            }}
-            title={`Show ${hiddenChild.title} branch`}
-          >
-            +
-          </button>
-        );
-        
-        buttons.push(ghostButton);
-      });
-    });
-    
-    return buttons;
-  }, [nodes, visibleNodes, canvasState.orientation, canvasState.zoom, onToggleChildVisibility]);
+
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -471,7 +419,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
               onContextMenu={(position: { x: number; y: number }) => onContextMenu(node, position)}
               onReattach={onNodeReattach}
               onToggleCollapse={onToggleCollapse}
-              onToggleChildVisibility={onToggleChildVisibility}
+
               allNodes={nodes}
               isDropTarget={draggedNodeId !== null && draggedNodeId !== node.id}
               isDraggedOver={draggedOverNodeId === node.id}
@@ -479,8 +427,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
             />
           ))}
 
-          {/* Ghost Toggle Buttons for Hidden Children */}
-          {ghostToggleButtons}
+
         </div>
       </div>
 

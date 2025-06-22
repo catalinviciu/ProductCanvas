@@ -322,39 +322,10 @@ export function toggleNodeCollapse(nodes: TreeNode[], nodeId: string): TreeNode[
   });
 }
 
-// Toggle visibility of a specific child node
+// Simplified toggle collapse - no individual child hiding needed
 export function toggleChildVisibility(nodes: TreeNode[], parentId: string, childId: string): TreeNode[] {
-  return nodes.map(node => {
-    if (node.id === parentId) {
-      if (!node.children.includes(childId)) {
-        // Child doesn't belong to this parent
-        return node;
-      }
-      
-      const hiddenChildren = node.hiddenChildren || [];
-      const isCurrentlyHidden = hiddenChildren.includes(childId);
-      
-      let newHiddenChildren: string[];
-      if (isCurrentlyHidden) {
-        // Show this child
-        newHiddenChildren = hiddenChildren.filter(id => id !== childId);
-      } else {
-        // Hide this child
-        newHiddenChildren = [...hiddenChildren, childId];
-      }
-      
-      // Update collapse state based on visibility
-      const allChildrenHidden = newHiddenChildren.length === node.children.length;
-      const noChildrenHidden = newHiddenChildren.length === 0;
-      
-      return {
-        ...node,
-        hiddenChildren: newHiddenChildren,
-        isCollapsed: allChildrenHidden ? true : (noChildrenHidden ? false : node.isCollapsed)
-      };
-    }
-    return node;
-  });
+  // This function is no longer used but kept for compatibility
+  return nodes;
 }
 
 // Get visible child nodes for a parent (excluding hidden ones)

@@ -13,7 +13,7 @@ interface TreeNodeProps {
   onContextMenu: (position: { x: number; y: number }) => void;
   onReattach?: (nodeId: string, newParentId: string | null) => void;
   onToggleCollapse?: (nodeId: string) => void;
-  onToggleChildVisibility?: (parentId: string, childId: string) => void;
+
   allNodes?: TreeNodeType[]; // Needed to get child node info for individual toggles
   isDropTarget?: boolean;
   isDraggedOver?: boolean;
@@ -90,7 +90,6 @@ const TreeNodeComponent = memo(function TreeNode({
   onContextMenu,
   onReattach,
   onToggleCollapse,
-  onToggleChildVisibility,
   allNodes = [],
   isDropTarget = false,
   isDraggedOver = false,
@@ -115,12 +114,7 @@ const TreeNodeComponent = memo(function TreeNode({
     [node.parentId, allNodes]
   );
   
-  // Memoize visibility state calculations
-  const visibilityState = useMemo(() => {
-    if (!parentNode || parentNode.isCollapsed) return { showToggle: false, isHidden: false };
-    const isHidden = isChildHidden(parentNode, node.id);
-    return { showToggle: true, isHidden };
-  }, [parentNode, node.id]);
+
   
   // Memoize collapse state calculations
   const collapseState = useMemo(() => {
@@ -511,36 +505,7 @@ const TreeNodeComponent = memo(function TreeNode({
           </div>
         )}
 
-        {/* Individual Child Toggle Button - Show on visible child nodes */}
-        {visibilityState.showToggle && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleChildVisibility?.(node.parentId!, node.id);
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className={`absolute w-6 h-6 rounded-full text-xs font-bold
-                     flex items-center justify-center cursor-pointer
-                     shadow-md hover:shadow-lg transition-all duration-200
-                     border-2 border-white z-20 ${
-                       visibilityState.isHidden 
-                         ? 'bg-gray-400 hover:bg-gray-500 text-white' 
-                         : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                     } ${
-                       orientation === 'horizontal' 
-                         ? '-left-7 top-1/2 -translate-y-1/2' 
-                         : '-top-7 left-1/2 -translate-x-1/2'
-                     }`}
-            style={{ pointerEvents: 'all' }}
-            title={`${visibilityState.isHidden ? 'Show' : 'Hide'} ${node.title} branch`}
-          >
-            {visibilityState.isHidden ? '+' : '−'}
-          </button>
-        )}
+
 
         {/* Master Collapse/Expand Button */}
         {collapseState.hasChildren && (
