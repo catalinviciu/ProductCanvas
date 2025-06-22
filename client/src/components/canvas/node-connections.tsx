@@ -13,17 +13,20 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
     // Calculate exact button center position:
     // Card: w-64 = 256px width, positioned at node.position.x
     // Button CSS: "absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6"
-    // -right-3 = -12px from right edge = positions button 12px to the right of card
-    // w-6 = 24px width, so button spans from (card_right + 12) to (card_right + 12 + 24)
-    // Button center X = card_right + 12 + 12 = card_x + 256 + 24
-    // top-1/2 -translate-y-1/2 = vertically centered at card center
+    // 
+    // Correct understanding of -right-3:
+    // -right-3 = -0.75rem = -12px means the button extends 12px BEYOND the card's right edge
+    // Button right edge = card_right + 12 = (card_x + 256) + 12 = card_x + 268
+    // Button width = w-6 = 24px
+    // Button left edge = button_right - width = (card_x + 268) - 24 = card_x + 244
+    // Button center = button_left + (width/2) = (card_x + 244) + 12 = card_x + 256
+    // 
+    // So the button center is exactly at the card's right edge!
     
     const cardWidth = 256;
-    const buttonRightOffset = 12; // -right-3 moves button 12px right of card edge
-    const buttonRadius = 12; // w-6 (24px) / 2 = 12px radius
     
     const fromX = fromNode.children.length > 0 ? 
-      fromNode.position.x + cardWidth + buttonRightOffset + buttonRadius : // Exact button center
+      fromNode.position.x + cardWidth + 12 : // Button center is 12px beyond card edge
       fromNode.position.x + cardWidth; // Card edge for nodes without children
     
     const fromY = fromNode.position.y + 60; // Card vertical center (matches button center)
