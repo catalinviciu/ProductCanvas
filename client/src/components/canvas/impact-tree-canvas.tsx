@@ -83,18 +83,7 @@ export function ImpactTreeCanvas({
         const worldX = (screenX - canvasState.pan.x) / canvasState.zoom;
         const worldY = (screenY - canvasState.pan.y) / canvasState.zoom;
         
-        // Create a temporary node with the calculated position for the onNodeCreate callback
-        const tempNode = {
-          id: 'temp',
-          type,
-          title: '',
-          description: '',
-          position: { x: worldX, y: worldY },
-          children: [],
-          testCategory
-        };
-        
-        onNodeCreate(type, testCategory, tempNode);
+        onNodeCreate(type, testCategory, undefined, { x: worldX, y: worldY });
       }
     }
     setCanvasContextMenu(null);
