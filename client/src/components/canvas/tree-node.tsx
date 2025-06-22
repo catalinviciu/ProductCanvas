@@ -16,21 +16,31 @@ const nodeTypeConfig = {
     color: 'var(--primary-indigo)',
     className: 'node-outcome',
     label: 'Outcome',
+    icon: 'fas fa-bullseye',
   },
   opportunity: {
     color: 'var(--secondary-purple)', 
     className: 'node-opportunity',
     label: 'Opportunity',
+    icon: 'fas fa-lightbulb',
   },
   solution: {
     color: 'var(--accent-emerald)',
     className: 'node-solution',
     label: 'Solution',
+    icon: 'fas fa-cog',
   },
   assumption: {
     color: 'var(--orange-test)',
     className: 'node-assumption',
     label: 'Assumption Test',
+    icon: 'fas fa-flask',
+  },
+  kpi: {
+    color: 'var(--kpi-color)',
+    className: 'node-kpi',
+    label: 'KPI',
+    icon: 'fas fa-chart-line',
   },
 };
 
@@ -173,9 +183,9 @@ export function TreeNode({
       <div className="bg-white rounded-lg shadow-md p-4 node-created">
         {/* Node Header */}
         <div className="flex items-center space-x-2 mb-2">
-          <div 
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: config.color }}
+          <i 
+            className={`${config.icon} text-sm`}
+            style={{ color: config.color }}
           />
           <span 
             className="text-xs font-medium uppercase tracking-wide"
@@ -185,9 +195,9 @@ export function TreeNode({
           </span>
           {node.type === 'assumption' && node.testCategory && (
             <div className="ml-auto">
-              <span 
-                className="inline-block w-2 h-2 rounded-full"
-                style={{ backgroundColor: testCategoryConfig[node.testCategory].color }}
+              <i 
+                className={`${testCategoryConfig[node.testCategory].icon} text-xs`}
+                style={{ color: testCategoryConfig[node.testCategory].color }}
                 title={`${testCategoryConfig[node.testCategory].label} Test`}
               />
             </div>
