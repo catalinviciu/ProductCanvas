@@ -185,6 +185,64 @@
   @apply border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded;
 }
 
+/* Drop zone visual feedback */
+.tree-node-container.drop-target {
+  border: 2px dashed #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+.tree-node-container.drop-target:hover {
+  border-color: #2563eb !important;
+  background-color: rgba(37, 99, 235, 0.1) !important;
+}
+
+.tree-node-container.dragged-over {
+  border: 2px solid #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Attachment indicator */
+.attachment-indicator {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  background: #10b981;
+  border: 2px solid white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.tree-node-container.drop-target .attachment-indicator,
+.tree-node-container.dragged-over .attachment-indicator {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.attachment-indicator::before {
+  content: '+';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Enhanced drag feedback */
+.tree-node-container[draggable="true"]:hover {
+  cursor: grab;
+}
+
+.tree-node-container[draggable="true"]:active {
+  cursor: grabbing;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .sidebar {

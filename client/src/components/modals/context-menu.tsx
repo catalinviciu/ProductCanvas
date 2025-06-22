@@ -181,6 +181,26 @@ export function ContextMenu({
       
       <div className="border-t border-gray-100 my-1"></div>
       
+      <button 
+        onClick={() => {
+          if (node) {
+            // Detach from parent (make it a root node)
+            const event = new CustomEvent('reattach-node', { 
+              detail: { nodeId: node.id, newParentId: null } 
+            });
+            window.dispatchEvent(event);
+            onClose();
+          }
+        }}
+        className="w-full px-4 py-2 text-sm text-left hover:bg-blue-50 transition-colors flex items-center"
+      >
+        <i className="fas fa-unlink mr-2 text-blue-600"></i>
+        <div>
+          <div className="font-medium text-blue-600">Detach from Parent</div>
+          <div className="text-xs text-gray-500">Make this a standalone card</div>
+        </div>
+      </button>
+      
       <button className="w-full px-4 py-2 text-sm text-left hover:bg-gray-50 transition-colors flex items-center">
         <i className="fas fa-copy mr-2 text-gray-400"></i>
         Duplicate

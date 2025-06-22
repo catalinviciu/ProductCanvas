@@ -254,7 +254,14 @@ export function TreeNode({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="bg-white rounded-lg shadow-md p-4 node-created">
+      <div className="bg-white rounded-lg shadow-md p-4 node-created relative">
+        {/* Attachment Indicator */}
+        {(isDropTarget || isDraggedOver) && (
+          <div className="attachment-indicator">
+            <i className="fas fa-plus text-white text-xs"></i>
+          </div>
+        )}
+        
         {/* Node Header */}
         <div className="flex items-center space-x-2 mb-2">
           <i 

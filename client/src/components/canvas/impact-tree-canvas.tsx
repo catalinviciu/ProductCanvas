@@ -292,6 +292,14 @@ export function ImpactTreeCanvas({
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
         onContextMenu={handleCanvasContextMenu}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const draggedNodeId = e.dataTransfer.getData('text/plain');
+          if (draggedNodeId) {
+            onNodeReattach(draggedNodeId, null); // Detach from parent
+          }
+        }}
         style={{ cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default') }}
       >
         {/* Canvas Background Layer - ensures right-click works everywhere */}

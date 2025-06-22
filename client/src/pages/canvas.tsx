@@ -1,5 +1,6 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
 
 import { ProjectHeader } from "@/components/header/project-header";
@@ -36,6 +37,19 @@ export default function CanvasPage() {
     openEditModal,
     resetToHome,
   } = useCanvas(impactTree);
+
+  // Listen for custom reattach events from context menu
+  useEffect(() => {
+    const handleReattachEvent = (event: CustomEvent) => {
+      const { nodeId, newParentId } = event.detail;
+      handleNodeReattach(nodeId, newParentId);
+    };
+
+    window.addEventListener('reattach-node', handleReattachEvent as EventListener);
+    return () => {
+      window.removeEventListener('reattach-node', handleReattachEvent as EventListener);
+    };
+  }, [handleNodeReattach]);
 
   if (isLoading) {
     return (
