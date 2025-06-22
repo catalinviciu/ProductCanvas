@@ -26,75 +26,13 @@ const ContextMenuComponent = memo(function ContextMenu({
   const [showTestCategories, setShowTestCategories] = useState(false);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
-  // Memoize click outside handler
+  // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
       onClose();
     }
   }, [onClose]);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, handleClickOutside]);
-
-  // Reset position when menu opens
-  useEffect(() => {
-    if (isOpen) {
-      setAdjustedPosition(position);
-    }
-  }, [isOpen, position]);
-
-  // Calculate adjusted position to keep menu within viewport
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Use setTimeout to ensure DOM is updated before measuring
-    const timer = setTimeout(() => {
-      if (!menuRef.current) return;
-
-      const menuElement = menuRef.current;
-      const menuRect = menuElement.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      let newX = position.x;
-      let newY = position.y;
-
-      // Adjust horizontal position if menu would overflow right edge
-      if (position.x + menuRect.width > viewportWidth) {
-        newX = viewportWidth - menuRect.width - 10; // 10px margin from edge
-      }
-
-      // Adjust horizontal position if menu would overflow left edge
-      if (newX < 10) {
-        newX = 10; // 10px margin from edge
-      }
-
-      // Adjust vertical position if menu would overflow bottom edge
-      if (position.y + menuRect.height > viewportHeight) {
-        newY = viewportHeight - menuRect.height - 10; // 10px margin from edge
-      }
-
-      // Adjust vertical position if menu would overflow top edge
-      if (newY < 10) {
-        newY = 10; // 10px margin from edge
-      }
-
-      setAdjustedPosition({ x: newX, y: newY });
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, [isOpen, position, showTestCategories]);
-
-  if (!isOpen || !node) return null;
-
-  // Memoize handlers for performance
   const handleEdit = useCallback(() => {
     if (node) {
       onEdit(node);
@@ -114,6 +52,104 @@ const ContextMenuComponent = memo(function ContextMenu({
     onClose();
   }, [onAddChild, onClose]);
 
+  const handleToggleCollapse = useCallback(() => {
+    if (node && onToggleCollapse) {
+      onToggleCollapse(node.id);
+      onClose();
+    }
+  }, [node, onToggleCollapse, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, handleClickOutside]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setAdjustedPosition(position);
+      setShowTestCategories(false);
+    }
+  }, [isOpen, position]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      if (!menuRef.current) return;
+
+      const menuElement = menuRef.current;
+      const menuRect = menuElement.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let newX = position.x;
+      let newY = position.y;
+
+      if (position.x + menuRect.width > viewportWidth) {
+        newX = viewportWidth - menuRect.width - 10;
+      }
+
+      if (newX < 10) {
+        newX = 10;
+      }
+
+      if (position.y + menuRect.height > viewportHeight) {
+        newY = viewportHeight - menuRect.height - 10;
+      }
+
+      if (newY < 10) {
+        newY = 10;
+      }
+
+      setAdjustedPosition({ x: newX, y: newY });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, position, showTestCategories]);
+
+  // Memoize menu items
+  const menuItems = useMemo(() => [
+    {
+      type: 'outcome' as NodeType,
+      icon: 'fas fa-bullseye',
+      color: 'var(--primary-indigo)',
+      hoverClass: 'hover:bg-blue-50',
+      title: 'Outcome',
+      description: 'Business goal or result'
+    },
+    {
+      type: 'opportunity' as NodeType,
+      icon: 'fas fa-lightbulb',
+      color: 'var(--secondary-purple)',
+      hoverClass: 'hover:bg-purple-50',
+      title: 'Opportunity',
+      description: 'Market or user opportunity'
+    },
+    {
+      type: 'solution' as NodeType,
+      icon: 'fas fa-cog',
+      color: 'var(--accent-emerald)',
+      hoverClass: 'hover:bg-emerald-50',
+      title: 'Solution',
+      description: 'Product or feature approach'
+    }
+  ], []);
+
+  const testCategories = useMemo(() => [
+    { type: 'viability', label: 'Viability Test', color: 'var(--orange-test)' },
+    { type: 'value', label: 'Value Test', color: 'var(--blue-test)' },
+    { type: 'feasibility', label: 'Feasibility Test', color: 'var(--green-test)' },
+    { type: 'usability', label: 'Usability Test', color: 'var(--purple-test)' }
+  ], []);
+
+  // NOW we can do early return after all hooks are declared
+  if (!isOpen || !node) return null;
+
   return (
     <div
       ref={menuRef}
@@ -122,51 +158,57 @@ const ContextMenuComponent = memo(function ContextMenu({
         left: adjustedPosition.x,
         top: adjustedPosition.y,
       }}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
     >
-      <button 
-        onClick={handleEdit}
-        className="w-full px-4 py-2 text-sm text-left hover:bg-gray-50 transition-colors flex items-center"
-      >
-        <i className="fas fa-edit mr-2 text-gray-400"></i>
-        Edit Node
-      </button>
-      
-      <div className="border-t border-gray-100 my-1"></div>
-      
       <div className="px-4 py-2">
+        <div className="text-xs font-medium text-gray-500 mb-2">
+          {node.title || 'Untitled Node'}
+        </div>
+        
+        {/* Edit Option */}
+        <button
+          onClick={handleEdit}
+          className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
+        >
+          <i className="fas fa-edit mr-3 text-gray-600"></i>
+          Edit Node
+        </button>
+
+        {/* Collapse/Expand Option */}
+        {node.children && node.children.length > 0 && onToggleCollapse && (
+          <button
+            onClick={handleToggleCollapse}
+            className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
+          >
+            <i className={`fas ${node.isCollapsed ? 'fa-expand' : 'fa-compress'} mr-3 text-gray-600`}></i>
+            {node.isCollapsed ? 'Expand' : 'Collapse'} Children
+          </button>
+        )}
+
+        <div className="border-t border-gray-100 my-2"></div>
+
+        {/* Add Child Options */}
         <div className="text-xs font-medium text-gray-500 mb-2">Add Child Node</div>
-        <div className="space-y-1">
+        
+        {menuItems.map((item) => (
           <button 
-            onClick={() => handleAddChild('outcome')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-blue-50 rounded flex items-center transition-colors"
+            key={item.type}
+            onClick={() => handleAddChild(item.type)}
+            className={`w-full px-3 py-2 text-sm text-left ${item.hoverClass} rounded flex items-center transition-colors`}
           >
-            <i className="fas fa-bullseye mr-3 text-sm" style={{ color: 'var(--primary-indigo)' }}></i>
+            <i className={`${item.icon} mr-3 text-sm`} style={{ color: item.color }}></i>
             <div>
-              <div className="font-medium text-gray-900">Outcome</div>
-              <div className="text-xs text-gray-500">Business goal or result</div>
+              <div className="font-medium text-gray-900">{item.title}</div>
+              <div className="text-xs text-gray-500">{item.description}</div>
             </div>
           </button>
-          <button 
-            onClick={() => handleAddChild('opportunity')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-purple-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-lightbulb mr-3 text-sm" style={{ color: 'var(--secondary-purple)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">Opportunity</div>
-              <div className="text-xs text-gray-500">Market or user opportunity</div>
-            </div>
-          </button>
-          <button 
-            onClick={() => handleAddChild('solution')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-emerald-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-cog mr-3 text-sm" style={{ color: 'var(--accent-emerald)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">Solution</div>
-              <div className="text-xs text-gray-500">Product or feature approach</div>
-            </div>
-          </button>
-          <button 
+        ))}
+
+        {/* Assumption Test with Categories */}
+        <div className="relative">
+          <button
             onClick={() => setShowTestCategories(!showTestCategories)}
             className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center justify-between transition-colors"
           >
@@ -177,130 +219,50 @@ const ContextMenuComponent = memo(function ContextMenu({
                 <div className="text-xs text-gray-500">Hypothesis to validate</div>
               </div>
             </div>
-            <i className={`fas fa-chevron-${showTestCategories ? 'up' : 'right'} text-gray-400 text-xs`}></i>
+            <i className={`fas fa-chevron-${showTestCategories ? 'up' : 'down'} text-xs text-gray-400`}></i>
           </button>
-          
+
           {showTestCategories && (
-            <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
-              <button 
-                onClick={() => handleAddChild('assumption', 'viability')}
-                className="w-full px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-seedling mr-2 text-xs" style={{ color: 'var(--viability-color)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Viability</div>
-                  <div className="text-xs text-gray-500">Business model validation</div>
-                </div>
-              </button>
-              <button 
-                onClick={() => handleAddChild('assumption', 'value')}
-                className="w-full px-2 py-1.5 text-xs text-left hover:bg-green-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-gem mr-2 text-xs" style={{ color: 'var(--value-color)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Value</div>
-                  <div className="text-xs text-gray-500">User value proposition</div>
-                </div>
-              </button>
-              <button 
-                onClick={() => handleAddChild('assumption', 'feasibility')}
-                className="w-full px-2 py-1.5 text-xs text-left hover:bg-purple-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-wrench mr-2 text-xs" style={{ color: 'var(--feasibility-color)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Feasibility</div>
-                  <div className="text-xs text-gray-500">Technical implementation</div>
-                </div>
-              </button>
-              <button 
-                onClick={() => handleAddChild('assumption', 'usability')}
-                className="w-full px-2 py-1.5 text-xs text-left hover:bg-pink-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-user-check mr-2 text-xs" style={{ color: 'var(--usability-color)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Usability</div>
-                  <div className="text-xs text-gray-500">User experience validation</div>
-                </div>
-              </button>
+            <div className="ml-6 mt-1 space-y-1">
+              {testCategories.map((category) => (
+                <button
+                  key={category.type}
+                  onClick={() => handleAddChild('assumption', category.type as TestCategory)}
+                  className="w-full px-3 py-1 text-xs text-left hover:bg-orange-50 rounded flex items-center transition-colors"
+                >
+                  <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
+                  {category.label}
+                </button>
+              ))}
             </div>
           )}
-          <button 
-            onClick={() => handleAddChild('kpi')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">KPI</div>
-              <div className="text-xs text-gray-500">Key performance indicator</div>
-            </div>
-          </button>
         </div>
-      </div>
-      
-      <div className="border-t border-gray-100 my-1"></div>
-      
-      {/* Collapse/Expand Option */}
-      {node && node.children.length > 0 && onToggleCollapse && (
-        <button 
-          onClick={() => {
-            onToggleCollapse(node.id);
-            onClose();
-          }}
-          className="w-full px-4 py-2 text-sm text-left hover:bg-purple-50 transition-colors flex items-center"
+
+        {/* KPI Option */}
+        <button
+          onClick={() => handleAddChild('kpi')}
+          className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
         >
-          <i className={`fas ${node.isCollapsed ? 'fa-expand' : 'fa-compress'} mr-2 text-purple-600`}></i>
+          <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
           <div>
-            <div className="font-medium text-purple-600">
-              {node.isCollapsed ? 'Expand Branch' : 'Collapse Branch'}
-            </div>
-            <div className="text-xs text-gray-500">
-              {node.isCollapsed ? 'Show child cards' : 'Hide child cards'}
-            </div>
+            <div className="font-medium text-gray-900">KPI</div>
+            <div className="text-xs text-gray-500">Key performance indicator</div>
           </div>
         </button>
-      )}
-      
-      <button 
-        onClick={() => {
-          if (node) {
-            // Detach from parent (make it a root node)
-            const event = new CustomEvent('reattach-node', { 
-              detail: { nodeId: node.id, newParentId: null } 
-            });
-            window.dispatchEvent(event);
-            onClose();
-          }
-        }}
-        className="w-full px-4 py-2 text-sm text-left hover:bg-blue-50 transition-colors flex items-center"
-      >
-        <i className="fas fa-unlink mr-2 text-blue-600"></i>
-        <div>
-          <div className="font-medium text-blue-600">Detach from Parent</div>
-          <div className="text-xs text-gray-500">Make this a standalone card</div>
-        </div>
-      </button>
-      
-      <button className="w-full px-4 py-2 text-sm text-left hover:bg-gray-50 transition-colors flex items-center">
-        <i className="fas fa-copy mr-2 text-gray-400"></i>
-        Duplicate
-      </button>
-      <button className="w-full px-4 py-2 text-sm text-left hover:bg-gray-50 transition-colors flex items-center">
-        <i className="fas fa-download mr-2 text-gray-400"></i>
-        Export Branch
-      </button>
-      
-      <div className="border-t border-gray-100 my-1"></div>
-      
-      <button 
-        onClick={handleDelete}
-        className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center"
-      >
-        <i className="fas fa-trash mr-2"></i>
-        Delete Node
-      </button>
+
+        <div className="border-t border-gray-100 my-2"></div>
+
+        {/* Delete Option */}
+        <button
+          onClick={handleDelete}
+          className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center"
+        >
+          <i className="fas fa-trash mr-2"></i>
+          Delete Node
+        </button>
+      </div>
     </div>
   );
 });
 
-// Export the memoized component
 export const ContextMenu = ContextMenuComponent;
