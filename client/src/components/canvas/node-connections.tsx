@@ -10,19 +10,27 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
   const getNodeById = (id: string) => nodes.find(node => node.id === id);
 
   const generateConnectionPath = (fromNode: TreeNode, toNode: TreeNode) => {
-    // For parent nodes with children, connect from the expand/collapse button position
-    const fromX = fromNode.children.length > 0 ? 
-      fromNode.position.x + 256 + 12 : // Connect from expand/collapse button center (256px + 12px offset)
-      fromNode.position.x + 256; // Normal right edge for nodes without children
+    // Calculate exact button position:
+    // Card: w-64 (256px) with p-4 padding, so inner content is ~248px
+    // Button: "absolute -right-3 top-1/2 w-6 h-6" 
+    // -right-3 moves button 12px outside the card boundary
+    // w-6 is 24px width, so center is 12px from button's left edge
+    // Final calculation: card_x + 256px (card width) + 12px (outside offset) = button center
+    const cardWidth = 256;
+    const buttonCenterOffset = 12; // Button extends 12px beyond card edge, center is at +12px
     
-    const fromY = fromNode.position.y + 60; // Center vertically
+    const fromX = fromNode.children.length > 0 ? 
+      fromNode.position.x + cardWidth + buttonCenterOffset :
+      fromNode.position.x + cardWidth;
+    
+    const fromY = fromNode.position.y + 60; // Card center vertically
     const toX = toNode.position.x;
     const toY = toNode.position.y + 60;
 
-    // Create smooth curved path using cubic bezier curve
-    const controlX1 = fromX + 100;
+    // Smooth curved connection
+    const controlX1 = fromX + 60;
     const controlY1 = fromY;
-    const controlX2 = toX - 100;
+    const controlX2 = toX - 60;
     const controlY2 = toY;
 
     return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
