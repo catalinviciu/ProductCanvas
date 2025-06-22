@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState, useCallback } from "react";
-import { TreeNode } from "./tree-node";
+import { useRef, useEffect, useState, useCallback, memo, useMemo } from "react";
+import { TreeNode } from "./tree-node-fixed";
 import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { CanvasContextMenu } from "../modals/canvas-context-menu";
@@ -23,7 +23,7 @@ interface ImpactTreeCanvasProps {
   onResetToHome: () => void;
 }
 
-export function ImpactTreeCanvas({
+export const ImpactTreeCanvas = memo(function ImpactTreeCanvas({
   nodes,
   connections,
   canvasState,
@@ -49,9 +49,9 @@ export function ImpactTreeCanvas({
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
 
-  // Get only visible nodes and connections
-  const visibleNodes = getVisibleNodes(nodes);
-  const visibleConnections = getVisibleConnections(nodes, connections);
+  // Memoize visible nodes and connections for better performance
+  const visibleNodes = useMemo(() => getVisibleNodes(nodes), [nodes]);
+  const visibleConnections = useMemo(() => getVisibleConnections(nodes, connections), [nodes, connections]);
 
   // Calculate dynamic canvas bounds based on nodes
   const getCanvasBounds = useCallback(() => {

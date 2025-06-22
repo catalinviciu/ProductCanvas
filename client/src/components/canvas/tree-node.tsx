@@ -118,7 +118,8 @@ export const TreeNode = memo(function TreeNode({
   const [editDescription, setEditDescription] = useState(node.description);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
-  const [isMovingWithParent, setIsMovingWithParent] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
