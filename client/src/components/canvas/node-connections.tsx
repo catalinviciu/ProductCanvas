@@ -8,21 +8,31 @@ interface NodeConnectionsProps {
   orientation?: 'horizontal' | 'vertical';
 }
 
-// Connection configuration constants for better maintainability
+// Enhanced connection configuration with modern design
 const CONNECTION_CONFIG = {
   cardWidth: 256,
   nodeHeight: 120,
   connectionOffset: 50,
   strokeWidth: {
-    shadow: 6,
-    main: 3,
+    shadow: 8,
+    main: 4,
+    hover: 5,
   },
   colors: {
     main: '#6366F1',
     hover: '#4F46E5',
-    shadow: 'rgba(0,0,0,0.1)',
+    shadow: 'rgba(99, 102, 241, 0.15)',
+    gradient: {
+      start: '#6366F1',
+      middle: '#8B5CF6',
+      end: '#A855F7',
+    },
   },
-  arrowSize: 4,
+  arrowSize: 5,
+  animation: {
+    duration: '0.3s',
+    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  },
 } as const;
 
 const NodeConnectionsComponent = memo(function NodeConnections({ connections, nodes, zoom, orientation = 'horizontal' }: NodeConnectionsProps) {
@@ -118,22 +128,55 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
     }).filter(Boolean);
   }, [connections, nodeMap, orientation, generateConnectionPath, getArrowPosition]);
 
-  // Memoize SVG defs to prevent re-creation
+  // Enhanced SVG definitions with modern gradients and effects
   const svgDefs = useMemo(() => (
     <defs>
-      <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor={CONNECTION_CONFIG.colors.main} stopOpacity="0.8" />
-        <stop offset="50%" stopColor={CONNECTION_CONFIG.colors.main} stopOpacity="1" />
-        <stop offset="100%" stopColor={CONNECTION_CONFIG.colors.hover} stopOpacity="0.9" />
+      {/* Enhanced gradient with smooth color transitions */}
+      <linearGradient id="modernConnectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor={CONNECTION_CONFIG.colors.gradient.start} stopOpacity="0.9" />
+        <stop offset="50%" stopColor={CONNECTION_CONFIG.colors.gradient.middle} stopOpacity="1" />
+        <stop offset="100%" stopColor={CONNECTION_CONFIG.colors.gradient.end} stopOpacity="0.8" />
       </linearGradient>
       
-      <filter id="connectionShadow" x="-50%" y="-50%" width="200%" height="200%">
-        <feDropShadow dx="0" dy="1" stdDeviation="1" floodOpacity="0.1"/>
+      {/* Hover gradient with brighter colors */}
+      <linearGradient id="connectionHoverGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#4F46E5" stopOpacity="1" />
+        <stop offset="50%" stopColor="#7C3AED" stopOpacity="1" />
+        <stop offset="100%" stopColor="#9333EA" stopOpacity="1" />
+      </linearGradient>
+      
+      {/* Enhanced shadow with glow effect */}
+      <filter id="modernConnectionShadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+        <feOffset dx="0" dy="2" result="offset"/>
+        <feComponentTransfer>
+          <feFuncA type="linear" slope="0.3"/>
+        </feComponentTransfer>
+        <feMerge> 
+          <feMergeNode/>
+          <feMergeNode in="SourceGraphic"/> 
+        </feMerge>
       </filter>
+      
+      {/* Glow effect for connections */}
+      <filter id="connectionGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      
+      {/* Arrow marker definition */}
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+              refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" 
+                 fill="url(#modernConnectionGradient)" />
+      </marker>
     </defs>
   ), []);
 
-  // Memoize connection renderings for maximum performance
+  // Enhanced connection renderings with modern design and animations
   const connectionElements = useMemo(() => {
     return connectionPaths.map((connectionData) => {
       if (!connectionData) return null;
@@ -142,36 +185,76 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
       const strokeWidth = CONNECTION_CONFIG.strokeWidth;
       
       return (
-        <g key={id} className="connection-group">
-          {/* Optimized shadow with reduced blur for better performance */}
+        <g key={id} className="modern-connection-group">
+          {/* Subtle glow backdrop */}
+          <path
+            d={path}
+            stroke="url(#modernConnectionGradient)"
+            strokeWidth={(strokeWidth.shadow + 2) / zoom}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.3"
+            filter="url(#connectionGlow)"
+            className="connection-glow"
+          />
+          
+          {/* Shadow path for depth */}
           <path
             d={path}
             stroke={CONNECTION_CONFIG.colors.shadow}
             strokeWidth={strokeWidth.shadow / zoom}
             fill="none"
             strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#modernConnectionShadow)"
+            className="connection-shadow"
           />
           
-          {/* Main connection line with gradient */}
+          {/* Main connection line with enhanced gradient */}
           <path
             d={path}
-            stroke="url(#connectionGradient)"
+            stroke="url(#modernConnectionGradient)"
             strokeWidth={strokeWidth.main / zoom}
             fill="none"
             strokeLinecap="round"
-            className="transition-all duration-200 hover:stroke-opacity-80"
-            filter="url(#connectionShadow)"
+            strokeLinejoin="round"
+            className="connection-main"
+            style={{
+              transition: `all ${CONNECTION_CONFIG.animation.duration} ${CONNECTION_CONFIG.animation.easing}`
+            }}
           />
           
-          {/* Enhanced arrow with gradient */}
-          <circle
-            cx={arrowPosition.cx}
-            cy={arrowPosition.cy}
-            r={arrowPosition.r}
-            fill="url(#connectionGradient)"
-            className="transition-all duration-200"
-            filter="url(#connectionShadow)"
-          />
+          {/* Enhanced arrow indicator */}
+          <g className="connection-arrow">
+            {/* Arrow shadow */}
+            <circle
+              cx={arrowPosition.cx + 1}
+              cy={arrowPosition.cy + 1}
+              r={arrowPosition.r + 1}
+              fill="rgba(0,0,0,0.1)"
+              className="arrow-shadow"
+            />
+            {/* Main arrow */}
+            <circle
+              cx={arrowPosition.cx}
+              cy={arrowPosition.cy}
+              r={arrowPosition.r}
+              fill="url(#modernConnectionGradient)"
+              className="arrow-main"
+              style={{
+                transition: `all ${CONNECTION_CONFIG.animation.duration} ${CONNECTION_CONFIG.animation.easing}`
+              }}
+            />
+            {/* Arrow highlight */}
+            <circle
+              cx={arrowPosition.cx - arrowPosition.r * 0.3}
+              cy={arrowPosition.cy - arrowPosition.r * 0.3}
+              r={arrowPosition.r * 0.4}
+              fill="rgba(255,255,255,0.4)"
+              className="arrow-highlight"
+            />
+          </g>
         </g>
       );
     });

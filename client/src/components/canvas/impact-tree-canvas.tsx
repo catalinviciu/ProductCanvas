@@ -354,16 +354,19 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
         onTogglePanMode={() => setIsPanMode(!isPanMode)}
       />
 
-      {/* Canvas Grid Background */}
-      <div 
-        className="absolute inset-0 canvas-grid"
-        style={gridStyle}
-      />
+      {/* Enhanced Canvas Background */}
+      <div className="modern-canvas-background">
+        <div className="canvas-gradient-overlay" />
+        <div 
+          className="modern-grid-pattern"
+          style={gridStyle}
+        />
+      </div>
 
       {/* Main Canvas */}
       <div
         ref={canvasRef}
-        className="relative w-full h-full cursor-grab active:cursor-grabbing impact-tree-canvas"
+        className="modern-canvas-container impact-tree-canvas"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -388,9 +391,9 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
         }}
         style={{ cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default') }}
       >
-        {/* Canvas Background Layer - ensures right-click works everywhere */}
+        {/* Interactive Canvas Surface */}
         <div 
-          className="absolute inset-0 canvas-background"
+          className="canvas-interaction-layer"
           style={{ 
             pointerEvents: 'all',
             zIndex: 0
@@ -431,31 +434,45 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
         </div>
       </div>
 
-      {/* Zoom Controls */}
-      <div className="absolute bottom-4 right-4 z-10">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex flex-col">
+      {/* Enhanced Zoom Controls */}
+      <div className="modern-zoom-controls">
+        <div className="zoom-controls-container">
           <button 
-            className="canvas-control-btn"
+            className="zoom-btn zoom-btn-in"
             onClick={() => onCanvasUpdate({ zoom: Math.min(3, canvasState.zoom + 0.1) })}
+            disabled={canvasState.zoom >= 3}
+            title="Zoom In"
           >
-            <i className="fas fa-plus text-gray-600"></i>
+            <i className="fas fa-plus"></i>
           </button>
-          <div className="h-px bg-gray-200 my-1"></div>
+          <div className="zoom-indicator">
+            <span className="zoom-text">{Math.round(canvasState.zoom * 100)}%</span>
+          </div>
           <button 
-            className="canvas-control-btn"
+            className="zoom-btn zoom-btn-out"
             onClick={() => onCanvasUpdate({ zoom: Math.max(0.1, canvasState.zoom - 0.1) })}
+            disabled={canvasState.zoom <= 0.1}
+            title="Zoom Out"
           >
-            <i className="fas fa-minus text-gray-600"></i>
+            <i className="fas fa-minus"></i>
           </button>
         </div>
       </div>
 
-      {/* Mini Map */}
-      <div className="absolute bottom-4 left-4 z-10">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 w-40 h-32">
-          <div className="text-xs text-gray-500 mb-2">Mini Map</div>
+      {/* Enhanced Mini Map */}
+      <div className="modern-minimap">
+        <div className="minimap-container">
+          <div className="minimap-header">
+            <div className="minimap-title">
+              <i className="fas fa-map text-xs mr-1"></i>
+              <span>Navigation</span>
+            </div>
+            <div className="minimap-stats">
+              <span>{nodes.length} nodes</span>
+            </div>
+          </div>
           <div 
-            className="mini-map relative w-full h-16 bg-gray-50 border border-gray-200 rounded cursor-pointer select-none overflow-hidden"
+            className="minimap-viewport"
             onMouseDown={handleMiniMapMouseDown}
             onMouseMove={handleMiniMapMouseMove}
             onMouseUp={() => {
@@ -467,18 +484,23 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
               document.body.style.cursor = '';
             }}
           >
-            {/* Viewport indicator */}
+            {/* Enhanced Viewport indicator */}
             <div 
-              className={`absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded cursor-move transition-all ${miniMapDragging ? 'bg-opacity-40 border-blue-600' : ''}`}
+              className={`viewport-indicator ${miniMapDragging ? 'dragging' : ''}`}
               style={minimapViewportStyle}
               onMouseDown={(e) => {
                 e.stopPropagation();
                 setMiniMapDragging(true);
                 document.body.style.cursor = 'grabbing';
               }}
-            />
-            {/* Node indicators */}
-            {minimapNodeIndicators}
+            >
+              <div className="viewport-border"></div>
+              <div className="viewport-fill"></div>
+            </div>
+            {/* Enhanced Node indicators */}
+            <div className="minimap-nodes">
+              {minimapNodeIndicators}
+            </div>
           </div>
         </div>
       </div>

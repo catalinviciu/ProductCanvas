@@ -644,3 +644,203 @@
 .zoom-slider-fill {
   @apply h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-200;
 }
+
+/* Modern Connection Styles */
+.modern-connection-group {
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-connection-group:hover .connection-main {
+  stroke: url(#connectionHoverGradient);
+  stroke-width: 5;
+  filter: url(#connectionGlow);
+}
+
+.modern-connection-group:hover .arrow-main {
+  fill: url(#connectionHoverGradient);
+  transform: scale(1.2);
+}
+
+.connection-glow {
+  opacity: 0.2;
+  transition: opacity 0.3s ease;
+}
+
+.modern-connection-group:hover .connection-glow {
+  opacity: 0.6;
+}
+
+.connection-main {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.connection-arrow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.arrow-main {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.arrow-highlight {
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.modern-connection-group:hover .arrow-highlight {
+  opacity: 1;
+}
+
+/* Modern Canvas Styles */
+.modern-canvas-background {
+  @apply absolute inset-0;
+  background: linear-gradient(135deg, #fafafa 0%, #f8fafc 50%, #f1f5f9 100%);
+}
+
+.canvas-gradient-overlay {
+  @apply absolute inset-0;
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.02) 0%, transparent 50%);
+}
+
+.modern-grid-pattern {
+  @apply absolute inset-0 opacity-40;
+  background-image: 
+    radial-gradient(circle, rgba(148, 163, 184, 0.3) 1px, transparent 1px),
+    radial-gradient(circle, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px, 60px 60px;
+  background-position: 0 0, 30px 30px;
+}
+
+.modern-canvas-container {
+  @apply relative w-full h-full;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.modern-canvas-container:active {
+  cursor: grabbing;
+}
+
+.canvas-interaction-layer {
+  @apply absolute inset-0;
+  pointer-events: all;
+  z-index: 0;
+}
+
+/* Enhanced Zoom Controls */
+.modern-zoom-controls {
+  @apply absolute bottom-4 right-4 z-20;
+}
+
+.zoom-controls-container {
+  @apply bg-white rounded-xl shadow-lg border border-gray-100 p-2 flex flex-col items-center space-y-1;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.zoom-btn {
+  @apply w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200;
+  border: 1px solid transparent;
+}
+
+.zoom-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.zoom-btn:disabled {
+  @apply opacity-40 cursor-not-allowed hover:text-gray-600 hover:bg-transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.zoom-indicator {
+  @apply px-2 py-1 text-center;
+}
+
+.zoom-text {
+  @apply text-xs font-medium text-gray-700;
+}
+
+/* Enhanced Mini Map */
+.modern-minimap {
+  @apply absolute bottom-4 left-4 z-20;
+}
+
+.minimap-container {
+  @apply bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  width: 200px;
+}
+
+.minimap-header {
+  @apply flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-100;
+}
+
+.minimap-title {
+  @apply flex items-center text-xs font-medium text-gray-700;
+}
+
+.minimap-stats {
+  @apply text-xs text-gray-500;
+}
+
+.minimap-viewport {
+  @apply relative w-full h-20 bg-gradient-to-br from-gray-50 to-gray-100 cursor-pointer select-none overflow-hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.viewport-indicator {
+  @apply absolute transition-all duration-200 cursor-move;
+}
+
+.viewport-indicator.dragging {
+  @apply scale-105;
+}
+
+.viewport-border {
+  @apply absolute inset-0 border-2 border-blue-500 rounded-sm;
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.viewport-fill {
+  @apply absolute inset-1 bg-blue-500 rounded-sm opacity-20;
+}
+
+.viewport-indicator:hover .viewport-border {
+  border-color: #3B82F6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.viewport-indicator:hover .viewport-fill {
+  opacity: 30;
+}
+
+.viewport-indicator.dragging .viewport-border {
+  border-color: #1D4ED8;
+  box-shadow: 0 0 16px rgba(29, 78, 216, 0.5);
+}
+
+.viewport-indicator.dragging .viewport-fill {
+  opacity: 40;
+}
+
+.minimap-nodes {
+  @apply absolute inset-0;
+}
+
+.minimap-nodes > div {
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.minimap-nodes > div:hover {
+  transform: scale(1.5);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
