@@ -535,6 +535,9 @@
 
 .content-area {
   @apply space-y-2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow flex shrinking */
 }
 
 .node-title {
@@ -554,7 +557,8 @@
 }
 
 .node-footer {
-  @apply flex items-center justify-between mt-4 pt-3 border-t border-gray-100;
+  @apply flex items-center justify-between pt-2 border-t border-gray-100;
+  margin-top: auto; /* Push footer to bottom of flex container */
 }
 
 .children-indicator {

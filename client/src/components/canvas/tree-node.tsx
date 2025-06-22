@@ -507,9 +507,9 @@ const TreeNodeComponent = memo(function TreeNode({
           )}
         </div>
 
-        {/* Enhanced Node Footer */}
+        {/* Enhanced Node Footer - Fixed at bottom */}
         {!isEditing && (
-          <div className="node-footer">
+          <div className="node-footer flex-shrink-0">
             <div className="flex items-center space-x-2">
               <div className="children-indicator">
                 <div className={`children-badge ${

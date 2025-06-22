@@ -39,36 +39,7 @@ export function CanvasToolbar({
         </div>
       </div>
 
-      {/* Zoom Controls Group */}
-      <div className="toolbar-group">
-        <div className="toolbar-section">
-          <button 
-            onClick={onZoomOut}
-            className="toolbar-btn toolbar-btn-icon"
-            title="Zoom Out"
-            disabled={zoom <= 0.1}
-          >
-            <i className="fas fa-minus"></i>
-          </button>
-          <div className="zoom-display">
-            <span className="zoom-percentage">{Math.round(zoom * 100)}%</span>
-            <div className="zoom-slider-container">
-              <div 
-                className="zoom-slider-fill" 
-                style={{ width: `${Math.min(zoom * 100, 200)}%` }}
-              />
-            </div>
-          </div>
-          <button 
-            onClick={onZoomIn}
-            className="toolbar-btn toolbar-btn-icon"
-            title="Zoom In"
-            disabled={zoom >= 3}
-          >
-            <i className="fas fa-plus"></i>
-          </button>
-        </div>
-      </div>
+      
 
       {/* Navigation Group */}
       <div className="toolbar-group">
