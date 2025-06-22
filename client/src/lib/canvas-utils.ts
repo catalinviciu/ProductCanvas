@@ -773,13 +773,13 @@ export function findCollisionFreePosition(
     }
   }
   
-  // If still no position found, try moving further away
+  // If still no position found, try moving further away using proper spacing
   const fallbackPos = {
-    x: targetPosition.x + 400,
+    x: targetPosition.x + 420, // Use horizontal level spacing
     y: targetPosition.y
   };
   
-  return snapToGrid(hasCollision(fallbackPos) ? { x: targetPosition.x, y: targetPosition.y + 400 } : fallbackPos);
+  return snapToGrid(hasCollision(fallbackPos) ? { x: targetPosition.x, y: targetPosition.y + 204 } : fallbackPos);
 }
 
 // Handle branch-level drag operations with comprehensive collision detection
@@ -866,7 +866,7 @@ function calculateSubtreeHeight(nodes: TreeNode[], nodeId: string): number {
   
   const calculateHeight = (id: string): number => {
     const node = nodeMap.get(id);
-    if (!node || node.children.length === 0) return 160; // Single node height
+    if (!node || node.children.length === 0) return 204; // Single node height with spacing (144 + 60)
     
     // Calculate total height of all children
     let totalChildHeight = 0;
@@ -874,9 +874,9 @@ function calculateSubtreeHeight(nodes: TreeNode[], nodeId: string): number {
       totalChildHeight += calculateHeight(childId);
     });
     
-    // Add spacing between children
-    const spacing = Math.max(0, (node.children.length - 1) * 40);
-    return Math.max(160, totalChildHeight + spacing);
+    // Add proper spacing between children to match layout
+    const spacing = Math.max(0, (node.children.length - 1) * 60);
+    return Math.max(204, totalChildHeight + spacing);
   };
   
   return calculateHeight(nodeId);
@@ -908,8 +908,8 @@ function reorganizeSubtreeHorizontal(nodes: TreeNode[], rootNodeId: string): Tre
   if (!rootNode) return nodes;
 
   const updatedNodes = [...nodes];
-  const levelSpacing = 350; // Horizontal spacing between levels
-  const siblingSpacing = 180; // Vertical spacing between siblings
+  const levelSpacing = 420; // Match main layout horizontal spacing (300 + 120)
+  const siblingSpacing = 204; // Match main layout vertical spacing (144 + 60)
   const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   
   // Use the same logic as calculateHorizontalLayout but for a subtree
@@ -989,8 +989,8 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
   if (!rootNode) return nodes;
 
   const updatedNodes = [...nodes];
-  const levelSpacing = 220; // Vertical spacing between levels
-  const siblingSpacing = 300; // Horizontal spacing between siblings
+  const levelSpacing = 224; // Match main layout vertical spacing (144 + 80)
+  const siblingSpacing = 380; // Match main layout horizontal spacing in vertical mode (300 + 80)
   const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   
   // Use the same logic as calculateVerticalLayout but for a subtree
