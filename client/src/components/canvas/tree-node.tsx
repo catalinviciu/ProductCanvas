@@ -123,7 +123,7 @@ export const TreeNode = memo(function TreeNode({
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
 
-  const config = nodeTypeConfig[node.type];
+  const config = NODE_TYPE_CONFIG[node.type];
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) { // Left click
@@ -401,9 +401,9 @@ export const TreeNode = memo(function TreeNode({
           {node.type === 'assumption' && node.testCategory && (
             <div className="ml-auto">
               <i 
-                className={`${testCategoryConfig[node.testCategory].icon} text-xs`}
-                style={{ color: testCategoryConfig[node.testCategory].color }}
-                title={`${testCategoryConfig[node.testCategory].label} Test`}
+                className={`${TEST_CATEGORY_CONFIG[node.testCategory].icon} text-xs`}
+                style={{ color: TEST_CATEGORY_CONFIG[node.testCategory].color }}
+                title={`${TEST_CATEGORY_CONFIG[node.testCategory].label} Test`}
               />
             </div>
           )}
@@ -484,11 +484,11 @@ export const TreeNode = memo(function TreeNode({
                 <span 
                   className="px-2 py-1 rounded-full text-xs font-medium"
                   style={{
-                    backgroundColor: testCategoryConfig[node.testCategory].bg,
-                    color: testCategoryConfig[node.testCategory].color,
+                    backgroundColor: TEST_CATEGORY_CONFIG[node.testCategory].bg,
+                    color: TEST_CATEGORY_CONFIG[node.testCategory].color,
                   }}
                 >
-                  {testCategoryConfig[node.testCategory].label}
+                  {TEST_CATEGORY_CONFIG[node.testCategory].label}
                 </span>
               </div>
             )}
