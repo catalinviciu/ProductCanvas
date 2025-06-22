@@ -363,8 +363,10 @@ export function ImpactTreeCanvas({
           ))}
 
           {/* Ghost Toggle Buttons for Hidden Children */}
-          {visibleNodes.map((node) => {
-            if (node.isCollapsed || !node.hiddenChildren?.length) return null;
+          {nodes.map((node) => {
+            // Only show ghost buttons for visible parent nodes with hidden children
+            const isParentVisible = visibleNodes.some(vn => vn.id === node.id);
+            if (!isParentVisible || node.isCollapsed || !node.hiddenChildren?.length) return null;
             
             return node.hiddenChildren.map((hiddenChildId) => {
               const hiddenChild = nodes.find(n => n.id === hiddenChildId);

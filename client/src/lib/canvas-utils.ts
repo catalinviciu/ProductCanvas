@@ -78,11 +78,19 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
   const siblingSpacing = 180; // Vertical spacing between siblings
 
   // Build tree structure to calculate subtree heights for horizontal layout
+  // Only consider visible (non-hidden) children for height calculation
   const getSubtreeHeight = (nodeId: string): number => {
     const node = nodeMap.get(nodeId);
     if (!node || node.children.length === 0) return 1;
     
-    const childHeights = node.children.map(childId => getSubtreeHeight(childId));
+    // Filter out hidden children from height calculations
+    const visibleChildren = node.children.filter(childId => 
+      !node.hiddenChildren?.includes(childId)
+    );
+    
+    if (visibleChildren.length === 0) return 1;
+    
+    const childHeights = visibleChildren.map(childId => getSubtreeHeight(childId));
     return Math.max(1, childHeights.reduce((sum, height) => sum + height, 0));
   };
 
@@ -99,27 +107,34 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
 
     // Layout children horizontally to the right
     if (node.children.length > 0) {
-      const childX = x + levelSpacing;
-      let childY = y;
+      // Only layout visible (non-hidden) children
+      const visibleChildren = node.children.filter(childId => 
+        !node.hiddenChildren?.includes(childId)
+      );
+      
+      if (visibleChildren.length > 0) {
+        const childX = x + levelSpacing;
+        let childY = y;
 
-      // Calculate starting position to center children vertically relative to parent
-      const totalChildHeight = node.children.reduce((sum, childId) => 
-        sum + getSubtreeHeight(childId) * siblingSpacing, 0) - siblingSpacing;
-      childY = y - totalChildHeight / 2;
+        // Calculate starting position to center children vertically relative to parent
+        const totalChildHeight = visibleChildren.reduce((sum, childId) => 
+          sum + getSubtreeHeight(childId) * siblingSpacing, 0) - siblingSpacing;
+        childY = y - totalChildHeight / 2;
 
-      // Ensure children don't overlap with existing nodes at this level
-      const existingNodesAtLevel = layoutNodes.filter(n => Math.abs(n.position.x - childX) < 50);
-      if (existingNodesAtLevel.length > 0) {
-        const maxY = Math.max(...existingNodesAtLevel.map(n => n.position.y));
-        childY = Math.max(childY, maxY + 200); // Add buffer space
+        // Ensure children don't overlap with existing nodes at this level
+        const existingNodesAtLevel = layoutNodes.filter(n => Math.abs(n.position.x - childX) < 50);
+        if (existingNodesAtLevel.length > 0) {
+          const maxY = Math.max(...existingNodesAtLevel.map(n => n.position.y));
+          childY = Math.max(childY, maxY + 200); // Add buffer space
+        }
+
+        visibleChildren.forEach(childId => {
+          const subtreeHeight = getSubtreeHeight(childId);
+          const centerOffset = (subtreeHeight - 1) * siblingSpacing / 2;
+          layoutTree(childId, childX, childY + centerOffset, level + 1);
+          childY += subtreeHeight * siblingSpacing;
+        });
       }
-
-      node.children.forEach(childId => {
-        const subtreeHeight = getSubtreeHeight(childId);
-        const centerOffset = (subtreeHeight - 1) * siblingSpacing / 2;
-        layoutTree(childId, childX, childY + centerOffset, level + 1);
-        childY += subtreeHeight * siblingSpacing;
-      });
     }
   };
 
@@ -152,12 +167,20 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
   const levelSpacing = 220; // Vertical spacing between levels
   const siblingSpacing = 300; // Horizontal spacing between siblings
 
-  // Build tree structure to calculate subtree widths for vertical layout (same as horizontal)
+  // Build tree structure to calculate subtree widths for vertical layout
+  // Only consider visible (non-hidden) children for width calculation
   const getSubtreeWidth = (nodeId: string): number => {
     const node = nodeMap.get(nodeId);
     if (!node || node.children.length === 0) return 1;
     
-    const childWidths = node.children.map(childId => getSubtreeWidth(childId));
+    // Filter out hidden children from width calculations
+    const visibleChildren = node.children.filter(childId => 
+      !node.hiddenChildren?.includes(childId)
+    );
+    
+    if (visibleChildren.length === 0) return 1;
+    
+    const childWidths = visibleChildren.map(childId => getSubtreeWidth(childId));
     return Math.max(1, childWidths.reduce((sum, width) => sum + width, 0));
   };
 
@@ -174,23 +197,30 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
 
     // Layout children vertically downward (flipped perspective of horizontal)
     if (node.children.length > 0) {
-      const childY = y + levelSpacing;
+      // Only layout visible (non-hidden) children
+      const visibleChildren = node.children.filter(childId => 
+        !node.hiddenChildren?.includes(childId)
+      );
       
-      // Calculate total width needed for all children and their subtrees
-      const totalSubtreeWidth = node.children.reduce((sum, childId) => 
-        sum + getSubtreeWidth(childId), 0);
-      
-      // Start position for children - center them under the parent
-      let currentX = x - ((totalSubtreeWidth - 1) * siblingSpacing) / 2;
-
-      node.children.forEach(childId => {
-        const subtreeWidth = getSubtreeWidth(childId);
-        // Position each child at the center of its allocated space
-        const childCenterX = currentX + ((subtreeWidth - 1) * siblingSpacing) / 2;
+      if (visibleChildren.length > 0) {
+        const childY = y + levelSpacing;
         
-        layoutTree(childId, childCenterX, childY, level + 1);
-        currentX += subtreeWidth * siblingSpacing;
-      });
+        // Calculate total width needed for all visible children and their subtrees
+        const totalSubtreeWidth = visibleChildren.reduce((sum, childId) => 
+          sum + getSubtreeWidth(childId), 0);
+        
+        // Start position for children - center them under the parent
+        let currentX = x - ((totalSubtreeWidth - 1) * siblingSpacing) / 2;
+
+        visibleChildren.forEach(childId => {
+          const subtreeWidth = getSubtreeWidth(childId);
+          // Position each child at the center of its allocated space
+          const childCenterX = currentX + ((subtreeWidth - 1) * siblingSpacing) / 2;
+          
+          layoutTree(childId, childCenterX, childY, level + 1);
+          currentX += subtreeWidth * siblingSpacing;
+        });
+      }
     }
   };
 
@@ -878,7 +908,14 @@ function reorganizeSubtreeHorizontal(nodes: TreeNode[], rootNodeId: string): Tre
     const node = nodeMap.get(nodeId);
     if (!node || node.children.length === 0) return 1;
     
-    const childHeights = node.children.map(childId => getSubtreeHeight(childId));
+    // Filter out hidden children from height calculations
+    const visibleChildren = node.children.filter(childId => 
+      !node.hiddenChildren?.includes(childId)
+    );
+    
+    if (visibleChildren.length === 0) return 1;
+    
+    const childHeights = visibleChildren.map(childId => getSubtreeHeight(childId));
     return Math.max(1, childHeights.reduce((sum, height) => sum + height, 0));
   };
 
@@ -901,20 +938,27 @@ function reorganizeSubtreeHorizontal(nodes: TreeNode[], rootNodeId: string): Tre
 
     // Layout children horizontally to the right
     if (node.children.length > 0) {
-      const childX = x + levelSpacing;
-      let childY = y;
+      // Only layout visible (non-hidden) children
+      const visibleChildren = node.children.filter(childId => 
+        !node.hiddenChildren?.includes(childId)
+      );
+      
+      if (visibleChildren.length > 0) {
+        const childX = x + levelSpacing;
+        let childY = y;
 
-      // Calculate starting position to center children vertically relative to parent
-      const totalChildHeight = node.children.reduce((sum, childId) => 
-        sum + getSubtreeHeight(childId) * siblingSpacing, 0) - siblingSpacing;
-      childY = y - totalChildHeight / 2;
+        // Calculate starting position to center children vertically relative to parent
+        const totalChildHeight = visibleChildren.reduce((sum, childId) => 
+          sum + getSubtreeHeight(childId) * siblingSpacing, 0) - siblingSpacing;
+        childY = y - totalChildHeight / 2;
 
-      node.children.forEach(childId => {
-        const subtreeHeight = getSubtreeHeight(childId);
-        const centerOffset = (subtreeHeight - 1) * siblingSpacing / 2;
-        layoutTree(childId, childX, childY + centerOffset, level + 1);
-        childY += subtreeHeight * siblingSpacing;
-      });
+        visibleChildren.forEach(childId => {
+          const subtreeHeight = getSubtreeHeight(childId);
+          const centerOffset = (subtreeHeight - 1) * siblingSpacing / 2;
+          layoutTree(childId, childX, childY + centerOffset, level + 1);
+          childY += subtreeHeight * siblingSpacing;
+        });
+      }
     }
   };
 
