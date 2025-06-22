@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo, useCallback, useMemo } from "react";
 import { type NodeType, type TestCategory } from "@shared/schema";
 
 interface CanvasContextMenuProps {
@@ -8,7 +8,7 @@ interface CanvasContextMenuProps {
   onNodeCreate: (type: NodeType, testCategory?: TestCategory) => void;
 }
 
-export function CanvasContextMenu({
+const CanvasContextMenuComponent = memo(function CanvasContextMenu({
   isOpen,
   position,
   onClose,
@@ -17,13 +17,14 @@ export function CanvasContextMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
+  // Memoize click outside handler
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      onClose();
+    }
+  }, [onClose]);
 
+  useEffect(() => {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -31,7 +32,7 @@ export function CanvasContextMenu({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClickOutside]);
 
   // Reset position when menu opens
   useEffect(() => {
@@ -40,62 +41,113 @@ export function CanvasContextMenu({
     }
   }, [isOpen, position]);
 
+  // Memoize position adjustment calculation
+  const calculateAdjustedPosition = useCallback(() => {
+    if (!menuRef.current || !isOpen) return;
+
+    const menuElement = menuRef.current;
+    const menuRect = menuElement.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let newX = position.x;
+    let newY = position.y;
+
+    // Adjust horizontal position if menu would overflow right edge
+    if (position.x + menuRect.width > viewportWidth) {
+      newX = viewportWidth - menuRect.width - 10;
+    }
+
+    // Adjust horizontal position if menu would overflow left edge
+    if (newX < 10) {
+      newX = 10;
+    }
+
+    // Adjust vertical position if menu would overflow bottom edge
+    if (position.y + menuRect.height > viewportHeight) {
+      newY = viewportHeight - menuRect.height - 10;
+    }
+
+    // Adjust vertical position if menu would overflow top edge
+    if (newY < 10) {
+      newY = 10;
+    }
+
+    setAdjustedPosition({ x: newX, y: newY });
+  }, [isOpen, position]);
+
   // Calculate adjusted position to keep menu within viewport
   useEffect(() => {
     if (!isOpen) return;
 
-    const timer = setTimeout(() => {
-      if (!menuRef.current) return;
-
-      const menuElement = menuRef.current;
-      const menuRect = menuElement.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      let newX = position.x;
-      let newY = position.y;
-
-      // Adjust horizontal position if menu would overflow right edge
-      if (position.x + menuRect.width > viewportWidth) {
-        newX = viewportWidth - menuRect.width - 10;
-      }
-
-      // Adjust horizontal position if menu would overflow left edge
-      if (newX < 10) {
-        newX = 10;
-      }
-
-      // Adjust vertical position if menu would overflow bottom edge
-      if (position.y + menuRect.height > viewportHeight) {
-        newY = viewportHeight - menuRect.height - 10;
-      }
-
-      // Adjust vertical position if menu would overflow top edge
-      if (newY < 10) {
-        newY = 10;
-      }
-
-      setAdjustedPosition({ x: newX, y: newY });
-    }, 0);
-
+    const timer = setTimeout(calculateAdjustedPosition, 0);
     return () => clearTimeout(timer);
-  }, [isOpen, position]);
+  }, [isOpen, calculateAdjustedPosition]);
 
-  if (!isOpen) return null;
-
-  const handleNodeCreate = (type: NodeType, testCategory?: TestCategory) => {
+  // Memoize node creation handler
+  const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory) => {
     onNodeCreate(type, testCategory);
     onClose();
-  };
+  }, [onNodeCreate, onClose]);
+
+  // Memoize menu style
+  const menuStyle = useMemo(() => ({
+    left: adjustedPosition.x,
+    top: adjustedPosition.y,
+  }), [adjustedPosition.x, adjustedPosition.y]);
+
+  // Memoize menu items for performance
+  const menuItems = useMemo(() => [
+    {
+      type: 'outcome' as NodeType,
+      icon: 'fas fa-bullseye',
+      color: 'var(--primary-indigo)',
+      hoverClass: 'hover:bg-blue-50',
+      title: 'Outcome',
+      description: 'Business goal or result'
+    },
+    {
+      type: 'opportunity' as NodeType,
+      icon: 'fas fa-lightbulb',
+      color: 'var(--secondary-purple)',
+      hoverClass: 'hover:bg-purple-50',
+      title: 'Opportunity',
+      description: 'Market or user opportunity'
+    },
+    {
+      type: 'solution' as NodeType,
+      icon: 'fas fa-cog',
+      color: 'var(--accent-emerald)',
+      hoverClass: 'hover:bg-emerald-50',
+      title: 'Solution',
+      description: 'Product or feature approach'
+    },
+    {
+      type: 'assumption' as NodeType,
+      testCategory: 'viability' as TestCategory,
+      icon: 'fas fa-flask',
+      color: 'var(--orange-test)',
+      hoverClass: 'hover:bg-orange-50',
+      title: 'Assumption Test',
+      description: 'Hypothesis to validate'
+    },
+    {
+      type: 'kpi' as NodeType,
+      icon: 'fas fa-chart-line',
+      color: 'var(--kpi-color)',
+      hoverClass: 'hover:bg-yellow-50',
+      title: 'KPI',
+      description: 'Key performance indicator'
+    }
+  ], []);
+
+  if (!isOpen) return null;
 
   return (
     <div
       ref={menuRef}
       className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[200px]"
-      style={{
-        left: adjustedPosition.x,
-        top: adjustedPosition.y,
-      }}
+      style={menuStyle}
       onClick={(e) => {
         e.stopPropagation();
       }}
@@ -103,58 +155,24 @@ export function CanvasContextMenu({
       <div className="px-4 py-2">
         <div className="text-xs font-medium text-gray-500 mb-2">Create Node</div>
         <div className="space-y-1">
-          <button 
-            onClick={() => handleNodeCreate('outcome')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-blue-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-bullseye mr-3 text-sm" style={{ color: 'var(--primary-indigo)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">Outcome</div>
-              <div className="text-xs text-gray-500">Business goal or result</div>
-            </div>
-          </button>
-          <button 
-            onClick={() => handleNodeCreate('opportunity')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-purple-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-lightbulb mr-3 text-sm" style={{ color: 'var(--secondary-purple)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">Opportunity</div>
-              <div className="text-xs text-gray-500">Market or user opportunity</div>
-            </div>
-          </button>
-          <button 
-            onClick={() => handleNodeCreate('solution')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-emerald-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-cog mr-3 text-sm" style={{ color: 'var(--accent-emerald)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">Solution</div>
-              <div className="text-xs text-gray-500">Product or feature approach</div>
-            </div>
-          </button>
-          <button 
-            onClick={() => handleNodeCreate('assumption', 'viability')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-flask mr-3 text-sm" style={{ color: 'var(--orange-test)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">Assumption Test</div>
-              <div className="text-xs text-gray-500">Hypothesis to validate</div>
-            </div>
-          </button>
-          <button 
-            onClick={() => handleNodeCreate('kpi')}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
-          >
-            <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
-            <div>
-              <div className="font-medium text-gray-900">KPI</div>
-              <div className="text-xs text-gray-500">Key performance indicator</div>
-            </div>
-          </button>
+          {menuItems.map((item) => (
+            <button 
+              key={item.type}
+              onClick={() => handleNodeCreate(item.type, item.testCategory)}
+              className={`w-full px-3 py-2 text-sm text-left ${item.hoverClass} rounded flex items-center transition-colors`}
+            >
+              <i className={`${item.icon} mr-3 text-sm`} style={{ color: item.color }}></i>
+              <div>
+                <div className="font-medium text-gray-900">{item.title}</div>
+                <div className="text-xs text-gray-500">{item.description}</div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>
   );
-}
+});
+
+// Export the memoized component
+export const CanvasContextMenu = CanvasContextMenuComponent;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo, useCallback, useMemo } from "react";
 import { type TreeNode, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ContextMenuProps {
@@ -12,7 +12,7 @@ interface ContextMenuProps {
   onToggleCollapse?: (nodeId: string) => void;
 }
 
-export function ContextMenu({
+const ContextMenuComponent = memo(function ContextMenu({
   isOpen,
   position,
   node,
@@ -26,13 +26,14 @@ export function ContextMenu({
   const [showTestCategories, setShowTestCategories] = useState(false);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
+  // Memoize click outside handler
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      onClose();
+    }
+  }, [onClose]);
 
+  useEffect(() => {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -40,7 +41,7 @@ export function ContextMenu({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClickOutside]);
 
   // Reset position when menu opens
   useEffect(() => {
@@ -93,20 +94,25 @@ export function ContextMenu({
 
   if (!isOpen || !node) return null;
 
-  const handleEdit = () => {
-    onEdit(node);
-    onClose();
-  };
+  // Memoize handlers for performance
+  const handleEdit = useCallback(() => {
+    if (node) {
+      onEdit(node);
+      onClose();
+    }
+  }, [node, onEdit, onClose]);
 
-  const handleDelete = () => {
-    onDelete(node.id);
-    onClose();
-  };
+  const handleDelete = useCallback(() => {
+    if (node) {
+      onDelete(node.id);
+      onClose();
+    }
+  }, [node, onDelete, onClose]);
 
-  const handleAddChild = (type: NodeType, testCategory?: TestCategory) => {
+  const handleAddChild = useCallback((type: NodeType, testCategory?: TestCategory) => {
     onAddChild(type, testCategory);
     onClose();
-  };
+  }, [onAddChild, onClose]);
 
   return (
     <div
@@ -294,4 +300,7 @@ export function ContextMenu({
       </button>
     </div>
   );
-}
+});
+
+// Export the memoized component
+export const ContextMenu = ContextMenuComponent;
