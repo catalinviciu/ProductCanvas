@@ -73,11 +73,10 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
 
   const layoutNodes: TreeNode[] = [];
   const nodeWidth = 300; // Card width
-  const nodeHeight = 144; // Card height (reduced by 10%)
-  const bufferWidth = Math.round(nodeWidth * 0.15); // 15% buffer = ~45px
-  const bufferHeight = Math.round(nodeHeight * 0.15); // 15% buffer = ~22px
-  const levelSpacing = nodeWidth + bufferWidth; // Horizontal spacing between levels with 15% buffer
-  const siblingSpacing = nodeHeight + bufferHeight; // Vertical spacing between siblings with 15% buffer
+  const nodeHeight = 144; // Card height
+  // Increased spacing for better visual hierarchy
+  const levelSpacing = nodeWidth + 120; // 420px total horizontal spacing between levels
+  const siblingSpacing = nodeHeight + 60; // 204px total vertical spacing between siblings
 
   // Build tree structure to calculate subtree heights for horizontal layout
   // Only consider visible (non-hidden) children for height calculation
@@ -127,7 +126,7 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
         const existingNodesAtLevel = layoutNodes.filter(n => Math.abs(n.position.x - childX) < 50);
         if (existingNodesAtLevel.length > 0) {
           const maxY = Math.max(...existingNodesAtLevel.map(n => n.position.y));
-          childY = Math.max(childY, maxY + siblingSpacing); // Use consistent 15% buffer spacing
+          childY = Math.max(childY, maxY + siblingSpacing);
         }
 
         visibleChildren.forEach(childId => {
@@ -144,7 +143,7 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
   let rootY = 200;
   rootNodes.forEach((root, index) => {
     if (index > 0) {
-      rootY += getSubtreeHeight(root.id) * siblingSpacing + (siblingSpacing * 2); // Use consistent 15% buffer spacing between trees
+      rootY += getSubtreeHeight(root.id) * siblingSpacing + (siblingSpacing * 2);
     }
     layoutTree(root.id, 100, rootY, 0);
   });
@@ -165,10 +164,10 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
 
   const layoutNodes: TreeNode[] = [];
   const nodeWidth = 300; // Card width
-  const nodeHeight = 144; // Card height (reduced by 10%)
-  const bufferHeight = Math.round(nodeHeight * 0.15); // 15% buffer = ~22px
-  const levelSpacing = nodeHeight + bufferHeight; // Vertical spacing between levels with 15% buffer
-  const siblingSpacing = nodeWidth + Math.round(nodeWidth * 0.15); // Horizontal spacing between siblings with 15% buffer
+  const nodeHeight = 144; // Card height
+  // Increased spacing for better visual hierarchy in vertical layout
+  const levelSpacing = nodeHeight + 80; // 224px total vertical spacing between levels
+  const siblingSpacing = nodeWidth + 80; // 380px total horizontal spacing between siblings
 
   // Build tree structure to calculate subtree widths for vertical layout
   // Only consider visible (non-hidden) children for width calculation
@@ -478,11 +477,13 @@ export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosit
     
     if (!hasOverlap) break;
     
-    // Apply calculated movement with distance adjusted for new card dimensions
+    // Apply calculated movement with increased spacing
     const cardWidth = 300;
-    const pushDistance = cardWidth + Math.round(cardWidth * 0.15); // 15% buffer spacing
-    adjustedPosition.x += bestDirection.x * pushDistance;
-    adjustedPosition.y += bestDirection.y * pushDistance;
+    const cardHeight = 144;
+    const pushDistanceX = cardWidth + 120; // Match horizontal level spacing
+    const pushDistanceY = cardHeight + 60; // Match vertical sibling spacing
+    adjustedPosition.x += bestDirection.x * pushDistanceX;
+    adjustedPosition.y += bestDirection.y * pushDistanceY;
     
     attempts++;
   }

@@ -49,16 +49,16 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
       const { cardWidth, nodeHeight, connectionOffset } = CONNECTION_CONFIG;
       
       if (layout === 'horizontal') {
-        // Optimized horizontal connections with better curve calculation
+        // Connect from center-right edge of parent to center-left edge of child
         const fromX = fromNode.position.x + cardWidth;
         const fromY = fromNode.position.y + (nodeHeight / 2);
         
         const toX = toNode.position.x;
         const toY = toNode.position.y + (nodeHeight / 2);
 
-        // Dynamic control point calculation based on distance
+        // Enhanced control point calculation for smoother curves
         const distance = Math.abs(toX - fromX);
-        const dynamicOffset = Math.min(connectionOffset + (distance * 0.3), 150);
+        const dynamicOffset = Math.min(connectionOffset + (distance * 0.4), 180);
         
         const controlX1 = fromX + dynamicOffset;
         const controlY1 = fromY;
@@ -67,15 +67,16 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
 
         return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
       } else {
-        // Optimized vertical connections - start from bottom of card
+        // Connect from center-bottom edge of parent to center-top edge of child
         const fromX = fromNode.position.x + (cardWidth / 2);
-        const fromY = fromNode.position.y + nodeHeight + 10; // Add small offset below card
+        const fromY = fromNode.position.y + nodeHeight;
         
         const toX = toNode.position.x + (cardWidth / 2);
         const toY = toNode.position.y;
 
+        // Enhanced control point calculation for vertical connections
         const distance = Math.abs(toY - fromY);
-        const dynamicOffset = Math.min(connectionOffset + (distance * 0.3), 150);
+        const dynamicOffset = Math.min(connectionOffset + (distance * 0.4), 180);
 
         const controlX1 = fromX;
         const controlY1 = fromY + dynamicOffset;
@@ -92,15 +93,17 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
       const { cardWidth, nodeHeight, arrowSize } = CONNECTION_CONFIG;
       
       if (layout === 'horizontal') {
+        // Position arrow at the left edge of the target card
         return {
-          cx: toNode.position.x - arrowSize,
+          cx: toNode.position.x - arrowSize * 1.5,
           cy: toNode.position.y + (nodeHeight / 2),
           r: arrowSize / zoom,
         };
       } else {
+        // Position arrow at the top edge of the target card
         return {
           cx: toNode.position.x + (cardWidth / 2),
-          cy: toNode.position.y - arrowSize,
+          cy: toNode.position.y - arrowSize * 1.5,
           r: arrowSize / zoom,
         };
       }
