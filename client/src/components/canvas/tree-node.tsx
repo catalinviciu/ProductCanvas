@@ -509,41 +509,11 @@ const TreeNodeComponent = memo(function TreeNode({
           )}
         </div>
 
-        {/* Enhanced Node Footer - Compact */}
-        {!isEditing && (
-          <div className="node-footer-compact flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="children-indicator-compact">
-                <div className={`children-badge-compact ${
-                  collapseState.hasChildren ? 
-                    (node.isCollapsed ? 'collapsed' : 'expanded') 
-                    : 'empty'
-                }`}>
-                  <span className="children-count-compact">{node.children.length}</span>
-                </div>
-                <span className="children-label-compact">
-                  {node.children.length === 1 ? 'child' : 'children'}
-                  {node.isCollapsed && collapseState.hasChildren && ' (hidden)'}
-                </span>
-                
-                {collapseState.hasChildren && (
-                  <div className="status-icon-compact ml-1" title={
-                    node.isCollapsed ? 'Children are hidden - click + to expand' : 'Moving this card will reorganize all children'
-                  }>
-                    <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
-                      node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
-                    }`}></i>
-                  </div>
-                )}
-              </div>
-              
-              {node.type === 'assumption' && testConfig && (
-                <div className="test-category-badge-compact">
-                  <i className={`${testConfig.icon} text-xs mr-1`} />
-                  <span>{testConfig.label}</span>
-                </div>
-              )}
-            </div>
+        {/* Test category badge in card if needed */}
+        {!isEditing && node.type === 'assumption' && testConfig && (
+          <div className="test-category-badge-inline">
+            <i className={`${testConfig.icon} text-xs mr-1`} />
+            <span>{testConfig.label}</span>
           </div>
         )}
 
@@ -571,6 +541,33 @@ const TreeNodeComponent = memo(function TreeNode({
           </button>
         )}
       </div>
+
+      {/* Children indicator outside card */}
+      {!isEditing && (
+        <div className="children-indicator-external">
+          <div className={`children-badge-external ${
+            collapseState.hasChildren ? 
+              (node.isCollapsed ? 'collapsed' : 'expanded') 
+              : 'empty'
+          }`}>
+            <span className="children-count-external">{node.children.length}</span>
+          </div>
+          <span className="children-label-external">
+            {node.children.length === 1 ? 'child' : 'children'}
+            {node.isCollapsed && collapseState.hasChildren && ' (hidden)'}
+          </span>
+          
+          {collapseState.hasChildren && (
+            <div className="status-icon-external" title={
+              node.isCollapsed ? 'Children are hidden - click + to expand' : 'Moving this card will reorganize all children'
+            }>
+              <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
+                node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
+              }`}></i>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 });

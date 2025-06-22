@@ -209,6 +209,66 @@
   font-size: 10px;
 }
 
+.test-category-badge-inline {
+  @apply flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mt-auto;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* External children indicator styles */
+.children-indicator-external {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  font-size: 10px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.children-badge-external {
+  @apply w-4 h-4 rounded-full flex items-center justify-center font-medium border;
+  transition: all 0.2s ease;
+}
+
+.children-badge-external.expanded {
+  @apply bg-blue-100 border-blue-200 text-blue-600;
+}
+
+.children-badge-external.collapsed {
+  @apply bg-purple-100 border-purple-200 text-purple-600;
+}
+
+.children-badge-external.empty {
+  @apply bg-gray-100 border-gray-200 text-gray-500;
+}
+
+.children-count-external {
+  font-size: 9px;
+  line-height: 1;
+}
+
+.children-label-external {
+  @apply text-gray-600;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.status-icon-external {
+  @apply rounded-sm hover:bg-gray-100;
+  padding: 1px;
+  transition: all 0.2s ease;
+}
+
 /* Edit Mode Styles */
 .edit-mode-container {
   display: flex;
