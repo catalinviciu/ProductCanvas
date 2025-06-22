@@ -1,9 +1,10 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, memo, useMemo } from "react";
 import { TreeNode } from "./tree-node";
 import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { CanvasContextMenu } from "../modals/canvas-context-menu";
 import { getVisibleNodes, getVisibleConnections } from "@/lib/canvas-utils";
+import { throttle, debounce } from "@/lib/performance-utils";
 import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ImpactTreeCanvasProps {
@@ -23,7 +24,7 @@ interface ImpactTreeCanvasProps {
   onResetToHome: () => void;
 }
 
-export function ImpactTreeCanvas({
+const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   nodes,
   connections,
   canvasState,
@@ -49,12 +50,12 @@ export function ImpactTreeCanvas({
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
 
-  // Get only visible nodes and connections
-  const visibleNodes = getVisibleNodes(nodes);
-  const visibleConnections = getVisibleConnections(nodes, connections);
+  // Memoize visible nodes and connections for performance
+  const visibleNodes = useMemo(() => getVisibleNodes(nodes), [nodes]);
+  const visibleConnections = useMemo(() => getVisibleConnections(nodes, connections), [nodes, connections]);
 
-  // Calculate dynamic canvas bounds based on nodes
-  const getCanvasBounds = useCallback(() => {
+  // Calculate dynamic canvas bounds based on nodes with memoization
+  const canvasBounds = useMemo(() => {
     if (nodes.length === 0) {
       return { minX: -1000, maxX: 1000, minY: -1000, maxY: 1000, width: 2000, height: 2000 };
     }
@@ -74,6 +75,36 @@ export function ImpactTreeCanvas({
       height: maxY - minY
     };
   }, [nodes]);
+
+  // Memoize canvas style to prevent unnecessary recalculations
+  const canvasStyle = useMemo(() => ({
+    transform: `translate(${canvasState.pan.x}px, ${canvasState.pan.y}px) scale(${canvasState.zoom})`,
+    transformOrigin: '0 0',
+    width: '200%',
+    height: '200%',
+  }), [canvasState.pan.x, canvasState.pan.y, canvasState.zoom]);
+
+  // Memoize grid background style
+  const gridStyle = useMemo(() => ({
+    backgroundPosition: `${canvasState.pan.x}px ${canvasState.pan.y}px`,
+    backgroundSize: `${20 * canvasState.zoom}px ${20 * canvasState.zoom}px`,
+  }), [canvasState.pan.x, canvasState.pan.y, canvasState.zoom]);
+
+  // Throttled canvas update for better performance
+  const throttledCanvasUpdate = useCallback(
+    throttle((updates: Partial<CanvasState>) => {
+      onCanvasUpdate(updates);
+    }, 16), // ~60fps
+    [onCanvasUpdate]
+  );
+
+  // Debounced canvas update for less frequent operations
+  const debouncedCanvasUpdate = useCallback(
+    debounce((updates: Partial<CanvasState>) => {
+      onCanvasUpdate(updates);
+    }, 100),
+    [onCanvasUpdate]
+  );
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Close canvas context menu on any click
@@ -131,7 +162,6 @@ export function ImpactTreeCanvas({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const bounds = getCanvasBounds();
     
     // Calculate viewport dimensions
     const viewportWidth = rect.width * 0.2;
@@ -145,11 +175,11 @@ export function ImpactTreeCanvas({
     const normalizedX = (clampedX - viewportWidth / 2) / (rect.width - viewportWidth);
     const normalizedY = (clampedY - viewportHeight / 2) / (rect.height - viewportHeight);
     
-    const canvasX = bounds.minX + normalizedX * bounds.width;
-    const canvasY = bounds.minY + normalizedY * bounds.height;
+    const canvasX = canvasBounds.minX + normalizedX * canvasBounds.width;
+    const canvasY = canvasBounds.minY + normalizedY * canvasBounds.height;
     
     onCanvasUpdate({ pan: { x: -canvasX + 400, y: -canvasY + 300 } }); // Center in viewport
-  }, [onCanvasUpdate, getCanvasBounds]);
+  }, [onCanvasUpdate, canvasBounds]);
 
   const handleMiniMapMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -166,7 +196,6 @@ export function ImpactTreeCanvas({
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const bounds = getCanvasBounds();
       
       // Calculate viewport dimensions for proper clamping
       const viewportWidth = rect.width * 0.2;
@@ -180,12 +209,12 @@ export function ImpactTreeCanvas({
       const normalizedX = (clampedX - viewportWidth / 2) / (rect.width - viewportWidth);
       const normalizedY = (clampedY - viewportHeight / 2) / (rect.height - viewportHeight);
       
-      const canvasX = bounds.minX + normalizedX * bounds.width;
-      const canvasY = bounds.minY + normalizedY * bounds.height;
+      const canvasX = canvasBounds.minX + normalizedX * canvasBounds.width;
+      const canvasY = canvasBounds.minY + normalizedY * canvasBounds.height;
       
-      onCanvasUpdate({ pan: { x: -canvasX + 400, y: -canvasY + 300 } });
+      throttledCanvasUpdate({ pan: { x: -canvasX + 400, y: -canvasY + 300 } });
     }
-  }, [miniMapDragging, onCanvasUpdate, getCanvasBounds]);
+  }, [miniMapDragging, throttledCanvasUpdate, canvasBounds]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
@@ -193,9 +222,9 @@ export function ImpactTreeCanvas({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y,
       };
-      onCanvasUpdate({ pan: newPan });
+      throttledCanvasUpdate({ pan: newPan });
     }
-  }, [isPanning, dragStart, onCanvasUpdate]);
+  }, [isPanning, dragStart, throttledCanvasUpdate]);
 
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
@@ -207,27 +236,25 @@ export function ImpactTreeCanvas({
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     const newZoom = Math.max(0.1, Math.min(3, canvasState.zoom + delta));
-    onCanvasUpdate({ zoom: newZoom });
-  }, [canvasState.zoom, onCanvasUpdate]);
+    debouncedCanvasUpdate({ zoom: newZoom });
+  }, [canvasState.zoom, debouncedCanvasUpdate]);
 
   const handleNodeDrag = useCallback((nodeId: string, newPosition: { x: number; y: number }) => {
     const node = nodes.find(n => n.id === nodeId);
     if (node) {
-      // Use the enhanced collision detection system that handles branches with sub-branches
       onNodeUpdate({ ...node, position: newPosition });
     }
   }, [nodes, onNodeUpdate]);
 
-  // Global mouse event handlers for mini map dragging
+  // Global mouse event handlers for mini map dragging with performance optimization
   useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
+    const handleGlobalMouseMove = throttle((e: MouseEvent) => {
       if (miniMapDragging) {
         const miniMapElement = document.querySelector('.mini-map');
         if (miniMapElement) {
           const rect = miniMapElement.getBoundingClientRect();
           const x = e.clientX - rect.left;
           const y = e.clientY - rect.top;
-          const bounds = getCanvasBounds();
           
           // Clamp coordinates within mini map bounds with viewport size consideration
           const viewportWidth = rect.width * 0.2; // 20% width of minimap
@@ -240,13 +267,13 @@ export function ImpactTreeCanvas({
           const normalizedX = (clampedX - viewportWidth / 2) / (rect.width - viewportWidth);
           const normalizedY = (clampedY - viewportHeight / 2) / (rect.height - viewportHeight);
           
-          const canvasX = bounds.minX + normalizedX * bounds.width;
-          const canvasY = bounds.minY + normalizedY * bounds.height;
+          const canvasX = canvasBounds.minX + normalizedX * canvasBounds.width;
+          const canvasY = canvasBounds.minY + normalizedY * canvasBounds.height;
           
           onCanvasUpdate({ pan: { x: -canvasX + 400, y: -canvasY + 300 } });
         }
       }
-    };
+    }, 16);
 
     const handleGlobalMouseUp = () => {
       setMiniMapDragging(false);
@@ -264,14 +291,96 @@ export function ImpactTreeCanvas({
         document.body.style.cursor = '';
       };
     }
-  }, [miniMapDragging, onCanvasUpdate, getCanvasBounds]);
+  }, [miniMapDragging, onCanvasUpdate, canvasBounds]);
 
-  const canvasStyle = {
-    transform: `translate(${canvasState.pan.x}px, ${canvasState.pan.y}px) scale(${canvasState.zoom})`,
-    transformOrigin: '0 0',
-    width: '200%',
-    height: '200%',
-  };
+  // Memoize minimap viewport indicator style for performance
+  const minimapViewportStyle = useMemo(() => {
+    const viewportCenterX = -canvasState.pan.x + 400; // Current viewport center
+    const viewportCenterY = -canvasState.pan.y + 300;
+    
+    // Convert to normalized coordinates (0-1) within canvas bounds
+    const normalizedX = (viewportCenterX - canvasBounds.minX) / canvasBounds.width;
+    const normalizedY = (viewportCenterY - canvasBounds.minY) / canvasBounds.height;
+    
+    // Convert to minimap percentage (account for viewport size)
+    const left = Math.max(0, Math.min(80, normalizedX * 100));
+    const top = Math.max(0, Math.min(80, normalizedY * 100));
+    
+    return {
+      left: `${left}%`,
+      top: `${top}%`,
+      width: '20%',
+      height: '20%',
+    };
+  }, [canvasState.pan.x, canvasState.pan.y, canvasBounds]);
+
+  // Memoize minimap node indicators for performance
+  const minimapNodeIndicators = useMemo(() => {
+    return nodes.map((node) => {
+      const normalizedX = (node.position.x - canvasBounds.minX) / canvasBounds.width;
+      const normalizedY = (node.position.y - canvasBounds.minY) / canvasBounds.height;
+      
+      const nodeColor = 
+        node.type === 'outcome' ? '#4f46e5' :
+        node.type === 'opportunity' ? '#7c3aed' :
+        node.type === 'solution' ? '#059669' :
+        node.type === 'assumption' ? '#ea580c' :
+        '#dc2626';
+      
+      return (
+        <div
+          key={node.id}
+          className="absolute w-1.5 h-1.5 rounded-full"
+          style={{
+            left: `${Math.max(0, Math.min(95, normalizedX * 100))}%`,
+            top: `${Math.max(0, Math.min(95, normalizedY * 100))}%`,
+            backgroundColor: nodeColor
+          }}
+        />
+      );
+    });
+  }, [nodes, canvasBounds]);
+
+  // Memoize ghost toggle buttons for hidden children
+  const ghostToggleButtons = useMemo(() => {
+    return nodes.map((node) => {
+      // Only show ghost buttons for visible parent nodes with hidden children
+      const isParentVisible = visibleNodes.some(vn => vn.id === node.id);
+      if (!isParentVisible || node.isCollapsed || !node.hiddenChildren?.length) return null;
+      
+      return node.hiddenChildren.map((hiddenChildId) => {
+        const hiddenChild = nodes.find(n => n.id === hiddenChildId);
+        if (!hiddenChild) return null;
+        
+        return (
+          <button
+            key={`ghost-${hiddenChildId}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleChildVisibility(node.id, hiddenChildId);
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="absolute w-6 h-6 rounded-full text-xs font-bold
+                     flex items-center justify-center cursor-pointer
+                     shadow-md hover:shadow-lg transition-all duration-200
+                     border-2 border-white z-20 bg-gray-400 hover:bg-gray-500 text-white"
+            style={{
+              left: hiddenChild.position.x + (canvasState.orientation === 'horizontal' ? -28 : 124),
+              top: hiddenChild.position.y + (canvasState.orientation === 'horizontal' ? 48 : -28),
+              pointerEvents: 'all'
+            }}
+            title={`Show ${hiddenChild.title} branch`}
+          >
+            +
+          </button>
+        );
+      });
+    }).flat().filter(Boolean);
+  }, [nodes, visibleNodes, canvasState.orientation, onToggleChildVisibility]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -287,16 +396,13 @@ export function ImpactTreeCanvas({
       {/* Canvas Grid Background */}
       <div 
         className="absolute inset-0 canvas-grid"
-        style={{
-          backgroundPosition: `${canvasState.pan.x}px ${canvasState.pan.y}px`,
-          backgroundSize: `${20 * canvasState.zoom}px ${20 * canvasState.zoom}px`,
-        }}
+        style={gridStyle}
       />
 
       {/* Main Canvas */}
       <div
         ref={canvasRef}
-        className="relative w-full h-full cursor-grab active:cursor-grabbing"
+        className="relative w-full h-full cursor-grab active:cursor-grabbing impact-tree-canvas"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -309,12 +415,10 @@ export function ImpactTreeCanvas({
           const draggedNodeId = e.dataTransfer.getData('text/plain');
           if (draggedNodeId) {
             onNodeReattach(draggedNodeId, null); // Detach from parent
-            // Force clear all drag states and selection
             setDraggedNodeId(null);
             setDraggedOverNodeId(null);
             setTimeout(() => {
               onNodeSelect(null);
-              // Force browser to clear any remaining drag states
               if (document.activeElement) {
                 (document.activeElement as HTMLElement).blur();
               }
@@ -351,7 +455,7 @@ export function ImpactTreeCanvas({
               onSelect={onNodeSelect}
               onDelete={onNodeDelete}
               onDrag={handleNodeDrag}
-              onContextMenu={(position) => onContextMenu(node, position)}
+              onContextMenu={(position: { x: number; y: number }) => onContextMenu(node, position)}
               onReattach={onNodeReattach}
               onToggleCollapse={onToggleCollapse}
               onToggleChildVisibility={onToggleChildVisibility}
@@ -363,43 +467,7 @@ export function ImpactTreeCanvas({
           ))}
 
           {/* Ghost Toggle Buttons for Hidden Children */}
-          {nodes.map((node) => {
-            // Only show ghost buttons for visible parent nodes with hidden children
-            const isParentVisible = visibleNodes.some(vn => vn.id === node.id);
-            if (!isParentVisible || node.isCollapsed || !node.hiddenChildren?.length) return null;
-            
-            return node.hiddenChildren.map((hiddenChildId) => {
-              const hiddenChild = nodes.find(n => n.id === hiddenChildId);
-              if (!hiddenChild) return null;
-              
-              return (
-                <button
-                  key={`ghost-${hiddenChildId}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onToggleChildVisibility(node.id, hiddenChildId);
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  className={`absolute w-6 h-6 rounded-full text-xs font-bold
-                           flex items-center justify-center cursor-pointer
-                           shadow-md hover:shadow-lg transition-all duration-200
-                           border-2 border-white z-20 bg-gray-400 hover:bg-gray-500 text-white`}
-                  style={{
-                    left: hiddenChild.position.x + (canvasState.orientation === 'horizontal' ? -28 : 124),
-                    top: hiddenChild.position.y + (canvasState.orientation === 'horizontal' ? 76 : -28),
-                    pointerEvents: 'all'
-                  }}
-                  title={`Show ${hiddenChild.title} branch`}
-                >
-                  +
-                </button>
-              );
-            });
-          }).flat()}
+          {ghostToggleButtons}
         </div>
       </div>
 
@@ -427,7 +495,7 @@ export function ImpactTreeCanvas({
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 w-40 h-32">
           <div className="text-xs text-gray-500 mb-2">Mini Map</div>
           <div 
-            className="relative w-full h-16 bg-gray-50 border border-gray-200 rounded cursor-pointer select-none overflow-hidden"
+            className="mini-map relative w-full h-16 bg-gray-50 border border-gray-200 rounded cursor-pointer select-none overflow-hidden"
             onMouseDown={handleMiniMapMouseDown}
             onMouseMove={handleMiniMapMouseMove}
             onMouseUp={() => {
@@ -442,26 +510,7 @@ export function ImpactTreeCanvas({
             {/* Viewport indicator */}
             <div 
               className={`absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded cursor-move transition-all ${miniMapDragging ? 'bg-opacity-40 border-blue-600' : ''}`}
-              style={(() => {
-                const bounds = getCanvasBounds();
-                const viewportCenterX = -canvasState.pan.x + 400; // Current viewport center
-                const viewportCenterY = -canvasState.pan.y + 300;
-                
-                // Convert to normalized coordinates (0-1) within canvas bounds
-                const normalizedX = (viewportCenterX - bounds.minX) / bounds.width;
-                const normalizedY = (viewportCenterY - bounds.minY) / bounds.height;
-                
-                // Convert to minimap percentage (account for viewport size)
-                const left = Math.max(0, Math.min(80, normalizedX * 100));
-                const top = Math.max(0, Math.min(80, normalizedY * 100));
-                
-                return {
-                  left: `${left}%`,
-                  top: `${top}%`,
-                  width: '20%',
-                  height: '20%',
-                };
-              })()}
+              style={minimapViewportStyle}
               onMouseDown={(e) => {
                 e.stopPropagation();
                 setMiniMapDragging(true);
@@ -469,28 +518,7 @@ export function ImpactTreeCanvas({
               }}
             />
             {/* Node indicators */}
-            {nodes.map((node) => {
-              const bounds = getCanvasBounds();
-              const normalizedX = (node.position.x - bounds.minX) / bounds.width;
-              const normalizedY = (node.position.y - bounds.minY) / bounds.height;
-              
-              return (
-                <div
-                  key={node.id}
-                  className="absolute w-1.5 h-1.5 rounded-full"
-                  style={{
-                    left: `${Math.max(0, Math.min(95, normalizedX * 100))}%`,
-                    top: `${Math.max(0, Math.min(95, normalizedY * 100))}%`,
-                    backgroundColor: 
-                      node.type === 'outcome' ? '#4f46e5' :
-                      node.type === 'opportunity' ? '#7c3aed' :
-                      node.type === 'solution' ? '#059669' :
-                      node.type === 'assumption' ? '#ea580c' :
-                      '#dc2626'
-                  }}
-                />
-              );
-            })}
+            {minimapNodeIndicators}
           </div>
         </div>
       </div>
@@ -504,4 +532,7 @@ export function ImpactTreeCanvas({
       />
     </div>
   );
-}
+});
+
+// Export the memoized component
+export { ImpactTreeCanvasComponent as ImpactTreeCanvas };
