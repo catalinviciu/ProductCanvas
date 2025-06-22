@@ -29,6 +29,8 @@ export default function CanvasPage() {
     handleNodeDelete,
     handleNodeSelect,
     handleCanvasUpdate,
+    handleContextMenu,
+    handleAddChildFromContext,
     closeContextMenu,
     closeEditModal,
     openEditModal,
@@ -80,9 +82,7 @@ export default function CanvasPage() {
             onNodeSelect={handleNodeSelect}
             onNodeDelete={handleNodeDelete}
             onCanvasUpdate={handleCanvasUpdate}
-            onContextMenu={(node, position) => {
-              // Handle context menu
-            }}
+            onContextMenu={handleContextMenu}
           />
         </main>
       </div>
@@ -101,7 +101,7 @@ export default function CanvasPage() {
         onClose={closeContextMenu}
         onEdit={openEditModal}
         onDelete={handleNodeDelete}
-        onAddChild={handleNodeCreate}
+        onAddChild={handleAddChildFromContext}
       />
     </div>
   );

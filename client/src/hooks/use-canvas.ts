@@ -48,7 +48,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
 
   const updateTreeMutation = useMutation({
     mutationFn: async (updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {
-      if (!impactTree) throw new Error('No impact tree loaded');
+      if (!impactTree?.id) throw new Error('No impact tree loaded');
       return apiRequest('PUT', `/api/impact-trees/${impactTree.id}`, updates);
     },
     onSuccess: () => {
@@ -57,6 +57,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   });
 
   const saveTree = useCallback((updatedNodes?: TreeNode[], updatedConnections?: NodeConnection[], updatedCanvasState?: CanvasState) => {
+    if (!impactTree?.id) return; // Don't save if no valid tree ID
+    
     const finalNodes = updatedNodes || nodes;
     const finalConnections = updatedConnections || connections;
     const finalCanvasState = updatedCanvasState || canvasState;
@@ -66,7 +68,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       connections: finalConnections,
       canvasState: finalCanvasState,
     });
-  }, [nodes, connections, canvasState, updateTreeMutation]);
+  }, [nodes, connections, canvasState, updateTreeMutation, impactTree?.id]);
 
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode) => {
     const nodeId = generateNodeId(type);
@@ -98,6 +100,25 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setConnections(updatedConnections);
     saveTree(updatedNodes, updatedConnections);
   }, [nodes, connections, saveTree]);
+
+  const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
+    setContextMenu({
+      isOpen: true,
+      position,
+      node,
+    });
+  }, []);
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null });
+  }, []);
+
+  const handleAddChildFromContext = useCallback((type: NodeType, testCategory?: TestCategory) => {
+    if (contextMenu.node) {
+      handleNodeCreate(type, testCategory, contextMenu.node);
+    }
+    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null });
+  }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
     const updatedNodes = nodes.map(node => 
@@ -155,10 +176,6 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(undefined, undefined, updatedCanvasState);
   }, [canvasState, saveTree]);
 
-  const closeContextMenu = useCallback(() => {
-    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null });
-  }, []);
-
   const closeEditModal = useCallback(() => {
     setEditModal({ isOpen: false });
   }, []);
@@ -180,6 +197,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     handleNodeDelete,
     handleNodeSelect,
     handleCanvasUpdate,
+    handleContextMenu,
+    handleAddChildFromContext,
     closeContextMenu,
     closeEditModal,
     openEditModal,
