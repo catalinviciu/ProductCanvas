@@ -254,13 +254,14 @@ export function getVisibleNodes(nodes: TreeNode[]): TreeNode[] {
   // Start with root nodes
   const rootNodes = nodes.filter(n => !n.parentId);
   
-  const traverseVisible = (nodeId: string) => {
+  const traverseVisible = (nodeId: string, isRoot: boolean = false) => {
     if (visitedNodes.has(nodeId)) return;
     visitedNodes.add(nodeId);
     
     const node = nodeMap.get(nodeId);
     if (!node) return;
     
+    // Always show the node itself (root nodes are always visible)
     visibleNodes.push(node);
     
     // Only traverse children if node is not collapsed
@@ -269,11 +270,11 @@ export function getVisibleNodes(nodes: TreeNode[]): TreeNode[] {
       const visibleChildren = node.children.filter(childId => 
         !node.hiddenChildren?.includes(childId)
       );
-      visibleChildren.forEach(childId => traverseVisible(childId));
+      visibleChildren.forEach(childId => traverseVisible(childId, false));
     }
   };
   
-  rootNodes.forEach(root => traverseVisible(root.id));
+  rootNodes.forEach(root => traverseVisible(root.id, true));
   return visibleNodes;
 }
 

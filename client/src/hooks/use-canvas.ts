@@ -144,19 +144,26 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
-    // Use comprehensive branch drag system that handles both single nodes and complex branches
-    const updatedNodes = handleBranchDrag(nodes, updatedNode.id, updatedNode.position, canvasState.orientation);
-    
-    // Apply any other node updates (title, description, etc.) that aren't position-related
-    const finalNodes = updatedNodes.map(node => 
-      node.id === updatedNode.id ? { ...updatedNode, position: node.position } : node
-    );
-    
-    // Auto-reorganize entire tree after drag-and-drop for better alignment
-    const reorganizedNodes = autoLayoutAfterDrop(finalNodes, canvasState.orientation);
-    
-    setNodes(reorganizedNodes);
-    saveTree(reorganizedNodes);
+    // Check if this is just a position update (dragging) vs other changes
+    const existingNode = nodes.find(n => n.id === updatedNode.id);
+    const isPositionOnlyUpdate = existingNode && 
+      existingNode.title === updatedNode.title &&
+      existingNode.description === updatedNode.description &&
+      existingNode.type === updatedNode.type;
+
+    if (isPositionOnlyUpdate) {
+      // For position-only updates (dragging), use branch drag system but don't auto-reorganize
+      const updatedNodes = handleBranchDrag(nodes, updatedNode.id, updatedNode.position, canvasState.orientation);
+      setNodes(updatedNodes);
+      saveTree(updatedNodes);
+    } else {
+      // For other updates (title, description, etc.), apply changes normally
+      const updatedNodes = nodes.map(node => 
+        node.id === updatedNode.id ? updatedNode : node
+      );
+      setNodes(updatedNodes);
+      saveTree(updatedNodes);
+    }
   }, [nodes, canvasState.orientation, saveTree]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
