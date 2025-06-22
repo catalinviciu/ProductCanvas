@@ -123,8 +123,11 @@ const TreeNodeComponent = memo(function TreeNode({
   const collapseState = useMemo(() => {
     const hasChildren = node.children.length > 0;
     const allChildrenHidden = hasChildren ? areAllChildrenHidden(node) : false;
-    return { hasChildren, allChildrenHidden };
-  }, [node.children.length, node]);
+    const isCollapsed = node.isCollapsed || false;
+    const totalChildren = node.children.length;
+    const hasHiddenChildren = node.hiddenChildren && node.hiddenChildren.length > 0;
+    return { hasChildren, allChildrenHidden, isCollapsed, totalChildren, hasHiddenChildren };
+  }, [node.children.length, node.isCollapsed, node.hiddenChildren, node]);
 
   // Memoize test category config
   const testConfig = useMemo(() => 
