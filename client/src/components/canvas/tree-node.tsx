@@ -432,6 +432,20 @@ const TreeNodeComponent = memo(function TreeNode({
           
           {/* Action buttons container */}
           <div className="flex items-center">
+            {!isEditing && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  onContextMenu(node, { x: rect.right, y: rect.bottom });
+                }}
+                className="action-btn-compact"
+                title="More options"
+              >
+                <i className="fas fa-ellipsis-v text-xs"></i>
+              </button>
+            )}
           </div>
         </div>
 
