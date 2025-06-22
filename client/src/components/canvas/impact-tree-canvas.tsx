@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { TreeNode } from "./tree-node";
 import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
+import { CanvasContextMenu } from "../modals/canvas-context-menu";
 import { getVisibleNodes, getVisibleConnections } from "@/lib/canvas-utils";
 import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 
@@ -442,74 +443,12 @@ export function ImpactTreeCanvas({
       </div>
 
       {/* Canvas Context Menu */}
-      {canvasContextMenu?.isOpen && (
-        <div
-          className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[200px]"
-          style={{
-            left: canvasContextMenu.position.x,
-            top: canvasContextMenu.position.y,
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <div className="px-4 py-2">
-            <div className="text-xs font-medium text-gray-500 mb-2">Create Node</div>
-            <div className="space-y-1">
-              <button 
-                onClick={() => handleCanvasNodeCreate('outcome')}
-                className="w-full px-3 py-2 text-sm text-left hover:bg-blue-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-bullseye mr-3 text-sm" style={{ color: 'var(--primary-indigo)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Outcome</div>
-                  <div className="text-xs text-gray-500">Business goal or result</div>
-                </div>
-              </button>
-              <button 
-                onClick={() => handleCanvasNodeCreate('opportunity')}
-                className="w-full px-3 py-2 text-sm text-left hover:bg-purple-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-lightbulb mr-3 text-sm" style={{ color: 'var(--secondary-purple)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Opportunity</div>
-                  <div className="text-xs text-gray-500">Market or user opportunity</div>
-                </div>
-              </button>
-              <button 
-                onClick={() => handleCanvasNodeCreate('solution')}
-                className="w-full px-3 py-2 text-sm text-left hover:bg-emerald-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-cog mr-3 text-sm" style={{ color: 'var(--accent-emerald)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Solution</div>
-                  <div className="text-xs text-gray-500">Product or feature approach</div>
-                </div>
-              </button>
-              <button 
-                onClick={() => handleCanvasNodeCreate('assumption', 'viability')}
-                className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-flask mr-3 text-sm" style={{ color: 'var(--orange-test)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">Assumption Test</div>
-                  <div className="text-xs text-gray-500">Hypothesis to validate</div>
-                </div>
-              </button>
-              <button 
-                onClick={() => handleCanvasNodeCreate('kpi')}
-                className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
-              >
-                <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
-                <div>
-                  <div className="font-medium text-gray-900">KPI</div>
-                  <div className="text-xs text-gray-500">Key performance indicator</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CanvasContextMenu
+        isOpen={canvasContextMenu?.isOpen || false}
+        position={canvasContextMenu?.position || { x: 0, y: 0 }}
+        onClose={() => setCanvasContextMenu(null)}
+        onNodeCreate={handleCanvasNodeCreate}
+      />
     </div>
   );
 }

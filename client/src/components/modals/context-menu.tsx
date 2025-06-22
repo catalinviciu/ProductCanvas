@@ -24,6 +24,7 @@ export function ContextMenu({
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showTestCategories, setShowTestCategories] = useState(false);
+  const [adjustedPosition, setAdjustedPosition] = useState(position);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -40,6 +41,55 @@ export function ContextMenu({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
+
+  // Reset position when menu opens
+  useEffect(() => {
+    if (isOpen) {
+      setAdjustedPosition(position);
+    }
+  }, [isOpen, position]);
+
+  // Calculate adjusted position to keep menu within viewport
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Use setTimeout to ensure DOM is updated before measuring
+    const timer = setTimeout(() => {
+      if (!menuRef.current) return;
+
+      const menuElement = menuRef.current;
+      const menuRect = menuElement.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let newX = position.x;
+      let newY = position.y;
+
+      // Adjust horizontal position if menu would overflow right edge
+      if (position.x + menuRect.width > viewportWidth) {
+        newX = viewportWidth - menuRect.width - 10; // 10px margin from edge
+      }
+
+      // Adjust horizontal position if menu would overflow left edge
+      if (newX < 10) {
+        newX = 10; // 10px margin from edge
+      }
+
+      // Adjust vertical position if menu would overflow bottom edge
+      if (position.y + menuRect.height > viewportHeight) {
+        newY = viewportHeight - menuRect.height - 10; // 10px margin from edge
+      }
+
+      // Adjust vertical position if menu would overflow top edge
+      if (newY < 10) {
+        newY = 10; // 10px margin from edge
+      }
+
+      setAdjustedPosition({ x: newX, y: newY });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, position, showTestCategories]);
 
   if (!isOpen || !node) return null;
 
@@ -63,8 +113,8 @@ export function ContextMenu({
       ref={menuRef}
       className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[280px]"
       style={{
-        left: position.x,
-        top: position.y,
+        left: adjustedPosition.x,
+        top: adjustedPosition.y,
       }}
     >
       <button 
