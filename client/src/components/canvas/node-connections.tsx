@@ -12,7 +12,7 @@ interface NodeConnectionsProps {
 const CONNECTION_CONFIG = {
   cardWidth: 300,
   nodeHeight: 144,
-  actualCardHeight: 180, // Account for footer content and padding
+  cardHeight: 144, // Fixed card height - no extension for children
   connectionOffset: 40,
   strokeWidth: {
     shadow: 10,
@@ -47,15 +47,15 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
   // Memoize connection path generation functions
   const generateConnectionPath = useMemo(() => {
     return (fromNode: TreeNode, toNode: TreeNode, layout: 'horizontal' | 'vertical') => {
-      const { cardWidth, nodeHeight, connectionOffset } = CONNECTION_CONFIG;
+      const { cardWidth, cardHeight, connectionOffset } = CONNECTION_CONFIG;
       
       if (layout === 'horizontal') {
-        // Connect from center-right edge of parent to center-left edge of child
+        // Connect from right edge of parent card to left edge of child card
         const fromX = fromNode.position.x + cardWidth;
-        const fromY = fromNode.position.y + (nodeHeight / 2);
+        const fromY = fromNode.position.y + (cardHeight / 2);
         
         const toX = toNode.position.x;
-        const toY = toNode.position.y + (nodeHeight / 2);
+        const toY = toNode.position.y + (cardHeight / 2);
 
         // Enhanced control point calculation for smoother curves
         const distance = Math.abs(toX - fromX);
@@ -68,9 +68,9 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
 
         return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
       } else {
-        // Connect from center-bottom edge of parent to center-top edge of child
+        // Connect from bottom edge of parent card to top edge of child card
         const fromX = fromNode.position.x + (cardWidth / 2);
-        const fromY = fromNode.position.y + CONNECTION_CONFIG.actualCardHeight;
+        const fromY = fromNode.position.y + cardHeight;
         
         const toX = toNode.position.x + (cardWidth / 2);
         const toY = toNode.position.y;
@@ -91,13 +91,13 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
 
   const getArrowPosition = useMemo(() => {
     return (toNode: TreeNode, layout: 'horizontal' | 'vertical') => {
-      const { cardWidth, nodeHeight, arrowSize } = CONNECTION_CONFIG;
+      const { cardWidth, cardHeight, arrowSize } = CONNECTION_CONFIG;
       
       if (layout === 'horizontal') {
         // Position arrow at the left edge of the target card
         return {
           cx: toNode.position.x - arrowSize * 1.5,
-          cy: toNode.position.y + (nodeHeight / 2),
+          cy: toNode.position.y + (cardHeight / 2),
           r: arrowSize / zoom,
         };
       } else {

@@ -54,7 +54,8 @@
   will-change: transform, box-shadow, filter;
   background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
   width: 300px;
-  min-height: 144px; /* 160px reduced by 10% = 144px */
+  height: 144px; /* Fixed height - no extension for children */
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .modern-card:hover {
@@ -612,16 +613,28 @@
   transform: translateX(-50%) scale(1.1);
 }
 
-.collapse-btn:active {
-  transform: scale(0.95);
+.collapse-btn-horizontal:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
+.collapse-btn-vertical:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+
+
 .collapse-btn-horizontal {
-  @apply -right-10 top-1/2 -translate-y-1/2;
+  /* Position at right edge of fixed-height card, centered vertically */
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .collapse-btn-vertical {
-  @apply -bottom-3 left-1/2 -translate-x-1/2;
+  /* Position at bottom edge of fixed-height card, centered horizontally */
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
   top: auto !important;
 }
 

@@ -447,63 +447,65 @@ const TreeNodeComponent = memo(function TreeNode({
           </div>
         </div>
 
-        {/* Node Content */}
-        {isEditing ? (
-          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-            <input
-              type="text"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onMouseDown={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              className="modern-input font-semibold"
-              placeholder="Enter title..."
-              autoFocus
-            />
-            <textarea
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onMouseDown={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              className="modern-input text-sm resize-none"
-              placeholder="Add description..."
-              rows={3}
-            />
-            <div className="flex space-x-2">
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSaveEdit();
-                }}
-                className="btn-primary"
-                type="button"
-              >
-                <i className="fas fa-check text-xs mr-1"></i>
-                Save
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleCancelEdit();
-                }}
-                className="btn-secondary"
-                type="button"
-              >
-                <i className="fas fa-times text-xs mr-1"></i>
-                Cancel
-              </button>
+        {/* Node Content - Fixed layout to prevent card height extension */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {isEditing ? (
+            <div className="flex flex-col space-y-2 h-full" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
+                className="modern-input font-semibold flex-shrink-0"
+                placeholder="Enter title..."
+                autoFocus
+              />
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
+                className="modern-input text-sm resize-none flex-1 min-h-0"
+                placeholder="Add description..."
+                rows={2}
+              />
+              <div className="flex space-x-2 flex-shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSaveEdit();
+                  }}
+                  className="btn-primary"
+                  type="button"
+                >
+                  <i className="fas fa-check text-xs mr-1"></i>
+                  Save
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCancelEdit();
+                  }}
+                  className="btn-secondary"
+                  type="button"
+                >
+                  <i className="fas fa-times text-xs mr-1"></i>
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="content-area" onDoubleClick={handleDoubleClick}>
-            <h3 className="node-title">{node.title}</h3>
-            <p className="node-description">{node.description}</p>
-          </div>
-        )}
+          ) : (
+            <div className="content-area flex-1 overflow-hidden" onDoubleClick={handleDoubleClick}>
+              <h3 className="node-title">{node.title}</h3>
+              <p className="node-description">{node.description}</p>
+            </div>
+          )}
+        </div>
 
         {/* Enhanced Node Footer */}
         {!isEditing && (
