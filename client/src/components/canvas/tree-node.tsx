@@ -9,6 +9,9 @@ interface TreeNodeProps {
   onDelete: (nodeId: string) => void;
   onDrag: (nodeId: string, position: { x: number; y: number }) => void;
   onContextMenu: (position: { x: number; y: number }) => void;
+  onReattach?: (nodeId: string, newParentId: string | null) => void;
+  isDropTarget?: boolean;
+  isDraggedOver?: boolean;
 }
 
 const nodeTypeConfig = {
@@ -79,11 +82,15 @@ export function TreeNode({
   onDelete,
   onDrag,
   onContextMenu,
+  onReattach,
+  isDropTarget = false,
+  isDraggedOver = false,
 }: TreeNodeProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(node.title);
   const [editDescription, setEditDescription] = useState(node.description);
+  const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
@@ -97,6 +104,7 @@ export function TreeNode({
       
       if (!isEditing) {
         setIsDragging(true);
+        setDraggedNode(node.id);
         dragRef.current = {
           startX: e.clientX,
           startY: e.clientY,
@@ -143,6 +151,43 @@ export function TreeNode({
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
+    setDraggedNode(null);
+  }, []);
+
+  // Drop zone handlers for attachment
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const draggedNodeId = e.dataTransfer.getData('text/plain');
+    if (draggedNodeId && draggedNodeId !== node.id && onReattach) {
+      onReattach(draggedNodeId, node.id);
+    }
+  }, [node.id, onReattach]);
+
+  // Add drag data when dragging starts
+  const handleDragStart = useCallback((e: React.DragEvent) => {
+    e.dataTransfer.setData('text/plain', node.id);
+    setDraggedNode(node.id);
+  }, [node.id]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedNode(null);
   }, []);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {

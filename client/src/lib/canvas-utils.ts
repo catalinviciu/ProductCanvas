@@ -20,6 +20,7 @@ export function createNode(
     opportunity: "New Opportunity", 
     solution: "New Solution",
     assumption: "New Assumption Test",
+    kpi: "New KPI",
   };
 
   const defaultDescriptions = {
@@ -27,6 +28,7 @@ export function createNode(
     opportunity: "Identify the market opportunity",
     solution: "Design the solution approach", 
     assumption: "Test key assumptions",
+    kpi: "Track key performance indicator",
   };
 
   return {

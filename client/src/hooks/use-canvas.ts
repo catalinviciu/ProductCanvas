@@ -136,6 +136,74 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(updatedNodes);
   }, [nodes, saveTree]);
 
+  const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
+    const nodeToReattach = nodes.find(n => n.id === nodeId);
+    if (!nodeToReattach) return;
+
+    // Prevent self-attachment and circular dependencies
+    if (nodeId === newParentId) return;
+    
+    // Check for circular dependency (node can't be attached to its own descendant)
+    const isDescendant = (parentId: string, checkId: string): boolean => {
+      const parent = nodes.find(n => n.id === parentId);
+      if (!parent) return false;
+      if (parent.children.includes(checkId)) return true;
+      return parent.children.some(childId => isDescendant(childId, checkId));
+    };
+    
+    if (newParentId && isDescendant(nodeId, newParentId)) return;
+
+    const updatedNodes = [...nodes];
+    const updatedConnections = [...connections];
+
+    // Remove from old parent
+    if (nodeToReattach.parentId) {
+      const oldParentIndex = updatedNodes.findIndex(n => n.id === nodeToReattach.parentId);
+      if (oldParentIndex !== -1) {
+        updatedNodes[oldParentIndex] = {
+          ...updatedNodes[oldParentIndex],
+          children: updatedNodes[oldParentIndex].children.filter(id => id !== nodeId)
+        };
+      }
+      
+      // Remove old connection
+      const oldConnectionIndex = updatedConnections.findIndex(
+        conn => conn.toNodeId === nodeId && conn.fromNodeId === nodeToReattach.parentId
+      );
+      if (oldConnectionIndex !== -1) {
+        updatedConnections.splice(oldConnectionIndex, 1);
+      }
+    }
+
+    // Update the node itself
+    const nodeIndex = updatedNodes.findIndex(n => n.id === nodeId);
+    if (nodeIndex !== -1) {
+      updatedNodes[nodeIndex] = {
+        ...updatedNodes[nodeIndex],
+        parentId: newParentId || undefined
+      };
+    }
+
+    // Add to new parent
+    if (newParentId) {
+      const newParentIndex = updatedNodes.findIndex(n => n.id === newParentId);
+      if (newParentIndex !== -1) {
+        updatedNodes[newParentIndex] = {
+          ...updatedNodes[newParentIndex],
+          children: [...updatedNodes[newParentIndex].children, nodeId]
+        };
+      }
+      
+      // Create new connection
+      const connection = createConnection(newParentId, nodeId);
+      updatedConnections.push(connection);
+    }
+
+    setNodes(updatedNodes);
+    setConnections(updatedConnections);
+    saveTree(updatedNodes, updatedConnections);
+  }, [nodes, connections, saveTree]);
+
   const handleNodeDelete = useCallback((nodeId: string) => {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
     if (!nodeToDelete) return;
@@ -212,6 +280,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     handleCanvasUpdate,
     handleContextMenu,
     handleAddChildFromContext,
+    handleNodeReattach,
     closeContextMenu,
     closeEditModal,
     openEditModal,
