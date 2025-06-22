@@ -99,6 +99,13 @@ export function calculateNodeLayout(nodes: TreeNode[]): TreeNode[] {
         sum + getSubtreeHeight(childId) * siblingSpacing, 0) - siblingSpacing;
       childY = y - totalChildHeight / 2;
 
+      // Ensure children don't overlap with existing nodes at this level
+      const existingNodesAtLevel = layoutNodes.filter(n => Math.abs(n.position.x - childX) < 50);
+      if (existingNodesAtLevel.length > 0) {
+        const maxY = Math.max(...existingNodesAtLevel.map(n => n.position.y));
+        childY = Math.max(childY, maxY + 200); // Add buffer space
+      }
+
       node.children.forEach(childId => {
         const subtreeHeight = getSubtreeHeight(childId);
         const centerOffset = (subtreeHeight - 1) * siblingSpacing / 2;
@@ -244,11 +251,32 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): 
     y: parentNode.position.y
   };
 
-  // Offset for siblings vertically
-  const siblingOffset = siblings.length * 180;
+  // Find all nodes at the same horizontal level (within 50px of target X)
+  const levelNodes = nodes.filter(n => Math.abs(n.position.x - basePosition.x) < 50);
+  
+  // Start with parent's Y position, then adjust for siblings
+  let targetY = basePosition.y + (siblings.length * 180);
+  
+  // Check for conflicts and adjust position
+  while (levelNodes.some(node => Math.abs(node.position.y - targetY) < 160)) {
+    targetY += 180; // Move down by one spacing unit
+  }
+  
+  // Additional safety check - ensure minimum distance from all existing nodes
+  const minDistance = 160;
+  for (const node of levelNodes) {
+    if (Math.abs(node.position.y - targetY) < minDistance) {
+      if (targetY <= node.position.y) {
+        targetY = node.position.y - minDistance;
+      } else {
+        targetY = node.position.y + minDistance;
+      }
+    }
+  }
+
   const targetPosition = {
     x: basePosition.x,
-    y: basePosition.y + siblingOffset
+    y: targetY
   };
 
   return preventOverlap(nodes, { id: 'temp', type: 'outcome', title: '', description: '', position: { x: 0, y: 0 }, children: [] }, targetPosition);

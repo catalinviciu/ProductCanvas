@@ -10,15 +10,19 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
   const getNodeById = (id: string) => nodes.find(node => node.id === id);
 
   const generateConnectionPath = (fromNode: TreeNode, toNode: TreeNode) => {
-    const fromX = fromNode.position.x + 256; // Node width (256px) to get right edge
-    const fromY = fromNode.position.y + 60; // Half node height to center vertically
+    // For parent nodes with children, connect from the expand/collapse button position
+    const fromX = fromNode.children.length > 0 ? 
+      fromNode.position.x + 256 + 12 : // Connect from expand/collapse button center (256px + 12px offset)
+      fromNode.position.x + 256; // Normal right edge for nodes without children
+    
+    const fromY = fromNode.position.y + 60; // Center vertically
     const toX = toNode.position.x;
     const toY = toNode.position.y + 60;
 
     // Create smooth curved path using cubic bezier curve
-    const controlX1 = fromX + 150;
+    const controlX1 = fromX + 100;
     const controlY1 = fromY;
-    const controlX2 = toX - 150;
+    const controlX2 = toX - 100;
     const controlY2 = toY;
 
     return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
