@@ -186,10 +186,8 @@ export function snapToGrid(position: { x: number; y: number }, gridSize: number 
 
 // Check for overlapping nodes and adjust positions
 export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosition: { x: number; y: number }): { x: number; y: number } {
-  const nodeWidth = 264; // Card width
-  const nodeHeight = 120; // Card height
-  const padding = 20;
-
+  const padding = 40;
+  
   let adjustedPosition = { ...newPosition };
   let attempts = 0;
   const maxAttempts = 50;
@@ -200,22 +198,31 @@ export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosit
     for (const node of nodes) {
       if (node.id === targetNode.id) continue;
 
-      const distance = {
-        x: Math.abs(adjustedPosition.x - node.position.x),
-        y: Math.abs(adjustedPosition.y - node.position.y)
-      };
-
-      if (distance.x < nodeWidth + padding && distance.y < nodeHeight + padding) {
+      // Use bounding box collision detection
+      const targetBounds = getNodeBounds({ ...targetNode, position: adjustedPosition }, padding / 2);
+      const nodeBounds = getNodeBounds(node, padding / 2);
+      
+      if (boundsOverlap(targetBounds, nodeBounds)) {
         hasOverlap = true;
         
-        // Push away from overlapping node
-        const pushDirection = {
-          x: adjustedPosition.x > node.position.x ? 1 : -1,
-          y: adjustedPosition.y > node.position.y ? 1 : -1
+        // Calculate direction to move away from the overlapping node
+        const centerDistance = {
+          x: adjustedPosition.x - node.position.x,
+          y: adjustedPosition.y - node.position.y
         };
-
-        adjustedPosition.x += pushDirection.x * (nodeWidth + padding - distance.x + 10);
-        adjustedPosition.y += pushDirection.y * (nodeHeight + padding - distance.y + 10);
+        
+        // Normalize the direction and apply a minimum push distance
+        const distance = Math.sqrt(centerDistance.x * centerDistance.x + centerDistance.y * centerDistance.y);
+        const pushDistance = 320; // Node width + padding
+        
+        if (distance > 0) {
+          adjustedPosition.x += (centerDistance.x / distance) * pushDistance;
+          adjustedPosition.y += (centerDistance.y / distance) * pushDistance;
+        } else {
+          // If nodes are at exact same position, push in a default direction
+          adjustedPosition.x += pushDistance;
+          adjustedPosition.y += pushDistance * 0.5;
+        }
         break;
       }
     }
@@ -282,6 +289,134 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): 
   return preventOverlap(nodes, { id: 'temp', type: 'outcome', title: '', description: '', position: { x: 0, y: 0 }, children: [] }, targetPosition);
 }
 
+// Get all descendants of a node recursively
+export function getAllDescendants(nodes: TreeNode[], parentId: string): string[] {
+  const nodeMap = new Map<string, TreeNode>();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const getDescendantsRecursive = (nodeId: string): string[] => {
+    const parent = nodeMap.get(nodeId);
+    if (!parent) return [];
+    
+    let descendants: string[] = [];
+    parent.children.forEach(childId => {
+      descendants.push(childId);
+      descendants = descendants.concat(getDescendantsRecursive(childId));
+    });
+    return descendants;
+  };
+  
+  return getDescendantsRecursive(parentId);
+}
+
+// Get bounding box of a node including margin
+export function getNodeBounds(node: TreeNode, margin: number = 20): { x: number; y: number; width: number; height: number } {
+  return {
+    x: node.position.x - margin,
+    y: node.position.y - margin,
+    width: 256 + (margin * 2), // Standard node width is 256px
+    height: 160 + (margin * 2)  // Standard node height is 160px
+  };
+}
+
+// Check if two bounding boxes overlap
+export function boundsOverlap(bounds1: { x: number; y: number; width: number; height: number }, bounds2: { x: number; y: number; width: number; height: number }): boolean {
+  return !(bounds1.x + bounds1.width <= bounds2.x || 
+           bounds2.x + bounds2.width <= bounds1.x || 
+           bounds1.y + bounds1.height <= bounds2.y || 
+           bounds2.y + bounds2.height <= bounds1.y);
+}
+
+// Find a collision-free position for moving a subtree
+export function findCollisionFreePosition(
+  nodes: TreeNode[],
+  movingNodeId: string,
+  targetPosition: { x: number; y: number }
+): { x: number; y: number } {
+  const nodeMap = new Map<string, TreeNode>();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const movingNode = nodeMap.get(movingNodeId);
+  if (!movingNode) return targetPosition;
+
+  // Get all nodes in the moving subtree
+  const descendantIds = getAllDescendants(nodes, movingNodeId);
+  const subtreeIds = new Set([movingNodeId, ...descendantIds]);
+  
+  // Calculate the subtree bounds when moved to target position
+  const deltaX = targetPosition.x - movingNode.position.x;
+  const deltaY = targetPosition.y - movingNode.position.y;
+  
+  const getSubtreeBounds = (pos: { x: number; y: number }) => {
+    const adjustedDeltaX = pos.x - movingNode.position.x;
+    const adjustedDeltaY = pos.y - movingNode.position.y;
+    
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    
+    nodes.forEach(node => {
+      if (subtreeIds.has(node.id)) {
+        const newPos = {
+          x: node.position.x + adjustedDeltaX,
+          y: node.position.y + adjustedDeltaY
+        };
+        const bounds = getNodeBounds({ ...node, position: newPos }, 30);
+        minX = Math.min(minX, bounds.x);
+        minY = Math.min(minY, bounds.y);
+        maxX = Math.max(maxX, bounds.x + bounds.width);
+        maxY = Math.max(maxY, bounds.y + bounds.height);
+      }
+    });
+    
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  };
+  
+  // Get all other nodes (not in the moving subtree)
+  const otherNodes = nodes.filter(node => !subtreeIds.has(node.id));
+  
+  // Check if position causes collisions
+  const hasCollision = (pos: { x: number; y: number }) => {
+    const subtreeBounds = getSubtreeBounds(pos);
+    
+    return otherNodes.some(otherNode => {
+      const otherBounds = getNodeBounds(otherNode, 30);
+      return boundsOverlap(subtreeBounds, otherBounds);
+    });
+  };
+  
+  // If no collision at target position, use it
+  if (!hasCollision(targetPosition)) {
+    return snapToGrid(targetPosition);
+  }
+  
+  // Find collision-free position by trying different offsets
+  const searchRadius = 100;
+  const step = 40;
+  
+  for (let radius = step; radius <= searchRadius * 3; radius += step) {
+    // Try positions in expanding circles
+    const angles = [0, Math.PI/2, Math.PI, 3*Math.PI/2, Math.PI/4, 3*Math.PI/4, 5*Math.PI/4, 7*Math.PI/4];
+    
+    for (const angle of angles) {
+      const testPos = {
+        x: targetPosition.x + Math.cos(angle) * radius,
+        y: targetPosition.y + Math.sin(angle) * radius
+      };
+      
+      if (!hasCollision(testPos)) {
+        return snapToGrid(testPos);
+      }
+    }
+  }
+  
+  // If still no position found, try moving further away
+  const fallbackPos = {
+    x: targetPosition.x + 400,
+    y: targetPosition.y
+  };
+  
+  return snapToGrid(hasCollision(fallbackPos) ? { x: targetPosition.x, y: targetPosition.y + 400 } : fallbackPos);
+}
+
 // Move parent and reorganize all children in a clean layout
 export function moveNodeWithChildren(
   nodes: TreeNode[], 
@@ -294,35 +429,26 @@ export function moveNodeWithChildren(
   const movedNode = nodeMap.get(nodeId);
   if (!movedNode) return nodes;
 
-  // Calculate position delta
-  const deltaX = newPosition.x - movedNode.position.x;
-  const deltaY = newPosition.y - movedNode.position.y;
-
-  // Recursively get all descendants
-  const getAllDescendants = (parentId: string): string[] => {
-    const parent = nodeMap.get(parentId);
-    if (!parent) return [];
-    
-    let descendants: string[] = [];
-    parent.children.forEach(childId => {
-      descendants.push(childId);
-      descendants = descendants.concat(getAllDescendants(childId));
-    });
-    return descendants;
-  };
-
-  const descendantIds = getAllDescendants(nodeId);
+  // Find collision-free position
+  const collisionFreePosition = findCollisionFreePosition(nodes, nodeId, newPosition);
   
-  // Update positions maintaining relative layout but with proper organization
+  // Calculate position delta from collision-free position
+  const deltaX = collisionFreePosition.x - movedNode.position.x;
+  const deltaY = collisionFreePosition.y - movedNode.position.y;
+
+  // Get all descendants
+  const descendantIds = getAllDescendants(nodes, nodeId);
+  
+  // Update positions maintaining relative layout but preventing collisions
   const updatedNodes = nodes.map(node => {
     if (node.id === nodeId) {
-      // Move the parent to the new position
+      // Move the parent to the collision-free position
       return {
         ...node,
-        position: snapToGrid(newPosition)
+        position: collisionFreePosition
       };
     } else if (descendantIds.includes(node.id)) {
-      // Move children maintaining their relative positions but reorganized
+      // Move children maintaining their relative positions
       const newChildPosition = {
         x: node.position.x + deltaX,
         y: node.position.y + deltaY
