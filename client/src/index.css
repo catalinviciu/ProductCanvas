@@ -215,12 +215,11 @@
   flex-shrink: 0;
 }
 
-/* External children indicator styles */
-.children-indicator-external {
+/* Bottom left children indicator styles */
+.children-indicator-bottom-left {
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -881,6 +880,53 @@
   left: 50%;
   transform: translateX(-50%);
   top: auto !important;
+}
+
+/* New collapse button positioning outside card */
+.collapse-btn-outside {
+  @apply absolute w-6 h-6 flex items-center justify-center text-white rounded-full shadow-md border border-white;
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50;
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.collapse-btn-outside:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.collapse-btn-outside-horizontal {
+  /* Position at right edge outside card, centered vertically */
+  right: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.collapse-btn-outside-horizontal:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.collapse-btn-outside-horizontal:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.collapse-btn-outside-vertical {
+  /* Position at bottom edge outside card, centered horizontally */
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  top: auto !important;
+}
+
+.collapse-btn-outside-vertical:hover {
+  transform: translateX(-50%) scale(1.1);
+}
+
+.collapse-btn-outside-vertical:active {
+  transform: translateX(-50%) scale(0.95);
 }
 
 .collapse-btn-bg {

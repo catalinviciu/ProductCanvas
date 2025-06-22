@@ -505,7 +505,7 @@ const TreeNodeComponent = memo(function TreeNode({
           </div>
         )}
 
-        {/* Enhanced Collapse/Expand Button */}
+        {/* Enhanced Collapse/Expand Button - repositioned outside card */}
         {collapseState.hasChildren && (
           <button
             onClick={(e) => {
@@ -517,10 +517,10 @@ const TreeNodeComponent = memo(function TreeNode({
               e.preventDefault();
               e.stopPropagation();
             }}
-            className={`collapse-btn ${
+            className={`collapse-btn-outside ${
               orientation === 'horizontal' 
-                ? 'collapse-btn-horizontal' 
-                : 'collapse-btn-vertical'
+                ? 'collapse-btn-outside-horizontal' 
+                : 'collapse-btn-outside-vertical'
             }`}
             title={collapseState.allChildrenHidden ? 'Expand all children' : 'Collapse all children'}
           >
@@ -530,9 +530,9 @@ const TreeNodeComponent = memo(function TreeNode({
         )}
       </div>
 
-      {/* Children indicator outside card */}
+      {/* Children indicator bottom left */}
       {!isEditing && (
-        <div className="children-indicator-external">
+        <div className="children-indicator-bottom-left">
           <div className={`children-badge-external ${
             collapseState.hasChildren ? 
               (node.isCollapsed ? 'collapsed' : 'expanded') 
