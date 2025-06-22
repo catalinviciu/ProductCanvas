@@ -166,8 +166,8 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
   const nodeWidth = 300; // Card width
   const nodeHeight = 144; // Card height
   // Increased spacing for better visual hierarchy in vertical layout
-  const levelSpacing = nodeHeight + 80; // 224px total vertical spacing between levels
-  const siblingSpacing = nodeWidth + 80; // 380px total horizontal spacing between siblings
+  const levelSpacing = nodeHeight + 120; // 264px total vertical spacing between levels for better curve space
+  const siblingSpacing = nodeWidth + 60; // 360px total horizontal spacing between siblings
 
   // Build tree structure to calculate subtree widths for vertical layout
   // Only consider visible (non-hidden) children for width calculation
@@ -518,7 +518,7 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
         node.position.y > max.position.y ? node : max, rootNodes[0]);
       
       const cardHeight = 144;
-      const levelSpacing = cardHeight + 80; // Match new vertical spacing
+      const levelSpacing = cardHeight + 120; // Match new vertical spacing
       const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + levelSpacing };
       return findOptimalPosition(visibleNodes, initialPosition);
     }
@@ -545,8 +545,8 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     // Position child nodes below parent (vertical layout) - centered like horizontal
     const cardHeight = 144;
     const cardWidth = 300;
-    const levelSpacing = cardHeight + 80; // Match new vertical spacing
-    const siblingSpacing = cardWidth + 80; // Match new horizontal spacing in vertical layout
+    const levelSpacing = cardHeight + 120; // Match new vertical spacing
+    const siblingSpacing = cardWidth + 60; // Match new horizontal spacing in vertical layout
     const basePosition = {
       x: parentNode.position.x,
       y: parentNode.position.y + levelSpacing
@@ -989,8 +989,8 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
   if (!rootNode) return nodes;
 
   const updatedNodes = [...nodes];
-  const levelSpacing = 224; // Match main layout vertical spacing (144 + 80)
-  const siblingSpacing = 380; // Match main layout horizontal spacing in vertical mode (300 + 80)
+  const levelSpacing = 264; // Match main layout vertical spacing (144 + 120)
+  const siblingSpacing = 360; // Match main layout horizontal spacing in vertical mode (300 + 60)
   const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   
   // Use the same logic as calculateVerticalLayout but for a subtree

@@ -76,7 +76,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
 
         // Enhanced control point calculation for vertical connections
         const distance = Math.abs(toY - fromY);
-        const dynamicOffset = Math.min(connectionOffset + (distance * 0.4), 180);
+        const dynamicOffset = Math.min(connectionOffset + (distance * 0.3), 120);
 
         const controlX1 = fromX;
         const controlY1 = fromY + dynamicOffset;
