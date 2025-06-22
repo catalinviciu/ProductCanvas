@@ -45,10 +45,30 @@ const nodeTypeConfig = {
 };
 
 const testCategoryConfig = {
-  viability: { color: 'var(--viability-color)', bg: 'hsl(217, 91%, 95%)', label: 'Viability' },
-  value: { color: 'var(--value-color)', bg: 'hsl(142, 76%, 95%)', label: 'Value' },
-  feasibility: { color: 'var(--feasibility-color)', bg: 'hsl(271, 81%, 95%)', label: 'Feasibility' },
-  usability: { color: 'var(--usability-color)', bg: 'hsl(330, 81%, 95%)', label: 'Usability' },
+  viability: { 
+    color: 'var(--viability-color)', 
+    bg: 'hsl(217, 91%, 95%)', 
+    label: 'Viability',
+    icon: 'fas fa-seedling'
+  },
+  value: { 
+    color: 'var(--value-color)', 
+    bg: 'hsl(142, 76%, 95%)', 
+    label: 'Value',
+    icon: 'fas fa-gem'
+  },
+  feasibility: { 
+    color: 'var(--feasibility-color)', 
+    bg: 'hsl(271, 81%, 95%)', 
+    label: 'Feasibility',
+    icon: 'fas fa-wrench'
+  },
+  usability: { 
+    color: 'var(--usability-color)', 
+    bg: 'hsl(330, 81%, 95%)', 
+    label: 'Usability',
+    icon: 'fas fa-user-check'
+  },
 };
 
 export function TreeNode({

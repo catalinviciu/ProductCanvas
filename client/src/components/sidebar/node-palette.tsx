@@ -12,6 +12,7 @@ const nodeTypes = [
     hoverColor: 'hover:border-indigo-600',
     title: 'Outcome',
     description: 'Define desired business outcomes',
+    icon: 'fas fa-bullseye',
   },
   {
     type: 'opportunity' as NodeType,
@@ -20,6 +21,7 @@ const nodeTypes = [
     hoverColor: 'hover:border-purple-600',
     title: 'Opportunity',
     description: 'Identify market opportunities',
+    icon: 'fas fa-lightbulb',
   },
   {
     type: 'solution' as NodeType,
@@ -28,6 +30,7 @@ const nodeTypes = [
     hoverColor: 'hover:border-emerald-600',
     title: 'Solution',
     description: 'Design solution approaches',
+    icon: 'fas fa-cog',
   },
   {
     type: 'assumption' as NodeType,
@@ -36,14 +39,24 @@ const nodeTypes = [
     hoverColor: 'hover:border-orange-600',
     title: 'Assumption Test',
     description: 'Test key assumptions',
+    icon: 'fas fa-flask',
+  },
+  {
+    type: 'kpi' as NodeType,
+    color: 'var(--kpi-color)',
+    borderColor: 'border-yellow-500',
+    hoverColor: 'hover:border-yellow-600',
+    title: 'KPI',
+    description: 'Track key performance indicators',
+    icon: 'fas fa-chart-line',
   },
 ];
 
-const testCategories: { type: TestCategory; color: string; label: string }[] = [
-  { type: 'viability', color: 'bg-blue-500', label: 'Viability' },
-  { type: 'value', color: 'bg-green-500', label: 'Value' },
-  { type: 'feasibility', color: 'bg-purple-500', label: 'Feasibility' },
-  { type: 'usability', color: 'bg-pink-500', label: 'Usability' },
+const testCategories: { type: TestCategory; color: string; label: string; icon: string }[] = [
+  { type: 'viability', color: 'var(--viability-color)', label: 'Viability', icon: 'fas fa-seedling' },
+  { type: 'value', color: 'var(--value-color)', label: 'Value', icon: 'fas fa-gem' },
+  { type: 'feasibility', color: 'var(--feasibility-color)', label: 'Feasibility', icon: 'fas fa-wrench' },
+  { type: 'usability', color: 'var(--usability-color)', label: 'Usability', icon: 'fas fa-user-check' },
 ];
 
 export function NodePalette({ onNodeCreate }: NodePaletteProps) {
@@ -64,9 +77,9 @@ export function NodePalette({ onNodeCreate }: NodePaletteProps) {
               onClick={() => handleNodeCreate(nodeType.type)}
             >
               <div className="flex items-center space-x-3">
-                <div 
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: nodeType.color }}
+                <i 
+                  className={`${nodeType.icon} text-lg`}
+                  style={{ color: nodeType.color }}
                 />
                 <div>
                   <h4 className="text-sm font-medium text-gray-900">{nodeType.title}</h4>
@@ -88,7 +101,10 @@ export function NodePalette({ onNodeCreate }: NodePaletteProps) {
               className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center hover:bg-gray-100 transition-colors cursor-pointer"
               onClick={() => onNodeCreate('assumption', category.type)}
             >
-              <div className={`w-6 h-6 ${category.color} rounded-full mx-auto mb-2`}></div>
+              <i 
+                className={`${category.icon} text-lg mx-auto mb-2 block`}
+                style={{ color: category.color }}
+              />
               <span className="text-xs font-medium text-gray-700">{category.label}</span>
             </div>
           ))}

@@ -34,6 +34,10 @@
   --node-border: hsl(220, 13%, 91%);
   --orange-test: hsl(25, 95%, 53%);
   --kpi-color: hsl(45, 93%, 47%);
+  --viability-color: hsl(160, 84%, 39%);
+  --value-color: hsl(217, 91%, 60%);
+  --feasibility-color: hsl(271, 81%, 56%);
+  --usability-color: hsl(330, 81%, 60%);
 
   /* Test category colors */
   --viability-color: hsl(217, 91%, 60%);
