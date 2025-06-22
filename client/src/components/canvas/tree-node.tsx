@@ -353,7 +353,7 @@ const TreeNodeComponent = memo(function TreeNode({
     else stateClasses.push('hover:shadow-lg');
     
     if (isDragging) stateClasses.push('dragging scale-105 shadow-2xl rotate-1 z-50');
-    if (isEditing) stateClasses.push('z-50');
+    if (isEditing) stateClasses.push('editing z-50');
     if (draggedOverNodeId === node.id) stateClasses.push('ring-2 ring-green-400 bg-green-50 scale-102');
     if (isDropTarget && draggedNode) stateClasses.push('ring-2 ring-dashed ring-blue-300 animate-pulse');
     if (isDraggedOver) stateClasses.push('ring-2 ring-yellow-400 bg-yellow-50');
@@ -450,39 +450,41 @@ const TreeNodeComponent = memo(function TreeNode({
         {/* Node Content - Compact layout */}
         <div className="flex-1 flex flex-col min-h-0">
           {isEditing ? (
-            <div className="flex flex-col space-y-1.5 h-full" onClick={(e) => e.stopPropagation()}>
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onMouseDown={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
-                className="modern-input-compact font-medium flex-shrink-0"
-                placeholder="Enter title..."
-                autoFocus
-              />
-              <textarea
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onMouseDown={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
-                className="modern-input-compact text-xs resize-none flex-1 min-h-0"
-                placeholder="Add description..."
-                rows={2}
-              />
-              <div className="flex space-x-1.5 flex-shrink-0">
+            <div className="edit-mode-container" onClick={(e) => e.stopPropagation()}>
+              <div className="edit-inputs-container">
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  className="edit-title-input"
+                  placeholder="Enter title..."
+                  autoFocus
+                />
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  className="edit-description-input"
+                  placeholder="Add description..."
+                  rows={2}
+                />
+              </div>
+              <div className="edit-actions-container">
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     handleSaveEdit();
                   }}
-                  className="btn-primary-compact"
+                  className="edit-btn-save"
                   type="button"
                 >
-                  <i className="fas fa-check text-xs mr-1"></i>
+                  <i className="fas fa-check"></i>
                   Save
                 </button>
                 <button
@@ -491,10 +493,10 @@ const TreeNodeComponent = memo(function TreeNode({
                     e.stopPropagation();
                     handleCancelEdit();
                   }}
-                  className="btn-secondary-compact"
+                  className="edit-btn-cancel"
                   type="button"
                 >
-                  <i className="fas fa-times text-xs mr-1"></i>
+                  <i className="fas fa-times"></i>
                   Cancel
                 </button>
               </div>
