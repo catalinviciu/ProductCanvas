@@ -465,7 +465,30 @@ export function moveNodeWithChildren(
   return reorganizeSubtree(updatedNodes, nodeId);
 }
 
-// Reorganize a subtree to maintain clean hierarchical layout (horizontal)
+// Calculate the height needed for a subtree
+function calculateSubtreeHeight(nodes: TreeNode[], nodeId: string): number {
+  const nodeMap = new Map<string, TreeNode>();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const calculateHeight = (id: string): number => {
+    const node = nodeMap.get(id);
+    if (!node || node.children.length === 0) return 160; // Single node height
+    
+    // Calculate total height of all children
+    let totalChildHeight = 0;
+    node.children.forEach(childId => {
+      totalChildHeight += calculateHeight(childId);
+    });
+    
+    // Add spacing between children
+    const spacing = Math.max(0, (node.children.length - 1) * 40);
+    return Math.max(160, totalChildHeight + spacing);
+  };
+  
+  return calculateHeight(nodeId);
+}
+
+// Reorganize a subtree to maintain clean hierarchical layout with collision avoidance
 export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string): TreeNode[] {
   const nodeMap = new Map<string, TreeNode>();
   nodes.forEach(n => nodeMap.set(n.id, n));
@@ -475,38 +498,169 @@ export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string): TreeNo
 
   const updatedNodes = [...nodes];
   const levelSpacing = 350; // Horizontal spacing between levels
-  const siblingSpacing = 180; // Vertical spacing between siblings
+  const minSiblingSpacing = 200; // Minimum vertical spacing between siblings
+  const subtreeIds = new Set([rootNodeId, ...getAllDescendants(nodes, rootNodeId)]);
+  
+  // Get all non-subtree nodes for collision detection
+  const otherNodes = nodes.filter(node => !subtreeIds.has(node.id));
+  
+  // Track all positioned nodes within the subtree to prevent internal collisions
+  const positionedSubtreeNodes = new Map<string, { x: number; y: number }>();
 
-  const layoutSubtree = (nodeId: string, x: number, y: number, level: number) => {
+  // Check if a position would cause collision with other nodes (external)
+  const hasCollisionWithOthers = (pos: { x: number; y: number }, margin: number = 30) => {
+    const testBounds = getNodeBounds({ id: 'temp', type: 'outcome', title: '', description: '', position: pos, children: [] }, margin);
+    return otherNodes.some(otherNode => {
+      const otherBounds = getNodeBounds(otherNode, margin);
+      return boundsOverlap(testBounds, otherBounds);
+    });
+  };
+
+  // Check if a position would cause collision with already positioned subtree nodes
+  const hasCollisionWithSubtree = (pos: { x: number; y: number }, excludeId: string, margin: number = 30) => {
+    const testBounds = getNodeBounds({ id: 'temp', type: 'outcome', title: '', description: '', position: pos, children: [] }, margin);
+    
+    const entries = Array.from(positionedSubtreeNodes.entries());
+    for (let i = 0; i < entries.length; i++) {
+      const [nodeId, nodePos] = entries[i];
+      if (nodeId === excludeId) continue;
+      const nodeBounds = getNodeBounds({ id: nodeId, type: 'outcome', title: '', description: '', position: nodePos, children: [] }, margin);
+      if (boundsOverlap(testBounds, nodeBounds)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const layoutSubtree = (nodeId: string, x: number, y: number, level: number): number => {
     const node = nodeMap.get(nodeId);
-    if (!node) return;
+    if (!node) return y;
 
-    // Update node position
+    // Find collision-free position for this node
+    let nodeY = y;
+    let attempts = 0;
+    while ((hasCollisionWithOthers({ x, y: nodeY }) || hasCollisionWithSubtree({ x, y: nodeY }, nodeId)) && attempts < 20) {
+      nodeY += minSiblingSpacing;
+      attempts++;
+    }
+
+    // Update node position and track it
+    const finalPosition = snapToGrid({ x, y: nodeY });
+    positionedSubtreeNodes.set(nodeId, finalPosition);
+    
     const nodeIndex = updatedNodes.findIndex(n => n.id === nodeId);
     if (nodeIndex !== -1) {
       updatedNodes[nodeIndex] = {
         ...updatedNodes[nodeIndex],
-        position: snapToGrid({ x, y })
+        position: finalPosition
       };
+      // Update the nodeMap with new position
+      nodeMap.set(nodeId, updatedNodes[nodeIndex]);
     }
 
     // Layout children horizontally to the right
     if (node.children.length > 0) {
       const childX = x + levelSpacing;
-      let childY = y;
-
+      let currentChildY = nodeY;
+      
+      // Calculate required spacing for each child based on their subtree height
+      const childHeights = node.children.map(childId => calculateSubtreeHeight(updatedNodes, childId));
+      const totalRequiredHeight = childHeights.reduce((sum, height) => sum + height, 0);
+      const totalSpacing = Math.max(0, (node.children.length - 1) * minSiblingSpacing);
+      
       // Center children vertically relative to parent
-      const totalChildHeight = (node.children.length - 1) * siblingSpacing;
-      childY = y - totalChildHeight / 2;
-
+      currentChildY = nodeY - (totalRequiredHeight + totalSpacing) / 2;
+      
+      // Keep track of occupied vertical space to prevent sibling overlaps
+      const occupiedRanges: Array<{ start: number; end: number }> = [];
+      
       node.children.forEach((childId, index) => {
-        layoutSubtree(childId, childX, childY + (index * siblingSpacing), level + 1);
+        // Find a position that doesn't overlap with siblings or external nodes
+        let childY = currentChildY;
+        let childAttempts = 0;
+        
+        // Check against occupied ranges from siblings
+        const childHeight = childHeights[index];
+        let hasOverlap = true;
+        
+        while (hasOverlap && childAttempts < 30) {
+          hasOverlap = false;
+          
+          // Check collision with external nodes
+          if (hasCollisionWithOthers({ x: childX, y: childY })) {
+            hasOverlap = true;
+          }
+          
+          // Check collision with already positioned subtree nodes
+          if (hasCollisionWithSubtree({ x: childX, y: childY }, childId)) {
+            hasOverlap = true;
+          }
+          
+          // Check collision with already placed siblings
+          const childRange = { start: childY - childHeight/2, end: childY + childHeight/2 };
+          for (const range of occupiedRanges) {
+            if (!(childRange.end <= range.start || childRange.start >= range.end)) {
+              hasOverlap = true;
+              break;
+            }
+          }
+          
+          if (hasOverlap) {
+            childY += minSiblingSpacing;
+            childAttempts++;
+          }
+        }
+        
+        // Layout this child subtree
+        const childFinalY = layoutSubtree(childId, childX, childY, level + 1);
+        
+        // Record the occupied space
+        occupiedRanges.push({ 
+          start: childFinalY - childHeight/2, 
+          end: childFinalY + childHeight/2 
+        });
+        
+        // Move to next child position
+        currentChildY = Math.max(currentChildY, childFinalY + childHeight/2 + minSiblingSpacing);
       });
     }
+
+    return nodeY;
   };
 
   layoutSubtree(rootNodeId, rootNode.position.x, rootNode.position.y, 0);
-  return updatedNodes;
+  
+  // Final collision check and adjustment for the entire subtree
+  const finalNodes = [...updatedNodes];
+  
+  // Check if any nodes in the subtree still have collisions and adjust
+  subtreeIds.forEach(nodeId => {
+    const node = nodeMap.get(nodeId);
+    if (!node) return;
+    
+    let adjustedPos = node.position;
+    let attempts = 0;
+    
+    while (hasCollisionWithOthers(adjustedPos, 40) && attempts < 10) {
+      adjustedPos = {
+        x: adjustedPos.x,
+        y: adjustedPos.y + minSiblingSpacing
+      };
+      attempts++;
+    }
+    
+    if (attempts > 0) {
+      const nodeIndex = finalNodes.findIndex(n => n.id === nodeId);
+      if (nodeIndex !== -1) {
+        finalNodes[nodeIndex] = {
+          ...finalNodes[nodeIndex],
+          position: snapToGrid(adjustedPos)
+        };
+      }
+    }
+  });
+  
+  return finalNodes;
 }
 
 export function getHomePosition(nodes: TreeNode[]): { zoom: number; pan: { x: number; y: number } } {
