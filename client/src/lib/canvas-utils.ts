@@ -257,11 +257,27 @@ export function getVisibleConnections(nodes: TreeNode[], connections: NodeConnec
 
 // Toggle collapse state of a node
 export function toggleNodeCollapse(nodes: TreeNode[], nodeId: string): TreeNode[] {
-  return nodes.map(node => 
-    node.id === nodeId 
-      ? { ...node, isCollapsed: !node.isCollapsed }
-      : node
-  );
+  return nodes.map(node => {
+    if (node.id === nodeId) {
+      const allChildrenCurrentlyHidden = areAllChildrenHidden(node);
+      
+      if (allChildrenCurrentlyHidden) {
+        // If all children are hidden (either collapsed or individually), show all
+        return {
+          ...node,
+          isCollapsed: false,
+          hiddenChildren: []
+        };
+      } else {
+        // Normal collapse behavior
+        return {
+          ...node,
+          isCollapsed: !node.isCollapsed
+        };
+      }
+    }
+    return node;
+  });
 }
 
 // Toggle visibility of a specific child node
@@ -271,11 +287,18 @@ export function toggleChildVisibility(nodes: TreeNode[], parentId: string, child
       const hiddenChildren = node.hiddenChildren || [];
       const isCurrentlyHidden = hiddenChildren.includes(childId);
       
+      const newHiddenChildren = isCurrentlyHidden
+        ? hiddenChildren.filter(id => id !== childId)
+        : [...hiddenChildren, childId];
+      
+      // Check if all children are now hidden
+      const allChildrenHidden = node.children.length > 0 && 
+        newHiddenChildren.length === node.children.length;
+      
       return {
         ...node,
-        hiddenChildren: isCurrentlyHidden
-          ? hiddenChildren.filter(id => id !== childId)
-          : [...hiddenChildren, childId]
+        hiddenChildren: newHiddenChildren,
+        isCollapsed: allChildrenHidden
       };
     }
     return node;
@@ -301,6 +324,15 @@ export function getVisibleChildNodes(node: TreeNode, allNodes: TreeNode[]): Tree
 // Check if a child node is hidden
 export function isChildHidden(parentNode: TreeNode, childId: string): boolean {
   return parentNode.hiddenChildren?.includes(childId) || false;
+}
+
+// Check if all children are effectively hidden (either individually hidden or parent collapsed)
+export function areAllChildrenHidden(node: TreeNode): boolean {
+  if (!node.children.length) return false;
+  if (node.isCollapsed) return true;
+  
+  const hiddenCount = node.hiddenChildren?.length || 0;
+  return hiddenCount === node.children.length;
 }
 
 // Snap position to grid for clean alignment

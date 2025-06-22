@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
-import { isChildHidden } from "@/lib/canvas-utils";
+import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -480,9 +480,9 @@ export function TreeNode({
                          ? '-right-3 top-1/2 -translate-y-1/2' 
                          : '-bottom-3 left-1/2 -translate-x-1/2'
                      }`}
-            title={node.isCollapsed ? 'Expand all children' : 'Collapse all children'}
+            title={areAllChildrenHidden(node) ? 'Expand all children' : 'Collapse all children'}
           >
-            {node.isCollapsed ? '+' : '−'}
+            {areAllChildrenHidden(node) ? '+' : '−'}
           </button>
         )}
       </div>
