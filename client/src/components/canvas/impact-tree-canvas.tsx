@@ -137,6 +137,7 @@ export function ImpactTreeCanvas({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
+        onContextMenu={handleCanvasContextMenu}
         style={{ cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default') }}
       >
         <div style={canvasStyle}>
@@ -230,6 +231,74 @@ export function ImpactTreeCanvas({
           </div>
         </div>
       </div>
+
+      {/* Canvas Context Menu */}
+      {canvasContextMenu?.isOpen && (
+        <div
+          className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[200px]"
+          style={{
+            left: canvasContextMenu.position.x,
+            top: canvasContextMenu.position.y,
+          }}
+          onMouseLeave={() => setCanvasContextMenu(null)}
+        >
+          <div className="px-4 py-2">
+            <div className="text-xs font-medium text-gray-500 mb-2">Create Node</div>
+            <div className="space-y-1">
+              <button 
+                onClick={() => handleCanvasNodeCreate('outcome')}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-blue-50 rounded flex items-center transition-colors"
+              >
+                <i className="fas fa-bullseye mr-3 text-sm" style={{ color: 'var(--primary-indigo)' }}></i>
+                <div>
+                  <div className="font-medium text-gray-900">Outcome</div>
+                  <div className="text-xs text-gray-500">Business goal or result</div>
+                </div>
+              </button>
+              <button 
+                onClick={() => handleCanvasNodeCreate('opportunity')}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-purple-50 rounded flex items-center transition-colors"
+              >
+                <i className="fas fa-lightbulb mr-3 text-sm" style={{ color: 'var(--secondary-purple)' }}></i>
+                <div>
+                  <div className="font-medium text-gray-900">Opportunity</div>
+                  <div className="text-xs text-gray-500">Market or user opportunity</div>
+                </div>
+              </button>
+              <button 
+                onClick={() => handleCanvasNodeCreate('solution')}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-emerald-50 rounded flex items-center transition-colors"
+              >
+                <i className="fas fa-cog mr-3 text-sm" style={{ color: 'var(--accent-emerald)' }}></i>
+                <div>
+                  <div className="font-medium text-gray-900">Solution</div>
+                  <div className="text-xs text-gray-500">Product or feature approach</div>
+                </div>
+              </button>
+              <button 
+                onClick={() => handleCanvasNodeCreate('assumption', 'viability')}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center transition-colors"
+              >
+                <i className="fas fa-flask mr-3 text-sm" style={{ color: 'var(--orange-test)' }}></i>
+                <div>
+                  <div className="font-medium text-gray-900">Assumption Test</div>
+                  <div className="text-xs text-gray-500">Hypothesis to validate</div>
+                </div>
+              </button>
+              <button 
+                onClick={() => handleCanvasNodeCreate('kpi')}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
+              >
+                <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
+                <div>
+                  <div className="font-medium text-gray-900">KPI</div>
+                  <div className="text-xs text-gray-500">Key performance indicator</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
