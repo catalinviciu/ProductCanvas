@@ -65,16 +65,16 @@ export function calculateNodeLayout(nodes: TreeNode[]): TreeNode[] {
   const layoutNodes: TreeNode[] = [];
   const nodeWidth = 280; // Card width + margin
   const nodeHeight = 160; // Card height + margin
-  const levelSpacing = 200;
-  const siblingSpacing = 320;
+  const levelSpacing = 350; // Horizontal spacing between levels
+  const siblingSpacing = 180; // Vertical spacing between siblings
 
-  // Build tree structure to calculate subtree widths
-  const getSubtreeWidth = (nodeId: string): number => {
+  // Build tree structure to calculate subtree heights for horizontal layout
+  const getSubtreeHeight = (nodeId: string): number => {
     const node = nodeMap.get(nodeId);
     if (!node || node.children.length === 0) return 1;
     
-    const childWidths = node.children.map(childId => getSubtreeWidth(childId));
-    return Math.max(1, childWidths.reduce((sum, width) => sum + width, 0));
+    const childHeights = node.children.map(childId => getSubtreeHeight(childId));
+    return Math.max(1, childHeights.reduce((sum, height) => sum + height, 0));
   };
 
   const layoutTree = (nodeId: string, x: number, y: number, level: number) => {
@@ -88,32 +88,32 @@ export function calculateNodeLayout(nodes: TreeNode[]): TreeNode[] {
     };
     layoutNodes.push(layoutNode);
 
-    // Layout children
+    // Layout children horizontally to the right
     if (node.children.length > 0) {
-      const childY = y + levelSpacing;
-      let childX = x;
+      const childX = x + levelSpacing;
+      let childY = y;
 
-      // Calculate starting position to center children under parent
-      const totalChildWidth = node.children.reduce((sum, childId) => 
-        sum + getSubtreeWidth(childId) * siblingSpacing, 0) - siblingSpacing;
-      childX = x - totalChildWidth / 2;
+      // Calculate starting position to center children vertically relative to parent
+      const totalChildHeight = node.children.reduce((sum, childId) => 
+        sum + getSubtreeHeight(childId) * siblingSpacing, 0) - siblingSpacing;
+      childY = y - totalChildHeight / 2;
 
       node.children.forEach(childId => {
-        const subtreeWidth = getSubtreeWidth(childId);
-        const centerOffset = (subtreeWidth - 1) * siblingSpacing / 2;
-        layoutTree(childId, childX + centerOffset, childY, level + 1);
-        childX += subtreeWidth * siblingSpacing;
+        const subtreeHeight = getSubtreeHeight(childId);
+        const centerOffset = (subtreeHeight - 1) * siblingSpacing / 2;
+        layoutTree(childId, childX, childY + centerOffset, level + 1);
+        childY += subtreeHeight * siblingSpacing;
       });
     }
   };
 
   // Layout each root tree
-  let rootX = 200;
+  let rootY = 200;
   rootNodes.forEach((root, index) => {
     if (index > 0) {
-      rootX += getSubtreeWidth(root.id) * siblingSpacing + 400; // Extra spacing between trees
+      rootY += getSubtreeHeight(root.id) * siblingSpacing + 300; // Extra spacing between trees
     }
-    layoutTree(root.id, rootX, 100, 0);
+    layoutTree(root.id, 100, rootY, 0);
   });
 
   return layoutNodes;
@@ -187,18 +187,18 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): 
       { x: rightmostRoot.position.x + 400, y: rightmostRoot.position.y });
   }
 
-  // Position child nodes below and to the right of parent
+  // Position child nodes to the right of parent (horizontal layout)
   const siblings = nodes.filter(n => n.parentId === parentNode.id);
   const basePosition = {
-    x: parentNode.position.x + 300,
-    y: parentNode.position.y + 180
+    x: parentNode.position.x + 350,
+    y: parentNode.position.y
   };
 
-  // Offset for siblings
-  const siblingOffset = siblings.length * 200;
+  // Offset for siblings vertically
+  const siblingOffset = siblings.length * 180;
   const targetPosition = {
-    x: basePosition.x + siblingOffset,
-    y: basePosition.y
+    x: basePosition.x,
+    y: basePosition.y + siblingOffset
   };
 
   return preventOverlap(nodes, { id: 'temp', type: 'outcome', title: '', description: '', position: { x: 0, y: 0 }, children: [] }, targetPosition);
@@ -261,7 +261,7 @@ export function moveNodeWithChildren(
   return reorganizeSubtree(updatedNodes, nodeId);
 }
 
-// Reorganize a subtree to maintain clean hierarchical layout
+// Reorganize a subtree to maintain clean hierarchical layout (horizontal)
 export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string): TreeNode[] {
   const nodeMap = new Map<string, TreeNode>();
   nodes.forEach(n => nodeMap.set(n.id, n));
@@ -270,8 +270,8 @@ export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string): TreeNo
   if (!rootNode) return nodes;
 
   const updatedNodes = [...nodes];
-  const levelSpacing = 180;
-  const siblingSpacing = 280;
+  const levelSpacing = 350; // Horizontal spacing between levels
+  const siblingSpacing = 180; // Vertical spacing between siblings
 
   const layoutSubtree = (nodeId: string, x: number, y: number, level: number) => {
     const node = nodeMap.get(nodeId);
@@ -286,17 +286,17 @@ export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string): TreeNo
       };
     }
 
-    // Layout children
+    // Layout children horizontally to the right
     if (node.children.length > 0) {
-      const childY = y + levelSpacing;
-      let childX = x;
+      const childX = x + levelSpacing;
+      let childY = y;
 
-      // Center children under parent
-      const totalChildWidth = (node.children.length - 1) * siblingSpacing;
-      childX = x - totalChildWidth / 2;
+      // Center children vertically relative to parent
+      const totalChildHeight = (node.children.length - 1) * siblingSpacing;
+      childY = y - totalChildHeight / 2;
 
       node.children.forEach((childId, index) => {
-        layoutSubtree(childId, childX + (index * siblingSpacing), childY, level + 1);
+        layoutSubtree(childId, childX, childY + (index * siblingSpacing), level + 1);
       });
     }
   };
