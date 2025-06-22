@@ -48,9 +48,14 @@ const ContextMenuComponent = memo(function ContextMenu({
   }, [node, onDelete, onClose]);
 
   const handleAddChild = useCallback((type: NodeType, testCategory?: TestCategory) => {
-    onAddChild(type, testCategory);
-    onClose();
-  }, [onAddChild, onClose]);
+    try {
+      console.log('Context menu: Creating child node', { type, testCategory, parentNode: node?.id });
+      onAddChild(type, testCategory);
+      onClose();
+    } catch (error) {
+      console.error('Error creating child node from context menu:', error);
+    }
+  }, [onAddChild, onClose, node]);
 
   const handleToggleCollapse = useCallback(() => {
     if (node && onToggleCollapse) {
@@ -141,10 +146,10 @@ const ContextMenuComponent = memo(function ContextMenu({
   ], []);
 
   const testCategories = useMemo(() => [
-    { type: 'viability', label: 'Viability Test', color: 'var(--orange-test)' },
-    { type: 'value', label: 'Value Test', color: 'var(--blue-test)' },
-    { type: 'feasibility', label: 'Feasibility Test', color: 'var(--green-test)' },
-    { type: 'usability', label: 'Usability Test', color: 'var(--purple-test)' }
+    { type: 'viability', label: 'Viability Test', color: 'var(--viability-color)' },
+    { type: 'value', label: 'Value Test', color: 'var(--value-color)' },
+    { type: 'feasibility', label: 'Feasibility Test', color: 'var(--feasibility-color)' },
+    { type: 'usability', label: 'Usability Test', color: 'var(--usability-color)' }
   ], []);
 
   // NOW we can do early return after all hooks are declared
@@ -195,7 +200,11 @@ const ContextMenuComponent = memo(function ContextMenu({
         {menuItems.map((item) => (
           <button 
             key={item.type}
-            onClick={() => handleAddChild(item.type)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAddChild(item.type);
+            }}
             className={`w-full px-3 py-2 text-sm text-left ${item.hoverClass} rounded flex items-center transition-colors`}
           >
             <i className={`${item.icon} mr-3 text-sm`} style={{ color: item.color }}></i>
@@ -227,7 +236,11 @@ const ContextMenuComponent = memo(function ContextMenu({
               {testCategories.map((category) => (
                 <button
                   key={category.type}
-                  onClick={() => handleAddChild('assumption', category.type as TestCategory)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddChild('assumption', category.type as TestCategory);
+                  }}
                   className="w-full px-3 py-1 text-xs text-left hover:bg-orange-50 rounded flex items-center transition-colors"
                 >
                   <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
