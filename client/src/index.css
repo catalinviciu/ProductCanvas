@@ -424,13 +424,6 @@
 .group:hover .action-btn {
   opacity: 1;
   visibility: visible;
-  pointer-events: auto;
-}
-
-.action-btn {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
 }
 
 /* Ensure hover states don't prevent clicking */
@@ -480,6 +473,8 @@
   pointer-events: auto;
   position: relative;
   z-index: 10;
+  opacity: 1;
+  visibility: visible;
 }
 
 .action-btn:hover {
