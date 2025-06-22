@@ -534,22 +534,29 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
       y: parentNode.position.y
     };
 
-    const initialY = basePosition.y + (siblings.length * 200);
+    const cardHeight = 144;
+    const bufferHeight = Math.round(cardHeight * 0.15);
+    const initialY = basePosition.y + (siblings.length * (cardHeight + bufferHeight));
     const initialPosition = { x: basePosition.x, y: initialY };
     
     return findOptimalPosition(visibleNodes, initialPosition);
   } else {
     // Position child nodes below parent (vertical layout) - centered like horizontal
+    const cardHeight = 144;
+    const cardWidth = 300;
+    const bufferHeight = Math.round(cardHeight * 0.15);
+    const bufferWidth = Math.round(cardWidth * 0.15);
     const basePosition = {
       x: parentNode.position.x,
-      y: parentNode.position.y + 220
+      y: parentNode.position.y + cardHeight + bufferHeight
     };
 
     // Center children horizontally relative to parent, spacing them out
     const totalSiblings = siblings.length + 1; // Include the new node
-    const totalWidth = (totalSiblings - 1) * 300; // 300px spacing between siblings
+    const siblingSpacing = cardWidth + bufferWidth; // 15% buffer spacing between siblings
+    const totalWidth = (totalSiblings - 1) * siblingSpacing;
     const startX = basePosition.x - (totalWidth / 2);
-    const initialX = startX + (siblings.length * 300);
+    const initialX = startX + (siblings.length * siblingSpacing);
     
     const initialPosition = { x: initialX, y: basePosition.y };
     
