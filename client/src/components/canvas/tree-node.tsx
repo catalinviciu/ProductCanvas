@@ -432,18 +432,6 @@ const TreeNodeComponent = memo(function TreeNode({
           
           {/* Action buttons container */}
           <div className="flex items-center">
-            <button 
-              className="action-btn-compact opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleContextMenu(e);
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-              title="More options"
-            >
-              <i className="fas fa-ellipsis-h text-xs"></i>
-            </button>
           </div>
         </div>
 
@@ -505,29 +493,7 @@ const TreeNodeComponent = memo(function TreeNode({
           </div>
         )}
 
-        {/* Enhanced Collapse/Expand Button - repositioned outside card */}
-        {collapseState.hasChildren && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleCollapse?.(node.id);
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className={`collapse-btn-outside ${
-              orientation === 'horizontal' 
-                ? 'collapse-btn-outside-horizontal' 
-                : 'collapse-btn-outside-vertical'
-            }`}
-            title={collapseState.allChildrenHidden ? 'Expand all children' : 'Collapse all children'}
-          >
-            <div className="collapse-btn-bg"></div>
-            <i className={`fas ${collapseState.allChildrenHidden ? 'fa-plus' : 'fa-minus'} text-xs`}></i>
-          </button>
-        )}
+        
       </div>
       {/* Children indicator bottom left - clickable to toggle visibility */}
       {!isEditing && (
@@ -562,6 +528,23 @@ const TreeNodeComponent = memo(function TreeNode({
               }`}></i>
             </div>
           )}
+        </div>
+      )}
+
+      {/* +1 Action button bottom right */}
+      {!isEditing && (
+        <div 
+          className="action-button-bottom-right clickable"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleContextMenu(e);
+          }}
+          title="Add child node"
+        >
+          <div className="action-badge-external">
+            <span className="action-text-external">+1</span>
+          </div>
         </div>
       )}
     </div>
