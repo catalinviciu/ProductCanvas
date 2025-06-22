@@ -52,7 +52,13 @@ export function createConnection(fromNodeId: string, toNodeId: string): NodeConn
   };
 }
 
-export function calculateNodeLayout(nodes: TreeNode[]): TreeNode[] {
+export function calculateNodeLayout(nodes: TreeNode[], orientation: 'horizontal' | 'vertical' = 'horizontal'): TreeNode[] {
+  return orientation === 'horizontal' 
+    ? calculateHorizontalLayout(nodes)
+    : calculateVerticalLayout(nodes);
+}
+
+function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
   const nodeMap = new Map<string, TreeNode>();
   const rootNodes: TreeNode[] = [];
   
@@ -122,6 +128,81 @@ export function calculateNodeLayout(nodes: TreeNode[]): TreeNode[] {
       rootY += getSubtreeHeight(root.id) * siblingSpacing + 300; // Extra spacing between trees
     }
     layoutTree(root.id, 100, rootY, 0);
+  });
+
+  return layoutNodes;
+}
+
+function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
+  const nodeMap = new Map<string, TreeNode>();
+  const rootNodes: TreeNode[] = [];
+  
+  nodes.forEach(node => {
+    nodeMap.set(node.id, node);
+    if (!node.parentId) {
+      rootNodes.push(node);
+    }
+  });
+
+  const layoutNodes: TreeNode[] = [];
+  const nodeWidth = 280; // Card width + margin
+  const nodeHeight = 160; // Card height + margin
+  const levelSpacing = 200; // Vertical spacing between levels
+  const siblingSpacing = 320; // Horizontal spacing between siblings
+
+  // Build tree structure to calculate subtree widths for vertical layout
+  const getSubtreeWidth = (nodeId: string): number => {
+    const node = nodeMap.get(nodeId);
+    if (!node || node.children.length === 0) return 1;
+    
+    const childWidths = node.children.map(childId => getSubtreeWidth(childId));
+    return Math.max(1, childWidths.reduce((sum, width) => sum + width, 0));
+  };
+
+  const layoutTree = (nodeId: string, x: number, y: number, level: number) => {
+    const node = nodeMap.get(nodeId);
+    if (!node) return;
+
+    // Position current node
+    const layoutNode: TreeNode = {
+      ...node,
+      position: { x, y }
+    };
+    layoutNodes.push(layoutNode);
+
+    // Layout children vertically downward
+    if (node.children.length > 0) {
+      const childY = y + levelSpacing;
+      let childX = x;
+
+      // Calculate starting position to center children horizontally relative to parent
+      const totalChildWidth = node.children.reduce((sum, childId) => 
+        sum + getSubtreeWidth(childId) * siblingSpacing, 0) - siblingSpacing;
+      childX = x - totalChildWidth / 2;
+
+      // Ensure children don't overlap with existing nodes at this level
+      const existingNodesAtLevel = layoutNodes.filter(n => Math.abs(n.position.y - childY) < 50);
+      if (existingNodesAtLevel.length > 0) {
+        const maxX = Math.max(...existingNodesAtLevel.map(n => n.position.x));
+        childX = Math.max(childX, maxX + 350); // Add buffer space
+      }
+
+      node.children.forEach(childId => {
+        const subtreeWidth = getSubtreeWidth(childId);
+        const centerOffset = (subtreeWidth - 1) * siblingSpacing / 2;
+        layoutTree(childId, childX + centerOffset, childY, level + 1);
+        childX += subtreeWidth * siblingSpacing;
+      });
+    }
+  };
+
+  // Layout each root tree
+  let rootX = 300;
+  rootNodes.forEach((root, index) => {
+    if (index > 0) {
+      rootX += getSubtreeWidth(root.id) * siblingSpacing + 400; // Extra spacing between trees
+    }
+    layoutTree(root.id, rootX, 100, 0);
   });
 
   return layoutNodes;
@@ -738,10 +819,10 @@ export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string): TreeNo
   return finalNodes;
 }
 
-export function getHomePosition(nodes: TreeNode[]): { zoom: number; pan: { x: number; y: number } } {
+export function getHomePosition(nodes: TreeNode[], currentOrientation: 'horizontal' | 'vertical' = 'horizontal'): { zoom: number; pan: { x: number; y: number }; orientation: 'horizontal' | 'vertical' } {
   // If no nodes, position at top-left corner
   if (nodes.length === 0) {
-    return { zoom: 1, pan: { x: 100, y: 100 } };
+    return { zoom: 1, pan: { x: 100, y: 100 }, orientation: currentOrientation };
   }
 
   // Find outcome nodes
@@ -749,7 +830,7 @@ export function getHomePosition(nodes: TreeNode[]): { zoom: number; pan: { x: nu
   
   if (outcomeNodes.length === 0) {
     // No outcome nodes, position at top-left corner
-    return { zoom: 1, pan: { x: 100, y: 100 } };
+    return { zoom: 1, pan: { x: 100, y: 100 }, orientation: currentOrientation };
   }
 
   // Find the outcome node closest to top-left (smallest x + y)
@@ -765,7 +846,8 @@ export function getHomePosition(nodes: TreeNode[]): { zoom: number; pan: { x: nu
   
   return {
     zoom: 1,
-    pan: { x: 400 - centerX, y: 300 - centerY } // Center in viewport
+    pan: { x: 400 - centerX, y: 300 - centerY }, // Center in viewport
+    orientation: currentOrientation
   };
 }
 

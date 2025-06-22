@@ -50,4 +50,5 @@ export interface NodeConnection {
 export interface CanvasState {
   zoom: number;
   pan: { x: number; y: number };
+  orientation: 'horizontal' | 'vertical';
 }

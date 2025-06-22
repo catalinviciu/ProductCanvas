@@ -29,6 +29,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const [canvasState, setCanvasState] = useState<CanvasState>({
     zoom: 1,
     pan: { x: 0, y: 0 },
+    orientation: 'horizontal',
   });
 
   // Initialize state from impactTree
@@ -44,10 +45,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         setCanvasState({
           zoom: canvasStateData.zoom,
           pan: canvasStateData.pan,
+          orientation: canvasStateData.orientation || 'horizontal',
         });
       } else {
         // Apply home positioning based on nodes
-        const homePosition = getHomePosition(treeNodes);
+        const homePosition = getHomePosition(treeNodes, 'horizontal');
         setCanvasState(homePosition);
       }
     }
@@ -315,21 +317,21 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, []);
 
   const resetToHome = useCallback(() => {
-    const homePosition = getHomePosition(nodes);
+    const homePosition = getHomePosition(nodes, canvasState.orientation);
     setCanvasState(homePosition);
     saveTree(undefined, undefined, homePosition);
-  }, [nodes, saveTree]);
+  }, [nodes, canvasState.orientation, saveTree]);
 
   const handleAutoLayout = useCallback(() => {
-    const layoutedNodes = calculateNodeLayout(nodes);
+    const layoutedNodes = calculateNodeLayout(nodes, canvasState.orientation);
     setNodes(layoutedNodes);
     saveTree(layoutedNodes);
     
     // Also adjust view to fit the newly organized tree
-    const homePosition = getHomePosition(layoutedNodes);
+    const homePosition = getHomePosition(layoutedNodes, canvasState.orientation);
     setCanvasState(homePosition);
     saveTree(layoutedNodes, undefined, homePosition);
-  }, [nodes, saveTree]);
+  }, [nodes, canvasState.orientation, saveTree]);
 
   const handleToggleCollapse = useCallback((nodeId: string) => {
     const updatedNodes = toggleNodeCollapse(nodes, nodeId);
