@@ -89,19 +89,32 @@ export function ImpactTreeCanvas({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Convert minimap coordinates to canvas coordinates
-    const canvasX = (x / rect.width) * 1400 - 700; // Center the view
-    const canvasY = (y / rect.height) * 800 - 400;
+    // Calculate viewport dimensions
+    const viewportWidth = rect.width * 0.2;
+    const viewportHeight = rect.height * 0.2;
+    
+    // Clamp click position to ensure viewport doesn't go outside minimap bounds
+    const clampedX = Math.max(viewportWidth / 2, Math.min(rect.width - viewportWidth / 2, x));
+    const clampedY = Math.max(viewportHeight / 2, Math.min(rect.height - viewportHeight / 2, y));
+    
+    // Convert minimap coordinates to canvas coordinates - center the viewport on click
+    const normalizedX = (clampedX - viewportWidth / 2) / (rect.width - viewportWidth);
+    const normalizedY = (clampedY - viewportHeight / 2) / (rect.height - viewportHeight);
+    
+    const canvasX = normalizedX * 1400 - 700;
+    const canvasY = normalizedY * 800 - 400;
     
     onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
   }, [onCanvasUpdate]);
 
   const handleMiniMapMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleMiniMapClick(e);
-    }
-    setMiniMapDragging(true);
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Always handle click first, then set dragging
+    handleMiniMapClick(e);
+    setMiniMapDragging(true);
+    document.body.style.cursor = 'grabbing';
   }, [handleMiniMapClick]);
 
   const handleMiniMapMouseMove = useCallback((e: React.MouseEvent) => {
@@ -110,9 +123,20 @@ export function ImpactTreeCanvas({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       
-      // Convert minimap coordinates to canvas coordinates
-      const canvasX = (x / rect.width) * 1400 - 700;
-      const canvasY = (y / rect.height) * 800 - 400;
+      // Calculate viewport dimensions for proper clamping
+      const viewportWidth = rect.width * 0.2;
+      const viewportHeight = rect.height * 0.2;
+      
+      // Clamp coordinates within mini map bounds with viewport size consideration
+      const clampedX = Math.max(viewportWidth / 2, Math.min(rect.width - viewportWidth / 2, x));
+      const clampedY = Math.max(viewportHeight / 2, Math.min(rect.height - viewportHeight / 2, y));
+      
+      // Convert minimap coordinates to canvas coordinates - center the viewport
+      const normalizedX = (clampedX - viewportWidth / 2) / (rect.width - viewportWidth);
+      const normalizedY = (clampedY - viewportHeight / 2) / (rect.height - viewportHeight);
+      
+      const canvasX = normalizedX * 1400 - 700;
+      const canvasY = normalizedY * 800 - 400;
       
       onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
     }
@@ -158,13 +182,19 @@ export function ImpactTreeCanvas({
           const x = e.clientX - rect.left;
           const y = e.clientY - rect.top;
           
-          // Clamp coordinates within mini map bounds
-          const clampedX = Math.max(0, Math.min(rect.width, x));
-          const clampedY = Math.max(0, Math.min(rect.height, y));
+          // Clamp coordinates within mini map bounds with viewport size consideration
+          const viewportWidth = rect.width * 0.2; // 20% width of minimap
+          const viewportHeight = rect.height * 0.2; // 20% height of minimap
           
-          // Convert minimap coordinates to canvas coordinates with better centering
-          const canvasX = (clampedX / rect.width) * 1400 - 700;
-          const canvasY = (clampedY / rect.height) * 800 - 400;
+          const clampedX = Math.max(viewportWidth / 2, Math.min(rect.width - viewportWidth / 2, x));
+          const clampedY = Math.max(viewportHeight / 2, Math.min(rect.height - viewportHeight / 2, y));
+          
+          // Convert minimap coordinates to canvas coordinates - center the viewport
+          const normalizedX = (clampedX - viewportWidth / 2) / (rect.width - viewportWidth);
+          const normalizedY = (clampedY - viewportHeight / 2) / (rect.height - viewportHeight);
+          
+          const canvasX = normalizedX * 1400 - 700;
+          const canvasY = normalizedY * 800 - 400;
           
           onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
         }
@@ -173,15 +203,18 @@ export function ImpactTreeCanvas({
 
     const handleGlobalMouseUp = () => {
       setMiniMapDragging(false);
+      document.body.style.cursor = '';
     };
 
     if (miniMapDragging) {
+      document.body.style.cursor = 'grabbing';
       document.addEventListener('mousemove', handleGlobalMouseMove);
       document.addEventListener('mouseup', handleGlobalMouseUp);
       
       return () => {
         document.removeEventListener('mousemove', handleGlobalMouseMove);
         document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.body.style.cursor = '';
       };
     }
   }, [miniMapDragging, onCanvasUpdate]);
@@ -285,21 +318,28 @@ export function ImpactTreeCanvas({
             className="relative w-full h-full mini-map cursor-pointer select-none"
             onMouseDown={handleMiniMapMouseDown}
             onMouseMove={handleMiniMapMouseMove}
-            onMouseUp={() => setMiniMapDragging(false)}
-            onMouseLeave={() => setMiniMapDragging(false)}
+            onMouseUp={() => {
+              setMiniMapDragging(false);
+              document.body.style.cursor = '';
+            }}
+            onMouseLeave={() => {
+              setMiniMapDragging(false);
+              document.body.style.cursor = '';
+            }}
           >
             {/* Viewport indicator */}
             <div 
               className={`absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded cursor-move transition-all ${miniMapDragging ? 'bg-opacity-40 border-blue-600' : ''}`}
               style={{
-                left: `${Math.max(0, Math.min(80, (-canvasState.pan.x / 1400) * 100))}%`,
-                top: `${Math.max(0, Math.min(80, (-canvasState.pan.y / 800) * 100))}%`,
+                left: `${Math.max(0, Math.min(80, ((-canvasState.pan.x + 700) / 1400) * 100))}%`,
+                top: `${Math.max(0, Math.min(80, ((-canvasState.pan.y + 400) / 800) * 100))}%`,
                 width: '20%',
                 height: '20%',
               }}
               onMouseDown={(e) => {
                 e.stopPropagation();
                 setMiniMapDragging(true);
+                document.body.style.cursor = 'grabbing';
               }}
             />
             {/* Node indicators */}
