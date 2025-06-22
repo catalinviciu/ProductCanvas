@@ -479,8 +479,7 @@ const TreeNodeComponent = memo(function TreeNode({
             </div>
           ) : (
             <div className="content-area-compact flex-1 overflow-hidden" onDoubleClick={handleDoubleClick}>
-              <h3 className="node-title-compact">{node.title}</h3>
-              <p className="node-description-compact">{node.description}</p>
+              <h3 className="node-title-compact line-clamp-2">{node.title}</h3>
             </div>
           )}
         </div>
