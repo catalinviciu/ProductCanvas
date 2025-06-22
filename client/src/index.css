@@ -604,6 +604,14 @@
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
+.collapse-btn-horizontal:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.collapse-btn-vertical:hover {
+  transform: translateX(-50%) scale(1.1);
+}
+
 .collapse-btn:active {
   transform: scale(0.95);
 }
@@ -613,7 +621,8 @@
 }
 
 .collapse-btn-vertical {
-  @apply -bottom-4 left-1/2 -translate-x-1/2;
+  @apply -bottom-3 left-1/2 -translate-x-1/2;
+  top: auto !important;
 }
 
 .collapse-btn-bg {

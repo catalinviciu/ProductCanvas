@@ -164,9 +164,10 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
 
   const layoutNodes: TreeNode[] = [];
   const nodeWidth = 300; // Card width
-  const nodeHeight = 144; // Card height
+  const nodeHeight = 144; // Base card height
+  const actualCardHeight = 180; // Actual card height including footer
   // Increased spacing for better visual hierarchy in vertical layout
-  const levelSpacing = nodeHeight + 120; // 264px total vertical spacing between levels for better curve space
+  const levelSpacing = actualCardHeight + 84; // 264px total vertical spacing between levels for better curve space
   const siblingSpacing = nodeWidth + 60; // 360px total horizontal spacing between siblings
 
   // Build tree structure to calculate subtree widths for vertical layout
@@ -517,8 +518,8 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
       const bottommostRoot = rootNodes.reduce((max, node) => 
         node.position.y > max.position.y ? node : max, rootNodes[0]);
       
-      const cardHeight = 144;
-      const levelSpacing = cardHeight + 120; // Match new vertical spacing
+      const actualCardHeight = 180; // Actual card height including footer
+      const levelSpacing = actualCardHeight + 84; // Match new vertical spacing
       const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + levelSpacing };
       return findOptimalPosition(visibleNodes, initialPosition);
     }
@@ -989,7 +990,8 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
   if (!rootNode) return nodes;
 
   const updatedNodes = [...nodes];
-  const levelSpacing = 264; // Match main layout vertical spacing (144 + 120)
+  const actualCardHeight = 180; // Actual card height including footer
+  const levelSpacing = actualCardHeight + 84; // Match main layout vertical spacing (180 + 84)
   const siblingSpacing = 360; // Match main layout horizontal spacing in vertical mode (300 + 60)
   const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   

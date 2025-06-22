@@ -12,6 +12,7 @@ interface NodeConnectionsProps {
 const CONNECTION_CONFIG = {
   cardWidth: 300,
   nodeHeight: 144,
+  actualCardHeight: 180, // Account for footer content and padding
   connectionOffset: 40,
   strokeWidth: {
     shadow: 10,
@@ -69,7 +70,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
       } else {
         // Connect from center-bottom edge of parent to center-top edge of child
         const fromX = fromNode.position.x + (cardWidth / 2);
-        const fromY = fromNode.position.y + nodeHeight;
+        const fromY = fromNode.position.y + CONNECTION_CONFIG.actualCardHeight;
         
         const toX = toNode.position.x + (cardWidth / 2);
         const toY = toNode.position.y;
