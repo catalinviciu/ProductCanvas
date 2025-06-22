@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(220, 9%, 46%);
+  --muted: hsl(210, 40%, 98%);
+  --muted-foreground: hsl(215, 16%, 47%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(224, 71%, 4%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(224, 71%, 4%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --primary: hsl(262, 83%, 58%);
+  --primary-foreground: hsl(210, 20%, 98%);
+  --secondary: hsl(220, 14%, 96%);
+  --secondary-foreground: hsl(220, 9%, 46%);
+  --accent: hsl(220, 14%, 96%);
+  --accent-foreground: hsl(220, 9%, 46%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(60, 9%, 98%);
+  --ring: hsl(262, 83%, 58%);
+  --radius: 0.5rem;
+
+  /* Custom colors for impact tree */
+  --primary-indigo: hsl(238, 84%, 67%);
+  --secondary-purple: hsl(258, 84%, 67%);
+  --accent-emerald: hsl(160, 84%, 39%);
+  --canvas-bg: hsl(0, 0%, 100%);
+  --app-bg: hsl(0, 0%, 98%);
+  --text-primary: hsl(216, 80%, 11%);
+  --node-border: hsl(220, 13%, 91%);
+  --orange-test: hsl(25, 95%, 53%);
+
+  /* Test category colors */
+  --viability-color: hsl(217, 91%, 60%);
+  --value-color: hsl(142, 76%, 36%);
+  --feasibility-color: hsl(271, 81%, 56%);
+  --usability-color: hsl(330, 81%, 60%);
+}
+
+.dark {
+  --background: hsl(224, 71%, 4%);
+  --foreground: hsl(213, 31%, 91%);
+  --muted: hsl(223, 47%, 11%);
+  --muted-foreground: hsl(215, 16%, 57%);
+  --popover: hsl(224, 71%, 4%);
+  --popover-foreground: hsl(215, 20%, 65%);
+  --card: hsl(224, 71%, 4%);
+  --card-foreground: hsl(213, 31%, 91%);
+  --border: hsl(216, 34%, 17%);
+  --input: hsl(216, 34%, 17%);
+  --primary: hsl(262, 83%, 58%);
+  --primary-foreground: hsl(210, 20%, 98%);
+  --secondary: hsl(222, 84%, 5%);
+  --secondary-foreground: hsl(213, 31%, 91%);
+  --accent: hsl(216, 34%, 17%);
+  --accent-foreground: hsl(213, 31%, 91%);
+  --destructive: hsl(0, 63%, 31%);
+  --destructive-foreground: hsl(213, 31%, 91%);
+  --ring: hsl(262, 83%, 58%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom utility classes for the impact tree */
+.node-outcome {
+  @apply border-2;
+  border-color: var(--primary-indigo);
+}
+
+.node-opportunity {
+  @apply border-2;
+  border-color: var(--secondary-purple);
+}
+
+.node-solution {
+  @apply border-2;
+  border-color: var(--accent-emerald);
+}
+
+.node-assumption {
+  @apply border-2;
+  border-color: var(--orange-test);
+}
+
+.test-category-viability {
+  background-color: hsl(217, 91%, 95%);
+  color: var(--viability-color);
+  border-color: var(--viability-color);
+}
+
+.test-category-value {
+  background-color: hsl(142, 76%, 95%);
+  color: var(--value-color);
+  border-color: var(--value-color);
+}
+
+.test-category-feasibility {
+  background-color: hsl(271, 81%, 95%);
+  color: var(--feasibility-color);
+  border-color: var(--feasibility-color);
+}
+
+.test-category-usability {
+  background-color: hsl(330, 81%, 95%);
+  color: var(--usability-color);
+  border-color: var(--usability-color);
+}
+
+/* Canvas grid pattern */
+.canvas-grid {
+  background-image: radial-gradient(circle, hsl(220, 13%, 91%) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.5;
+}
+
+/* Drag and drop states */
+.dragging {
+  @apply opacity-75 shadow-2xl z-50;
+  transform: rotate(2deg);
+}
+
+.drag-over {
+  @apply ring-2 ring-blue-400 ring-opacity-50;
+}
+
+/* Connection lines */
+.connection-line {
+  stroke: var(--node-border);
+  stroke-width: 2;
+  fill: none;
+}
+
+.connection-line:hover {
+  stroke: var(--primary-indigo);
+  stroke-width: 3;
+}
+
+/* Node animations */
+@keyframes nodeCreated {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.node-created {
+  animation: nodeCreated 0.3s ease-out;
+}
+
+/* Canvas controls */
+.canvas-control-btn {
+  @apply p-2 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors;
+}
+
+/* Mini map styles */
+.mini-map {
+  @apply bg-gray-50 rounded border;
+}
+
+.mini-map-viewport {
+  @apply border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .sidebar {
+    @apply w-64;
+  }
+  
+  .canvas-toolbar {
+    @apply flex-col;
+  }
+}
