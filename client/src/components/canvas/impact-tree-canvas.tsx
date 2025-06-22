@@ -15,6 +15,7 @@ interface ImpactTreeCanvasProps {
   onCanvasUpdate: (updates: Partial<CanvasState>) => void;
   onContextMenu: (node: TreeNodeType, position: { x: number; y: number }) => void;
   onNodeCreate: (type: NodeType, testCategory?: TestCategory, parentNode?: TreeNodeType, customPosition?: { x: number; y: number }) => void;
+  onResetToHome: () => void;
 }
 
 export function ImpactTreeCanvas({
@@ -28,6 +29,7 @@ export function ImpactTreeCanvas({
   onCanvasUpdate,
   onContextMenu,
   onNodeCreate,
+  onResetToHome,
 }: ImpactTreeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -237,7 +239,7 @@ export function ImpactTreeCanvas({
         zoom={canvasState.zoom}
         onZoomIn={() => onCanvasUpdate({ zoom: Math.min(3, canvasState.zoom + 0.1) })}
         onZoomOut={() => onCanvasUpdate({ zoom: Math.max(0.1, canvasState.zoom - 0.1) })}
-        onResetView={() => onCanvasUpdate({ zoom: 1, pan: { x: 0, y: 0 } })}
+        onResetView={onResetToHome}
         isPanMode={isPanMode}
         onTogglePanMode={() => setIsPanMode(!isPanMode)}
       />

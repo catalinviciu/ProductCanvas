@@ -34,15 +34,22 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   // Initialize state from impactTree
   useEffect(() => {
     if (impactTree) {
-      setNodes((impactTree.nodes as TreeNode[]) || []);
+      const treeNodes = (impactTree.nodes as TreeNode[]) || [];
+      setNodes(treeNodes);
       setConnections((impactTree.connections as NodeConnection[]) || []);
       
-      // Ensure canvasState has proper defaults
+      // Use saved canvas state if available, otherwise use home position
       const canvasStateData = impactTree.canvasState as any;
-      setCanvasState({
-        zoom: canvasStateData?.zoom || 1,
-        pan: canvasStateData?.pan || { x: 0, y: 0 },
-      });
+      if (canvasStateData?.zoom && canvasStateData?.pan) {
+        setCanvasState({
+          zoom: canvasStateData.zoom,
+          pan: canvasStateData.pan,
+        });
+      } else {
+        // Apply home positioning based on nodes
+        const homePosition = getHomePosition(treeNodes);
+        setCanvasState(homePosition);
+      }
     }
   }, [impactTree]);
 

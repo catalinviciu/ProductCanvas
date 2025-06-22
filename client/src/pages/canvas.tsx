@@ -33,6 +33,7 @@ export default function CanvasPage() {
     closeContextMenu,
     closeEditModal,
     openEditModal,
+    resetToHome,
   } = useCanvas(impactTree);
 
   if (isLoading) {
@@ -72,6 +73,7 @@ export default function CanvasPage() {
           onCanvasUpdate={handleCanvasUpdate}
           onContextMenu={handleContextMenu}
           onNodeCreate={handleNodeCreate}
+          onResetToHome={resetToHome}
         />
       </main>
 
