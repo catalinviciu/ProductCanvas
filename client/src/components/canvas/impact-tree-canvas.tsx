@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { TreeNode } from "./tree-node";
 import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
-import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState } from "@shared/schema";
+import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ImpactTreeCanvasProps {
   nodes: TreeNodeType[];
@@ -14,6 +14,7 @@ interface ImpactTreeCanvasProps {
   onNodeDelete: (nodeId: string) => void;
   onCanvasUpdate: (updates: Partial<CanvasState>) => void;
   onContextMenu: (node: TreeNodeType, position: { x: number; y: number }) => void;
+  onNodeCreate: (type: NodeType, testCategory?: TestCategory, parentNode?: TreeNodeType) => void;
 }
 
 export function ImpactTreeCanvas({
@@ -26,12 +27,14 @@ export function ImpactTreeCanvas({
   onNodeDelete,
   onCanvasUpdate,
   onContextMenu,
+  onNodeCreate,
 }: ImpactTreeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [isPanMode, setIsPanMode] = useState(false);
+  const [canvasContextMenu, setCanvasContextMenu] = useState<{isOpen: boolean, position: {x: number, y: number}} | null>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 1 || (e.button === 0 && e.metaKey) || (e.button === 0 && isPanMode)) { // Middle click, Cmd+click, or pan mode
@@ -42,9 +45,32 @@ export function ImpactTreeCanvas({
       // Check if clicking on empty canvas
       if (e.target === canvasRef.current) {
         onNodeSelect(null);
+        setCanvasContextMenu(null);
       }
     }
   }, [canvasState.pan, onNodeSelect, isPanMode]);
+
+  const handleCanvasContextMenu = useCallback((e: React.MouseEvent) => {
+    if (e.target === canvasRef.current) {
+      e.preventDefault();
+      setCanvasContextMenu({
+        isOpen: true,
+        position: { x: e.clientX, y: e.clientY }
+      });
+    }
+  }, []);
+
+  const handleCanvasNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory) => {
+    if (canvasContextMenu) {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (rect) {
+        const x = (canvasContextMenu.position.x - rect.left - canvasState.pan.x) / canvasState.zoom;
+        const y = (canvasContextMenu.position.y - rect.top - canvasState.pan.y) / canvasState.zoom;
+        onNodeCreate(type, testCategory);
+      }
+    }
+    setCanvasContextMenu(null);
+  }, [canvasContextMenu, canvasState, onNodeCreate]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {

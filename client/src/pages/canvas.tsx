@@ -1,8 +1,7 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
-import { NodePalette } from "@/components/sidebar/node-palette";
-import { CanvasControls } from "@/components/sidebar/canvas-controls";
+
 import { ProjectHeader } from "@/components/header/project-header";
 import { NodeEditModal } from "@/components/modals/node-edit-modal";
 import { ContextMenu } from "@/components/modals/context-menu";
@@ -61,31 +60,20 @@ export default function CanvasPage() {
         onFitToScreen={() => {}}
       />
       
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-80 bg-white border-r border-gray-200 p-6 overflow-y-auto">
-          <div className="space-y-6">
-            <NodePalette onNodeCreate={handleNodeCreate} />
-            <CanvasControls 
-              canvasState={canvasState}
-              onCanvasUpdate={handleCanvasUpdate}
-            />
-          </div>
-        </aside>
-
-        <main className="flex-1 bg-white relative overflow-hidden">
-          <ImpactTreeCanvas
-            nodes={nodes}
-            connections={connections}
-            canvasState={canvasState}
-            selectedNode={selectedNode}
-            onNodeUpdate={handleNodeUpdate}
-            onNodeSelect={handleNodeSelect}
-            onNodeDelete={handleNodeDelete}
-            onCanvasUpdate={handleCanvasUpdate}
-            onContextMenu={handleContextMenu}
-          />
-        </main>
-      </div>
+      <main className="flex-1 bg-white relative overflow-hidden">
+        <ImpactTreeCanvas
+          nodes={nodes}
+          connections={connections}
+          canvasState={canvasState}
+          selectedNode={selectedNode}
+          onNodeUpdate={handleNodeUpdate}
+          onNodeSelect={handleNodeSelect}
+          onNodeDelete={handleNodeDelete}
+          onCanvasUpdate={handleCanvasUpdate}
+          onContextMenu={handleContextMenu}
+          onNodeCreate={handleNodeCreate}
+        />
+      </main>
 
       <NodeEditModal
         node={selectedNode}
