@@ -613,7 +613,7 @@
 }
 
 .collapse-btn-vertical {
-  @apply -bottom-10 left-1/2 -translate-x-1/2;
+  @apply -bottom-4 left-1/2 -translate-x-1/2;
 }
 
 .collapse-btn-bg {

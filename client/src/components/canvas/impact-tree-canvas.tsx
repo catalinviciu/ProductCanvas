@@ -62,9 +62,9 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
 
     const padding = 500;
     const minX = Math.min(...nodes.map(n => n.position.x)) - padding;
-    const maxX = Math.max(...nodes.map(n => n.position.x + 256)) + padding; // 256 is node width
+    const maxX = Math.max(...nodes.map(n => n.position.x + 300)) + padding; // 300 is node width
     const minY = Math.min(...nodes.map(n => n.position.y)) - padding;
-    const maxY = Math.max(...nodes.map(n => n.position.y + 120)) + padding; // 120 is node height
+    const maxY = Math.max(...nodes.map(n => n.position.y + 144)) + padding; // 144 is node height
 
     return {
       minX,

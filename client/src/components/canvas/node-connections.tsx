@@ -67,9 +67,9 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
 
         return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
       } else {
-        // Optimized vertical connections
+        // Optimized vertical connections - start from bottom of card
         const fromX = fromNode.position.x + (cardWidth / 2);
-        const fromY = fromNode.position.y + nodeHeight;
+        const fromY = fromNode.position.y + nodeHeight + 10; // Add small offset below card
         
         const toX = toNode.position.x + (cardWidth / 2);
         const toY = toNode.position.y;
