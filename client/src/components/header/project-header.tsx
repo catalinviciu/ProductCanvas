@@ -1,6 +1,6 @@
 interface ProjectHeaderProps {
   projectName: string;
-  lastSaved: Date;
+  lastSaved: Date | string;
   onAutoLayout: () => void;
   onFitToScreen: () => void;
 }
@@ -11,9 +11,14 @@ export function ProjectHeader({
   onAutoLayout, 
   onFitToScreen 
 }: ProjectHeaderProps) {
-  const formatLastSaved = (date: Date) => {
+  const formatLastSaved = (date: Date | string) => {
+    if (!date) return 'Never saved';
+    
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return 'Invalid date';
+    
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
+    const diffMs = now.getTime() - dateObj.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     
     if (diffMins < 1) return 'Just now';
@@ -24,7 +29,7 @@ export function ProjectHeader({
     if (diffHours === 1) return '1 hour ago';
     if (diffHours < 24) return `${diffHours} hours ago`;
     
-    return date.toLocaleDateString();
+    return dateObj.toLocaleDateString();
   };
 
   return (

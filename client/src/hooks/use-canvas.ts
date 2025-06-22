@@ -34,9 +34,15 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   // Initialize state from impactTree
   useEffect(() => {
     if (impactTree) {
-      setNodes(impactTree.nodes as TreeNode[]);
-      setConnections(impactTree.connections as NodeConnection[]);
-      setCanvasState(impactTree.canvasState as CanvasState);
+      setNodes((impactTree.nodes as TreeNode[]) || []);
+      setConnections((impactTree.connections as NodeConnection[]) || []);
+      
+      // Ensure canvasState has proper defaults
+      const canvasStateData = impactTree.canvasState as any;
+      setCanvasState({
+        zoom: canvasStateData?.zoom || 1,
+        pan: canvasStateData?.pan || { x: 0, y: 0 },
+      });
     }
   }, [impactTree]);
 
