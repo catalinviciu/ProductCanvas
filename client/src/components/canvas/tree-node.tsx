@@ -233,6 +233,8 @@ export function TreeNode({
         config.className
       } ${isSelected ? 'ring-2 ring-blue-400' : ''} ${isDragging ? 'dragging' : ''} ${
         isEditing ? 'z-50' : ''
+      } ${isDraggedOver ? 'ring-2 ring-green-400 bg-green-50' : ''} ${
+        isDropTarget ? 'ring-2 ring-dashed ring-blue-300' : ''
       }`}
       style={{ 
         left: node.position.x, 
@@ -241,9 +243,16 @@ export function TreeNode({
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none',
       }}
+      draggable={!isEditing}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <div className="bg-white rounded-lg shadow-md p-4 node-created">
         {/* Node Header */}

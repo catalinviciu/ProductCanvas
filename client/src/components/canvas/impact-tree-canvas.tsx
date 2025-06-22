@@ -15,6 +15,7 @@ interface ImpactTreeCanvasProps {
   onCanvasUpdate: (updates: Partial<CanvasState>) => void;
   onContextMenu: (node: TreeNodeType, position: { x: number; y: number }) => void;
   onNodeCreate: (type: NodeType, testCategory?: TestCategory, parentNode?: TreeNodeType, customPosition?: { x: number; y: number }) => void;
+  onNodeReattach: (nodeId: string, newParentId: string | null) => void;
   onResetToHome: () => void;
 }
 
@@ -29,6 +30,7 @@ export function ImpactTreeCanvas({
   onCanvasUpdate,
   onContextMenu,
   onNodeCreate,
+  onNodeReattach,
   onResetToHome,
 }: ImpactTreeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -38,6 +40,8 @@ export function ImpactTreeCanvas({
   const [isPanMode, setIsPanMode] = useState(false);
   const [canvasContextMenu, setCanvasContextMenu] = useState<{isOpen: boolean, position: {x: number, y: number}} | null>(null);
   const [miniMapDragging, setMiniMapDragging] = useState(false);
+  const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
+  const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
 
   // Calculate dynamic canvas bounds based on nodes
   const getCanvasBounds = useCallback(() => {
@@ -318,6 +322,9 @@ export function ImpactTreeCanvas({
               onDelete={onNodeDelete}
               onDrag={handleNodeDrag}
               onContextMenu={(position) => onContextMenu(node, position)}
+              onReattach={onNodeReattach}
+              isDropTarget={draggedNodeId !== null && draggedNodeId !== node.id}
+              isDraggedOver={draggedOverNodeId === node.id}
             />
           ))}
         </div>

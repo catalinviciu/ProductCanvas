@@ -30,6 +30,7 @@ export default function CanvasPage() {
     handleCanvasUpdate,
     handleContextMenu,
     handleAddChildFromContext,
+    handleNodeReattach,
     closeContextMenu,
     closeEditModal,
     openEditModal,
@@ -73,6 +74,7 @@ export default function CanvasPage() {
           onCanvasUpdate={handleCanvasUpdate}
           onContextMenu={handleContextMenu}
           onNodeCreate={handleNodeCreate}
+          onNodeReattach={handleNodeReattach}
           onResetToHome={resetToHome}
         />
       </main>
