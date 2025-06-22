@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type TreeNode, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ContextMenuProps {
@@ -21,6 +21,7 @@ export function ContextMenu({
   onAddChild,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [showTestCategories, setShowTestCategories] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,7 +59,7 @@ export function ContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[160px]"
+      className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[280px]"
       style={{
         left: position.x,
         top: position.y,
@@ -75,29 +76,96 @@ export function ContextMenu({
       <div className="border-t border-gray-100 my-1"></div>
       
       <div className="px-4 py-2">
-        <div className="text-xs font-medium text-gray-500 mb-2">Add Child</div>
+        <div className="text-xs font-medium text-gray-500 mb-2">Add Child Node</div>
         <div className="space-y-1">
           <button 
-            onClick={() => handleAddChild('opportunity')}
-            className="w-full px-2 py-1 text-xs text-left hover:bg-gray-50 rounded flex items-center"
+            onClick={() => handleAddChild('outcome')}
+            className="w-full px-3 py-2 text-sm text-left hover:bg-blue-50 rounded flex items-center transition-colors"
           >
-            <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-            Opportunity
+            <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--primary-indigo)' }}></div>
+            <div>
+              <div className="font-medium text-gray-900">Outcome</div>
+              <div className="text-xs text-gray-500">Business goal or result</div>
+            </div>
+          </button>
+          <button 
+            onClick={() => handleAddChild('opportunity')}
+            className="w-full px-3 py-2 text-sm text-left hover:bg-purple-50 rounded flex items-center transition-colors"
+          >
+            <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--secondary-purple)' }}></div>
+            <div>
+              <div className="font-medium text-gray-900">Opportunity</div>
+              <div className="text-xs text-gray-500">Market or user opportunity</div>
+            </div>
           </button>
           <button 
             onClick={() => handleAddChild('solution')}
-            className="w-full px-2 py-1 text-xs text-left hover:bg-gray-50 rounded flex items-center"
+            className="w-full px-3 py-2 text-sm text-left hover:bg-emerald-50 rounded flex items-center transition-colors"
           >
-            <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></div>
-            Solution
+            <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--accent-emerald)' }}></div>
+            <div>
+              <div className="font-medium text-gray-900">Solution</div>
+              <div className="text-xs text-gray-500">Product or feature approach</div>
+            </div>
           </button>
           <button 
-            onClick={() => handleAddChild('assumption')}
-            className="w-full px-2 py-1 text-xs text-left hover:bg-gray-50 rounded flex items-center"
+            onClick={() => setShowTestCategories(!showTestCategories)}
+            className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center justify-between transition-colors"
           >
-            <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-            Assumption Test
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--orange-test)' }}></div>
+              <div>
+                <div className="font-medium text-gray-900">Assumption Test</div>
+                <div className="text-xs text-gray-500">Hypothesis to validate</div>
+              </div>
+            </div>
+            <i className={`fas fa-chevron-${showTestCategories ? 'up' : 'right'} text-gray-400 text-xs`}></i>
           </button>
+          
+          {showTestCategories && (
+            <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+              <button 
+                onClick={() => handleAddChild('assumption', 'viability')}
+                className="w-full px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded flex items-center transition-colors"
+              >
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                <div>
+                  <div className="font-medium text-gray-900">Viability</div>
+                  <div className="text-xs text-gray-500">Business model validation</div>
+                </div>
+              </button>
+              <button 
+                onClick={() => handleAddChild('assumption', 'value')}
+                className="w-full px-2 py-1.5 text-xs text-left hover:bg-green-50 rounded flex items-center transition-colors"
+              >
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                <div>
+                  <div className="font-medium text-gray-900">Value</div>
+                  <div className="text-xs text-gray-500">User value proposition</div>
+                </div>
+              </button>
+              <button 
+                onClick={() => handleAddChild('assumption', 'feasibility')}
+                className="w-full px-2 py-1.5 text-xs text-left hover:bg-purple-50 rounded flex items-center transition-colors"
+              >
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                <div>
+                  <div className="font-medium text-gray-900">Feasibility</div>
+                  <div className="text-xs text-gray-500">Technical implementation</div>
+                </div>
+              </button>
+              <button 
+                onClick={() => handleAddChild('assumption', 'usability')}
+                className="w-full px-2 py-1.5 text-xs text-left hover:bg-pink-50 rounded flex items-center transition-colors"
+              >
+                <div className="w-2 h-2 bg-pink-500 rounded-full mr-2"></div>
+                <div>
+                  <div className="font-medium text-gray-900">Usability</div>
+                  <div className="text-xs text-gray-500">User experience validation</div>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </div>
       
