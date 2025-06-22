@@ -10,29 +10,30 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
   const getNodeById = (id: string) => nodes.find(node => node.id === id);
 
   const generateConnectionPath = (fromNode: TreeNode, toNode: TreeNode) => {
-    // Button positioning analysis:
-    // Card: w-64 = 256px total width
-    // Button: "absolute -right-3 top-1/2 w-6 h-6"
-    // -right-3 = -0.75rem = -12px (positions button 12px outside right edge)
-    // w-6 = 1.5rem = 24px width
-    // Button left edge is at: card_right_edge + 12px = card_x + 256 + 12 = card_x + 268
-    // Button center is at: button_left + 12px = card_x + 268 + 12 = card_x + 280
-    // But we need to account for the actual visual center which appears to be at card_x + 256 + 0
+    // Calculate exact button center position:
+    // Card: w-64 = 256px width, positioned at node.position.x
+    // Button CSS: "absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6"
+    // -right-3 = -12px from right edge = positions button 12px to the right of card
+    // w-6 = 24px width, so button spans from (card_right + 12) to (card_right + 12 + 24)
+    // Button center X = card_right + 12 + 12 = card_x + 256 + 24
+    // top-1/2 -translate-y-1/2 = vertically centered at card center
     
-    const cardWidth = 256; // w-64 in pixels
+    const cardWidth = 256;
+    const buttonRightOffset = 12; // -right-3 moves button 12px right of card edge
+    const buttonRadius = 12; // w-6 (24px) / 2 = 12px radius
     
     const fromX = fromNode.children.length > 0 ? 
-      fromNode.position.x + cardWidth + 12 : // Card edge + 12px to reach button center
-      fromNode.position.x + cardWidth;
+      fromNode.position.x + cardWidth + buttonRightOffset + buttonRadius : // Exact button center
+      fromNode.position.x + cardWidth; // Card edge for nodes without children
     
-    const fromY = fromNode.position.y + 60; // Card vertical center
+    const fromY = fromNode.position.y + 60; // Card vertical center (matches button center)
     const toX = toNode.position.x;
     const toY = toNode.position.y + 60;
 
-    // Create curved path
-    const controlX1 = fromX + 60;
+    // Create smooth curved path
+    const controlX1 = fromX + 50;
     const controlY1 = fromY;
-    const controlX2 = toX - 60;
+    const controlX2 = toX - 50;
     const controlY2 = toY;
 
     return `M ${fromX} ${fromY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${toX} ${toY}`;
