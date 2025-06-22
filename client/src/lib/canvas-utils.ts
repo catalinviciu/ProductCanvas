@@ -291,20 +291,29 @@ export function getVisibleConnections(nodes: TreeNode[], connections: NodeConnec
 export function toggleNodeCollapse(nodes: TreeNode[], nodeId: string): TreeNode[] {
   return nodes.map(node => {
     if (node.id === nodeId) {
-      const allChildrenCurrentlyHidden = areAllChildrenHidden(node);
+      if (!node.children.length) {
+        // No children to collapse/expand
+        return node;
+      }
       
-      if (allChildrenCurrentlyHidden) {
-        // If all children are hidden (either collapsed or individually), show all
+      // Check current visibility state
+      const isCurrentlyCollapsed = node.isCollapsed;
+      const hasHiddenChildren = (node.hiddenChildren?.length || 0) > 0;
+      const allChildrenHidden = (node.hiddenChildren?.length || 0) === node.children.length;
+      
+      if (isCurrentlyCollapsed || allChildrenHidden) {
+        // Currently collapsed or all children individually hidden - expand and show all
         return {
           ...node,
           isCollapsed: false,
           hiddenChildren: []
         };
       } else {
-        // Normal collapse behavior
+        // Currently expanded - collapse all children
         return {
           ...node,
-          isCollapsed: !node.isCollapsed
+          isCollapsed: true,
+          hiddenChildren: [] // Clear individual hidden states when collapsing
         };
       }
     }
@@ -316,21 +325,31 @@ export function toggleNodeCollapse(nodes: TreeNode[], nodeId: string): TreeNode[
 export function toggleChildVisibility(nodes: TreeNode[], parentId: string, childId: string): TreeNode[] {
   return nodes.map(node => {
     if (node.id === parentId) {
+      if (!node.children.includes(childId)) {
+        // Child doesn't belong to this parent
+        return node;
+      }
+      
       const hiddenChildren = node.hiddenChildren || [];
       const isCurrentlyHidden = hiddenChildren.includes(childId);
       
-      const newHiddenChildren = isCurrentlyHidden
-        ? hiddenChildren.filter(id => id !== childId)
-        : [...hiddenChildren, childId];
+      let newHiddenChildren: string[];
+      if (isCurrentlyHidden) {
+        // Show this child
+        newHiddenChildren = hiddenChildren.filter(id => id !== childId);
+      } else {
+        // Hide this child
+        newHiddenChildren = [...hiddenChildren, childId];
+      }
       
-      // Check if all children are now hidden
-      const allChildrenHidden = node.children.length > 0 && 
-        newHiddenChildren.length === node.children.length;
+      // Update collapse state based on visibility
+      const allChildrenHidden = newHiddenChildren.length === node.children.length;
+      const noChildrenHidden = newHiddenChildren.length === 0;
       
       return {
         ...node,
         hiddenChildren: newHiddenChildren,
-        isCollapsed: allChildrenHidden
+        isCollapsed: allChildrenHidden ? true : (noChildrenHidden ? false : node.isCollapsed)
       };
     }
     return node;
@@ -361,8 +380,11 @@ export function isChildHidden(parentNode: TreeNode, childId: string): boolean {
 // Check if all children are effectively hidden (either individually hidden or parent collapsed)
 export function areAllChildrenHidden(node: TreeNode): boolean {
   if (!node.children.length) return false;
+  
+  // If node is collapsed, all children are hidden
   if (node.isCollapsed) return true;
   
+  // Check if all children are individually hidden
   const hiddenCount = node.hiddenChildren?.length || 0;
   return hiddenCount === node.children.length;
 }
