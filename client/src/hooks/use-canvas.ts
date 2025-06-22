@@ -225,8 +225,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         
         // Apply collision-free positioning for the entire branch being moved
         if (nodeToReattach.children && nodeToReattach.children.length > 0) {
-          // This is a branch with children - use comprehensive collision detection with proper orientation
-          updatedNodes = moveNodeWithChildren(updatedNodes, nodeId, smartPosition, canvasState.orientation);
+          // This is a branch with children - use comprehensive collision detection
+          updatedNodes = moveNodeWithChildren(updatedNodes, nodeId, smartPosition);
         } else {
           // Single node - use simple positioning
           const adjustedPosition = preventOverlap(updatedNodes, nodeToReattach, smartPosition);

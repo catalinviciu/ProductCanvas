@@ -118,13 +118,12 @@ export const TreeNode = memo(function TreeNode({
   const [editDescription, setEditDescription] = useState(node.description);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  
+  const [isMovingWithParent, setIsMovingWithParent] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
 
-  const config = NODE_TYPE_CONFIG[node.type];
+  const config = nodeTypeConfig[node.type];
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) { // Left click
@@ -345,35 +344,30 @@ export const TreeNode = memo(function TreeNode({
     }
   }, [handleSaveEdit, handleCancelEdit]);
 
-  // Enhanced styling calculations
-  const nodeClasses = `
-    absolute w-64 transition-all duration-300 ease-out
-    ${config.className}
-    ${isSelected ? 'shadow-xl scale-105' : 'hover:shadow-lg hover:scale-102'}
-    ${isDragging ? 'dragging scale-110 shadow-2xl rotate-1 z-50' : ''}
-    ${isEditing ? 'z-50' : ''}
-    ${draggedOverNodeId === node.id ? 'bg-emerald-50 scale-105' : ''}
-    ${isDropTarget && draggedNode ? 'animate-pulse' : ''}
-    ${isDraggedOver ? 'bg-yellow-50 scale-102' : ''}
-    ${isHovered ? 'shadow-lg' : ''}
-  `.trim();
-
-  const nodeStyle = {
-    left: node.position.x,
-    top: node.position.y,
-    zIndex: isDragging ? 100 : isSelected ? 20 : isEditing ? 50 : 1,
-    cursor: isDragging ? 'grabbing' : isEditing ? 'text' : 'grab',
-    userSelect: 'none' as const,
-    transform: isDragging ? 'rotate(2deg) scale(1.05)' : isHovered ? 'scale(1.02)' : 'none',
-    boxShadow: isDragging ? '0 25px 50px rgba(0,0,0,0.2)' : undefined,
-    borderColor: config.borderColor,
-  };
-
   return (
     <div
-      className={nodeClasses}
-      style={nodeStyle}
+      className={`absolute w-64 transition-all duration-200 tree-node-container ${
+        config.className
+      } ${isSelected ? 'ring-2 ring-blue-400 shadow-lg' : 'hover:shadow-lg'} ${
+        isDragging ? 'dragging scale-105 shadow-2xl rotate-1 z-50' : ''
+      } ${isEditing ? 'z-50' : ''} ${
+        draggedOverNodeId === node.id ? 'ring-2 ring-green-400 bg-green-50 scale-102' : ''
+      } ${
+        isDropTarget && draggedNode ? 'ring-2 ring-dashed ring-blue-300 animate-pulse' : ''
+      } ${
+        isDraggedOver ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
+      }`}
+      style={{ 
+        left: node.position.x, 
+        top: node.position.y,
+        zIndex: isDragging ? 100 : isSelected ? 20 : isEditing ? 50 : 1,
+        cursor: isDragging ? 'grabbing' : isEditing ? 'text' : 'grab',
+        userSelect: 'none',
+        transform: isDragging ? 'rotate(2deg) scale(1.05)' : 'none',
+        boxShadow: isDragging ? '0 20px 40px rgba(0,0,0,0.15)' : undefined,
+      }}
       draggable={!isEditing}
+      title={`${config.label}: ${node.title}${!isEditing ? `\n\nDrag to move ${node.children.length > 0 ? '(children will follow)' : 'position'}\nHold Alt + drag to reattach to other cards` : ''}`}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
@@ -383,11 +377,8 @@ export const TreeNode = memo(function TreeNode({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      title={`${config.label}: ${node.title}${!isEditing ? `\n\nDrag to move\nHold Alt + drag to reattach` : ''}`}
     >
-      <div className={`bg-gradient-to-br ${config.gradient} rounded-xl shadow-md border-2 p-4 node-created relative overflow-hidden`}>
+      <div className="bg-white rounded-lg shadow-md p-4 node-created relative">
         {/* Attachment Indicator */}
         {(draggedOverNodeId === node.id || (isDropTarget && draggedNode)) && (
           <div className="attachment-indicator">
@@ -396,34 +387,24 @@ export const TreeNode = memo(function TreeNode({
         )}
         
         {/* Node Header */}
-        <div className="flex items-center space-x-2 mb-3">
-          <div className="flex items-center space-x-2">
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm"
-              style={{ backgroundColor: config.color }}
-            >
-              <i className={`${config.icon} text-white text-sm`} />
-            </div>
-            <span 
-              className="text-sm font-semibold uppercase tracking-wide"
-              style={{ color: config.color }}
-            >
-              {config.label}
-            </span>
-          </div>
-          
+        <div className="flex items-center space-x-2 mb-2">
+          <i 
+            className={`${config.icon} text-sm`}
+            style={{ color: config.color }}
+          />
+          <span 
+            className="text-xs font-medium uppercase tracking-wide"
+            style={{ color: config.color }}
+          >
+            {config.label}
+          </span>
           {node.type === 'assumption' && node.testCategory && (
             <div className="ml-auto">
-              <span 
-                className="px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1"
-                style={{
-                  backgroundColor: TEST_CATEGORY_CONFIG[node.testCategory].bg,
-                  color: TEST_CATEGORY_CONFIG[node.testCategory].color,
-                }}
-              >
-                <i className={`${TEST_CATEGORY_CONFIG[node.testCategory].icon} text-xs`} />
-                <span>{TEST_CATEGORY_CONFIG[node.testCategory].label}</span>
-              </span>
+              <i 
+                className={`${testCategoryConfig[node.testCategory].icon} text-xs`}
+                style={{ color: testCategoryConfig[node.testCategory].color }}
+                title={`${testCategoryConfig[node.testCategory].label} Test`}
+              />
             </div>
           )}
         </div>
@@ -463,8 +444,8 @@ export const TreeNode = memo(function TreeNode({
           </div>
         ) : (
           <>
-            <h3 className="font-bold text-gray-900 mb-2 leading-tight">{node.title}</h3>
-            <p className="text-sm text-gray-600 mb-4 leading-relaxed">{node.description}</p>
+            <h3 className="font-semibold text-gray-900 mb-2">{node.title}</h3>
+            <p className="text-sm text-gray-600 mb-3">{node.description}</p>
           </>
         )}
 
@@ -503,11 +484,11 @@ export const TreeNode = memo(function TreeNode({
                 <span 
                   className="px-2 py-1 rounded-full text-xs font-medium"
                   style={{
-                    backgroundColor: TEST_CATEGORY_CONFIG[node.testCategory].bg,
-                    color: TEST_CATEGORY_CONFIG[node.testCategory].color,
+                    backgroundColor: testCategoryConfig[node.testCategory].bg,
+                    color: testCategoryConfig[node.testCategory].color,
                   }}
                 >
-                  {TEST_CATEGORY_CONFIG[node.testCategory].label}
+                  {testCategoryConfig[node.testCategory].label}
                 </span>
               </div>
             )}
@@ -542,7 +523,7 @@ export const TreeNode = memo(function TreeNode({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className={`absolute w-8 h-8 rounded-full text-sm font-bold
+              className={`absolute w-6 h-6 rounded-full text-xs font-bold
                        flex items-center justify-center cursor-pointer
                        shadow-md hover:shadow-lg transition-all duration-200
                        border-2 border-white z-20 ${
@@ -551,8 +532,8 @@ export const TreeNode = memo(function TreeNode({
                            : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                        } ${
                          orientation === 'horizontal' 
-                           ? '-left-10 top-1/2 -translate-y-1/2' 
-                           : '-top-10 left-1/2 -translate-x-1/2'
+                           ? '-left-7 top-1/2 -translate-y-1/2' 
+                           : '-top-7 left-1/2 -translate-x-1/2'
                        }`}
               style={{ pointerEvents: 'all' }}
               title={`${isHidden ? 'Show' : 'Hide'} ${node.title} branch`}
@@ -569,14 +550,14 @@ export const TreeNode = memo(function TreeNode({
               e.stopPropagation();
               onToggleCollapse?.(node.id);
             }}
-            className={`absolute w-8 h-8 
+            className={`absolute w-6 h-6 
                      bg-blue-500 hover:bg-blue-600 text-white rounded-full 
-                     flex items-center justify-center text-sm font-bold
+                     flex items-center justify-center text-xs font-bold
                      shadow-md hover:shadow-lg transition-all duration-200
                      border-2 border-white z-10 ${
                        orientation === 'horizontal' 
-                         ? '-right-4 top-1/2 -translate-y-1/2' 
-                         : '-bottom-4 left-1/2 -translate-x-1/2'
+                         ? '-right-3 top-1/2 -translate-y-1/2' 
+                         : '-bottom-3 left-1/2 -translate-x-1/2'
                      }`}
             title={areAllChildrenHidden(node) ? 'Expand all children' : 'Collapse all children'}
           >

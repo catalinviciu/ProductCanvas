@@ -535,27 +535,19 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     
     return findOptimalPosition(visibleNodes, initialPosition);
   } else {
-    // Position child nodes below parent (vertical layout)
+    // Position child nodes below parent (vertical layout) - centered like horizontal
     const basePosition = {
       x: parentNode.position.x,
       y: parentNode.position.y + 220
     };
 
-    if (siblings.length === 0) {
-      // First child - position directly below parent
-      return findOptimalPosition(visibleNodes, basePosition);
-    }
-
-    // Calculate the center position of existing siblings
-    const siblingCenterX = siblings.reduce((sum, sibling) => sum + sibling.position.x, 0) / siblings.length;
-    const siblingSpacing = 300;
+    // Center children horizontally relative to parent, spacing them out
+    const totalSiblings = siblings.length + 1; // Include the new node
+    const totalWidth = (totalSiblings - 1) * 300; // 300px spacing between siblings
+    const startX = basePosition.x - (totalWidth / 2);
+    const initialX = startX + (siblings.length * 300);
     
-    // Position new child to maintain proper spacing and alignment
-    const newX = siblings.length === 1 
-      ? parentNode.position.x + (siblings[0].position.x > parentNode.position.x ? -siblingSpacing : siblingSpacing)
-      : siblingCenterX + (siblings.length % 2 === 0 ? siblingSpacing : -siblingSpacing);
-    
-    const initialPosition = { x: newX, y: basePosition.y };
+    const initialPosition = { x: initialX, y: basePosition.y };
     
     return findOptimalPosition(visibleNodes, initialPosition);
   }
@@ -820,16 +812,39 @@ export function moveNodeWithChildren(
   const movedNode = nodeMap.get(nodeId);
   if (!movedNode) return nodes;
 
-  // Apply smart positioning to prevent overlaps
-  const adjustedPosition = preventOverlap(nodes, movedNode, newPosition);
-  const snappedPosition = snapToGrid(adjustedPosition);
+  // Find collision-free position
+  const collisionFreePosition = findCollisionFreePosition(nodes, nodeId, newPosition);
+  
+  // Calculate position delta from collision-free position
+  const deltaX = collisionFreePosition.x - movedNode.position.x;
+  const deltaY = collisionFreePosition.y - movedNode.position.y;
 
-  // Update the moved node's position
-  const updatedNodes = nodes.map(node => 
-    node.id === nodeId ? { ...node, position: snappedPosition } : node
-  );
+  // Get all descendants
+  const descendantIds = getAllDescendants(nodes, nodeId);
+  
+  // Update positions maintaining relative layout but preventing collisions
+  const updatedNodes = nodes.map(node => {
+    if (node.id === nodeId) {
+      // Move the parent to the collision-free position
+      return {
+        ...node,
+        position: collisionFreePosition
+      };
+    } else if (descendantIds.includes(node.id)) {
+      // Move children maintaining their relative positions
+      const newChildPosition = {
+        x: node.position.x + deltaX,
+        y: node.position.y + deltaY
+      };
+      return {
+        ...node,
+        position: snapToGrid(newChildPosition)
+      };
+    }
+    return node;
+  });
 
-  // Reorganize the entire subtree with proper orientation-based layout
+  // Apply smart reorganization to the moved subtree
   return reorganizeSubtree(updatedNodes, nodeId, orientation);
 }
 

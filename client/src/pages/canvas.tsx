@@ -12,13 +12,12 @@ import { type ImpactTree } from "@shared/schema";
 
 export default function CanvasPage() {
   const { id } = useParams();
-  const treeId = id ? parseInt(id) : 1;
+  const treeId = id ? parseInt(id) : 1; // Default to tree 1 if no ID provided
 
   const { data: impactTree, isLoading } = useQuery<ImpactTree>({
     queryKey: ["/api/impact-trees", treeId],
   });
 
-  // Always call useCanvas hook - never conditionally
   const {
     selectedNode,
     contextMenu,
@@ -63,29 +62,22 @@ export default function CanvasPage() {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div className="text-lg font-medium text-gray-700">Loading impact tree...</div>
-        </div>
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg text-gray-600">Loading impact tree...</div>
       </div>
     );
   }
 
   if (!impactTree) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-100">
-        <div className="text-center">
-          <div className="text-6xl text-red-400 mb-4">⚠️</div>
-          <div className="text-xl font-semibold text-red-600">Failed to load impact tree</div>
-          <div className="text-sm text-red-500 mt-2">Please refresh the page or contact support</div>
-        </div>
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg text-red-600">Failed to load impact tree</div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-gray-100">
+    <div className="h-screen flex flex-col bg-gray-50">
       <ProjectHeader 
         projectName={impactTree.name}
         lastSaved={impactTree.updatedAt}
@@ -95,7 +87,7 @@ export default function CanvasPage() {
         onOrientationToggle={handleOrientationToggle}
       />
       
-      <main className="flex-1 relative overflow-hidden">
+      <main className="flex-1 bg-white relative overflow-hidden">
         <ImpactTreeCanvas
           nodes={nodes}
           connections={connections}
