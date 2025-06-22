@@ -108,7 +108,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     // This ensures the new branch fits perfectly without overlaps
     if (parentNode && parentNode.children && parentNode.children.length > 0) {
       // Use the same reorganization system as drag operations
-      updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id);
+      updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id, canvasState.orientation);
     }
 
     setNodes(updatedNodes);
