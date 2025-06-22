@@ -91,6 +91,7 @@ export function TreeNode({
   const [editTitle, setEditTitle] = useState(node.title);
   const [editDescription, setEditDescription] = useState(node.description);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
+  const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
@@ -102,9 +103,9 @@ export function TreeNode({
       e.stopPropagation();
       onSelect(node);
       
-      if (!isEditing) {
+      // Only enable position dragging if not in editing mode and not using attachment dragging
+      if (!isEditing && !e.shiftKey) {
         setIsDragging(true);
-        setDraggedNode(node.id);
         dragRef.current = {
           startX: e.clientX,
           startY: e.clientY,
@@ -154,11 +155,14 @@ export function TreeNode({
     setDraggedNode(null);
   }, []);
 
-  // Drop zone handlers for attachment
+  // Enhanced drop zone handlers for attachment
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-  }, []);
+    if (e.dataTransfer.types.includes('text/plain')) {
+      setDraggedOverNodeId(node.id);
+    }
+  }, [node.id]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -168,6 +172,13 @@ export function TreeNode({
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // Only clear if we're actually leaving this node
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setDraggedOverNodeId(null);
+    }
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -178,16 +189,24 @@ export function TreeNode({
     if (draggedNodeId && draggedNodeId !== node.id && onReattach) {
       onReattach(draggedNodeId, node.id);
     }
+    setDraggedOverNodeId(null);
   }, [node.id, onReattach]);
 
-  // Add drag data when dragging starts
+  // Controlled drag start for attachment - only when Alt key is held
   const handleDragStart = useCallback((e: React.DragEvent) => {
-    e.dataTransfer.setData('text/plain', node.id);
-    setDraggedNode(node.id);
+    // Only allow HTML5 drag when Alt key is held for attachment
+    if (e.altKey) {
+      e.dataTransfer.setData('text/plain', node.id);
+      e.dataTransfer.effectAllowed = 'move';
+      setDraggedNode(node.id);
+    } else {
+      e.preventDefault();
+    }
   }, [node.id]);
 
   const handleDragEnd = useCallback(() => {
     setDraggedNode(null);
+    setDraggedOverNodeId(null);
   }, []);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -233,8 +252,8 @@ export function TreeNode({
         config.className
       } ${isSelected ? 'ring-2 ring-blue-400' : ''} ${isDragging ? 'dragging' : ''} ${
         isEditing ? 'z-50' : ''
-      } ${isDraggedOver ? 'ring-2 ring-green-400 bg-green-50' : ''} ${
-        isDropTarget ? 'ring-2 ring-dashed ring-blue-300' : ''
+      } ${draggedOverNodeId === node.id ? 'ring-2 ring-green-400 bg-green-50' : ''} ${
+        isDropTarget && draggedNode ? 'ring-2 ring-dashed ring-blue-300' : ''
       }`}
       style={{ 
         left: node.position.x, 
@@ -244,6 +263,7 @@ export function TreeNode({
         userSelect: 'none',
       }}
       draggable={!isEditing}
+      title={`${config.label}: ${node.title}${!isEditing ? '\n\nDrag normally to move position\nHold Alt + drag to reattach to other cards' : ''}`}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
@@ -256,7 +276,7 @@ export function TreeNode({
     >
       <div className="bg-white rounded-lg shadow-md p-4 node-created relative">
         {/* Attachment Indicator */}
-        {(isDropTarget || isDraggedOver) && (
+        {(draggedOverNodeId === node.id || (isDropTarget && draggedNode)) && (
           <div className="attachment-indicator">
             <i className="fas fa-plus text-white text-xs"></i>
           </div>
