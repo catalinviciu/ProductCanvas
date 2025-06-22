@@ -10,9 +10,9 @@ interface NodeConnectionsProps {
 
 // Enhanced connection configuration with modern design
 const CONNECTION_CONFIG = {
-  cardWidth: 256,
-  nodeHeight: 120,
-  connectionOffset: 50,
+  cardWidth: 300,
+  nodeHeight: 144,
+  connectionOffset: 60,
   strokeWidth: {
     shadow: 8,
     main: 4,
