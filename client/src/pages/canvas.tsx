@@ -32,6 +32,7 @@ export default function CanvasPage() {
     handleContextMenu,
     handleAddChildFromContext,
     handleNodeReattach,
+    handleToggleCollapse,
     handleAutoLayout,
     closeContextMenu,
     closeEditModal,

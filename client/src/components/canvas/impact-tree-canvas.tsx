@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { TreeNode } from "./tree-node";
 import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
+import { getVisibleNodes, getVisibleConnections } from "@/lib/canvas-utils";
 import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ImpactTreeCanvasProps {
@@ -44,6 +45,10 @@ export function ImpactTreeCanvas({
   const [miniMapDragging, setMiniMapDragging] = useState(false);
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
+
+  // Get only visible nodes and connections
+  const visibleNodes = getVisibleNodes(nodes);
+  const visibleConnections = getVisibleConnections(nodes, connections);
 
   // Calculate dynamic canvas bounds based on nodes
   const getCanvasBounds = useCallback(() => {
@@ -316,13 +321,13 @@ export function ImpactTreeCanvas({
         <div style={canvasStyle}>
           {/* Node Connections */}
           <NodeConnections 
-            connections={connections}
-            nodes={nodes}
+            connections={visibleConnections}
+            nodes={visibleNodes}
             zoom={canvasState.zoom}
           />
 
           {/* Tree Nodes */}
-          {nodes.map((node) => (
+          {visibleNodes.map((node) => (
             <TreeNode
               key={node.id}
               node={node}
@@ -333,6 +338,7 @@ export function ImpactTreeCanvas({
               onDrag={handleNodeDrag}
               onContextMenu={(position) => onContextMenu(node, position)}
               onReattach={onNodeReattach}
+              onToggleCollapse={onToggleCollapse}
               isDropTarget={draggedNodeId !== null && draggedNodeId !== node.id}
               isDraggedOver={draggedOverNodeId === node.id}
             />

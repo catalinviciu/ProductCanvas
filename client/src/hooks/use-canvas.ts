@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -292,6 +292,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(layoutedNodes, undefined, homePosition);
   }, [nodes, saveTree]);
 
+  const handleToggleCollapse = useCallback((nodeId: string) => {
+    const updatedNodes = toggleNodeCollapse(nodes, nodeId);
+    setNodes(updatedNodes);
+    saveTree(updatedNodes);
+  }, [nodes, saveTree]);
+
   return {
     selectedNode,
     contextMenu,
@@ -307,6 +313,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     handleContextMenu,
     handleAddChildFromContext,
     handleNodeReattach,
+    handleToggleCollapse,
     handleAutoLayout,
     closeContextMenu,
     closeEditModal,
