@@ -206,9 +206,15 @@ export function TreeNode({
     
     const draggedNodeId = e.dataTransfer.getData('text/plain');
     if (draggedNodeId && draggedNodeId !== node.id && onReattach) {
+      // Automatically handle the reattachment with smart positioning
       onReattach(draggedNodeId, node.id);
+      
+      // Clear drag state immediately to avoid requiring extra click
+      setDraggedNode(null);
+      setDraggedOverNodeId(null);
+    } else {
+      setDraggedOverNodeId(null);
     }
-    setDraggedOverNodeId(null);
   }, [node.id, onReattach]);
 
   // Controlled drag start for attachment - only when Alt key is held
@@ -223,10 +229,19 @@ export function TreeNode({
     }
   }, [node.id]);
 
-  const handleDragEnd = useCallback(() => {
+  const handleDragEnd = useCallback((e: React.DragEvent) => {
+    // Clear all drag states immediately when drag ends
     setDraggedNode(null);
     setDraggedOverNodeId(null);
-  }, []);
+    
+    // Force deselect any selected state to avoid requiring extra clicks
+    if (e.dataTransfer.dropEffect === 'move') {
+      // The drop was successful, automatically deselect
+      setTimeout(() => {
+        onSelect(null);
+      }, 50);
+    }
+  }, [onSelect]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
