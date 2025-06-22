@@ -812,39 +812,16 @@ export function moveNodeWithChildren(
   const movedNode = nodeMap.get(nodeId);
   if (!movedNode) return nodes;
 
-  // Find collision-free position
-  const collisionFreePosition = findCollisionFreePosition(nodes, nodeId, newPosition);
-  
-  // Calculate position delta from collision-free position
-  const deltaX = collisionFreePosition.x - movedNode.position.x;
-  const deltaY = collisionFreePosition.y - movedNode.position.y;
+  // Apply smart positioning to prevent overlaps
+  const adjustedPosition = preventOverlap(nodes, movedNode, newPosition);
+  const snappedPosition = snapToGrid(adjustedPosition);
 
-  // Get all descendants
-  const descendantIds = getAllDescendants(nodes, nodeId);
-  
-  // Update positions maintaining relative layout but preventing collisions
-  const updatedNodes = nodes.map(node => {
-    if (node.id === nodeId) {
-      // Move the parent to the collision-free position
-      return {
-        ...node,
-        position: collisionFreePosition
-      };
-    } else if (descendantIds.includes(node.id)) {
-      // Move children maintaining their relative positions
-      const newChildPosition = {
-        x: node.position.x + deltaX,
-        y: node.position.y + deltaY
-      };
-      return {
-        ...node,
-        position: snapToGrid(newChildPosition)
-      };
-    }
-    return node;
-  });
+  // Update the moved node's position
+  const updatedNodes = nodes.map(node => 
+    node.id === nodeId ? { ...node, position: snappedPosition } : node
+  );
 
-  // Apply smart reorganization to the moved subtree
+  // Reorganize the entire subtree with proper orientation-based layout
   return reorganizeSubtree(updatedNodes, nodeId, orientation);
 }
 

@@ -349,12 +349,12 @@ export const TreeNode = memo(function TreeNode({
   const nodeClasses = `
     absolute w-64 transition-all duration-300 ease-out
     ${config.className}
-    ${isSelected ? 'ring-2 ring-blue-400 shadow-xl scale-105' : 'hover:shadow-lg hover:scale-102'}
+    ${isSelected ? 'shadow-xl scale-105' : 'hover:shadow-lg hover:scale-102'}
     ${isDragging ? 'dragging scale-110 shadow-2xl rotate-1 z-50' : ''}
-    ${isEditing ? 'z-50 ring-2 ring-green-400' : ''}
-    ${draggedOverNodeId === node.id ? 'ring-2 ring-emerald-400 bg-emerald-50 scale-105' : ''}
-    ${isDropTarget && draggedNode ? 'ring-2 ring-dashed ring-blue-300 animate-pulse' : ''}
-    ${isDraggedOver ? 'ring-2 ring-yellow-400 bg-yellow-50 scale-102' : ''}
+    ${isEditing ? 'z-50' : ''}
+    ${draggedOverNodeId === node.id ? 'bg-emerald-50 scale-105' : ''}
+    ${isDropTarget && draggedNode ? 'animate-pulse' : ''}
+    ${isDraggedOver ? 'bg-yellow-50 scale-102' : ''}
     ${isHovered ? 'shadow-lg' : ''}
   `.trim();
 
@@ -542,7 +542,7 @@ export const TreeNode = memo(function TreeNode({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className={`absolute w-6 h-6 rounded-full text-xs font-bold
+              className={`absolute w-8 h-8 rounded-full text-sm font-bold
                        flex items-center justify-center cursor-pointer
                        shadow-md hover:shadow-lg transition-all duration-200
                        border-2 border-white z-20 ${
@@ -551,8 +551,8 @@ export const TreeNode = memo(function TreeNode({
                            : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                        } ${
                          orientation === 'horizontal' 
-                           ? '-left-7 top-1/2 -translate-y-1/2' 
-                           : '-top-7 left-1/2 -translate-x-1/2'
+                           ? '-left-10 top-1/2 -translate-y-1/2' 
+                           : '-top-10 left-1/2 -translate-x-1/2'
                        }`}
               style={{ pointerEvents: 'all' }}
               title={`${isHidden ? 'Show' : 'Hide'} ${node.title} branch`}
@@ -569,14 +569,14 @@ export const TreeNode = memo(function TreeNode({
               e.stopPropagation();
               onToggleCollapse?.(node.id);
             }}
-            className={`absolute w-6 h-6 
+            className={`absolute w-8 h-8 
                      bg-blue-500 hover:bg-blue-600 text-white rounded-full 
-                     flex items-center justify-center text-xs font-bold
+                     flex items-center justify-center text-sm font-bold
                      shadow-md hover:shadow-lg transition-all duration-200
                      border-2 border-white z-10 ${
                        orientation === 'horizontal' 
-                         ? '-right-3 top-1/2 -translate-y-1/2' 
-                         : '-bottom-3 left-1/2 -translate-x-1/2'
+                         ? '-right-4 top-1/2 -translate-y-1/2' 
+                         : '-bottom-4 left-1/2 -translate-x-1/2'
                      }`}
             title={areAllChildrenHidden(node) ? 'Expand all children' : 'Collapse all children'}
           >
