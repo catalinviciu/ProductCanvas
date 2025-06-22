@@ -349,14 +349,14 @@ const TreeNodeComponent = memo(function TreeNode({
     const baseClass = `absolute w-75 transition-all duration-200 tree-node-container ${config.className}`;
     const stateClasses = [];
     
-    if (isSelected) stateClasses.push('ring-2 ring-blue-400 shadow-lg');
+    if (isSelected) stateClasses.push('shadow-lg');
     else stateClasses.push('hover:shadow-lg');
     
     if (isDragging) stateClasses.push('dragging scale-105 shadow-2xl rotate-1 z-50');
     if (isEditing) stateClasses.push('editing z-50');
-    if (draggedOverNodeId === node.id) stateClasses.push('ring-2 ring-green-400 bg-green-50 scale-102');
-    if (isDropTarget && draggedNode) stateClasses.push('ring-2 ring-dashed ring-blue-300 animate-pulse');
-    if (isDraggedOver) stateClasses.push('ring-2 ring-yellow-400 bg-yellow-50');
+    if (draggedOverNodeId === node.id) stateClasses.push('bg-green-50 scale-102');
+    if (isDropTarget && draggedNode) stateClasses.push('animate-pulse');
+    if (isDraggedOver) stateClasses.push('bg-yellow-50');
     
     return `${baseClass} ${stateClasses.join(' ')}`;
   }, [config.className, isSelected, isDragging, isEditing, draggedOverNodeId, node.id, isDropTarget, draggedNode, isDraggedOver]);
@@ -432,7 +432,7 @@ const TreeNodeComponent = memo(function TreeNode({
                   e.preventDefault();
                   e.stopPropagation();
                   const rect = e.currentTarget.getBoundingClientRect();
-                  onContextMenu(node, { x: rect.right, y: rect.bottom });
+                  onContextMenu({ x: rect.right, y: rect.bottom });
                 }}
                 className="action-btn-compact"
                 title="More options"
