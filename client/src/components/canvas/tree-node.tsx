@@ -426,40 +426,37 @@ export function TreeNode({
           </div>
         )}
 
-        {/* Individual Child Toggle Buttons */}
-        {node.children.length > 0 && !node.isCollapsed && (
-          <div className={`absolute flex ${
-            orientation === 'horizontal' 
-              ? 'flex-col -right-8 top-2 space-y-1' 
-              : 'flex-row -bottom-8 left-2 space-x-1'
-          }`}>
-            {node.children.map((childId, index) => {
-              const childNode = allNodes.find(n => n.id === childId);
-              const isHidden = isChildHidden(node, childId);
-              
-              return (
-                <button
-                  key={childId}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleChildVisibility?.(node.id, childId);
-                  }}
-                  className={`w-4 h-4 rounded-full text-xs font-bold
-                           flex items-center justify-center
-                           shadow-sm hover:shadow-md transition-all duration-200
-                           border border-white z-10 ${
-                             isHidden 
-                               ? 'bg-gray-400 hover:bg-gray-500 text-white opacity-60' 
-                               : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                           }`}
-                  title={`${isHidden ? 'Show' : 'Hide'} ${childNode?.title || 'child'} branch`}
-                >
-                  {isHidden ? '+' : '−'}
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {/* Individual Child Toggle Button - Show on visible child nodes */}
+        {node.parentId && (() => {
+          const parentNode = allNodes.find(n => n.id === node.parentId);
+          if (!parentNode || parentNode.isCollapsed) return null;
+          
+          const isHidden = isChildHidden(parentNode, node.id);
+          
+          return (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleChildVisibility?.(node.parentId!, node.id);
+              }}
+              className={`absolute w-4 h-4 rounded-full text-xs font-bold
+                       flex items-center justify-center
+                       shadow-sm hover:shadow-md transition-all duration-200
+                       border border-white z-10 ${
+                         isHidden 
+                           ? 'bg-gray-400 hover:bg-gray-500 text-white opacity-60' 
+                           : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                       } ${
+                         orientation === 'horizontal' 
+                           ? '-left-6 top-1/2 -translate-y-1/2' 
+                           : '-top-6 left-1/2 -translate-x-1/2'
+                       }`}
+              title={`${isHidden ? 'Show' : 'Hide'} ${node.title} branch`}
+            >
+              {isHidden ? '+' : '−'}
+            </button>
+          );
+        })()}
 
         {/* Master Collapse/Expand Button */}
         {node.children.length > 0 && (

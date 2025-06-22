@@ -351,6 +351,37 @@ export function ImpactTreeCanvas({
               orientation={canvasState.orientation}
             />
           ))}
+
+          {/* Ghost Toggle Buttons for Hidden Children */}
+          {visibleNodes.map((node) => {
+            if (node.isCollapsed || !node.hiddenChildren?.length) return null;
+            
+            return node.hiddenChildren.map((hiddenChildId) => {
+              const hiddenChild = nodes.find(n => n.id === hiddenChildId);
+              if (!hiddenChild) return null;
+              
+              return (
+                <button
+                  key={`ghost-${hiddenChildId}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleChildVisibility(node.id, hiddenChildId);
+                  }}
+                  className={`absolute w-4 h-4 rounded-full text-xs font-bold
+                           flex items-center justify-center
+                           shadow-sm hover:shadow-md transition-all duration-200
+                           border border-white z-10 bg-gray-400 hover:bg-gray-500 text-white opacity-60`}
+                  style={{
+                    left: hiddenChild.position.x + (canvasState.orientation === 'horizontal' ? -24 : 128),
+                    top: hiddenChild.position.y + (canvasState.orientation === 'horizontal' ? 80 : -24),
+                  }}
+                  title={`Show ${hiddenChild.title} branch`}
+                >
+                  +
+                </button>
+              );
+            });
+          }).flat()}
         </div>
       </div>
 
