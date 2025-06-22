@@ -92,6 +92,7 @@ export function TreeNode({
   const [editDescription, setEditDescription] = useState(node.description);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
+  const [isMovingWithParent, setIsMovingWithParent] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number }>({ 
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
@@ -263,7 +264,7 @@ export function TreeNode({
         userSelect: 'none',
       }}
       draggable={!isEditing}
-      title={`${config.label}: ${node.title}${!isEditing ? '\n\nDrag normally to move position\nHold Alt + drag to reattach to other cards' : ''}`}
+      title={`${config.label}: ${node.title}${!isEditing ? `\n\nDrag to move ${node.children.length > 0 ? '(children will follow)' : 'position'}\nHold Alt + drag to reattach to other cards` : ''}`}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
@@ -349,12 +350,21 @@ export function TreeNode({
         {!isEditing && (
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1">
-              <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                <span className="text-xs text-gray-600">{node.children.length}</span>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                node.children.length > 0 ? 'bg-blue-100 border border-blue-200' : 'bg-gray-100'
+              }`}>
+                <span className={`text-xs ${
+                  node.children.length > 0 ? 'text-blue-600 font-medium' : 'text-gray-600'
+                }`}>
+                  {node.children.length}
+                </span>
               </div>
               <span className="text-xs text-gray-500">
                 {node.children.length === 1 ? 'child' : 'children'}
               </span>
+              {node.children.length > 0 && (
+                <i className="fas fa-sitemap text-xs text-blue-500" title="Moving this card will reorganize all children"></i>
+              )}
             </div>
             
             {node.type === 'assumption' && node.testCategory && (

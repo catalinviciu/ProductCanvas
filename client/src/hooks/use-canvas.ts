@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -127,21 +127,28 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
-    // Apply smart positioning to prevent overlaps when moving nodes
-    const adjustedPosition = preventOverlap(nodes, updatedNode, updatedNode.position);
-    const snappedPosition = snapToGrid(adjustedPosition);
-    
-    const finalNode = {
-      ...updatedNode,
-      position: snappedPosition
-    };
-    
-    const updatedNodes = nodes.map(node => 
-      node.id === updatedNode.id ? finalNode : node
-    );
-    
-    setNodes(updatedNodes);
-    saveTree(updatedNodes);
+    // Check if this node has children - if so, move the entire subtree
+    if (updatedNode.children && updatedNode.children.length > 0) {
+      const updatedNodes = moveNodeWithChildren(nodes, updatedNode.id, updatedNode.position);
+      setNodes(updatedNodes);
+      saveTree(updatedNodes);
+    } else {
+      // Apply smart positioning to prevent overlaps for leaf nodes
+      const adjustedPosition = preventOverlap(nodes, updatedNode, updatedNode.position);
+      const snappedPosition = snapToGrid(adjustedPosition);
+      
+      const finalNode = {
+        ...updatedNode,
+        position: snappedPosition
+      };
+      
+      const updatedNodes = nodes.map(node => 
+        node.id === updatedNode.id ? finalNode : node
+      );
+      
+      setNodes(updatedNodes);
+      saveTree(updatedNodes);
+    }
   }, [nodes, saveTree]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {

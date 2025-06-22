@@ -204,6 +204,107 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode): 
   return preventOverlap(nodes, { id: 'temp', type: 'outcome', title: '', description: '', position: { x: 0, y: 0 }, children: [] }, targetPosition);
 }
 
+// Move parent and reorganize all children in a clean layout
+export function moveNodeWithChildren(
+  nodes: TreeNode[], 
+  nodeId: string, 
+  newPosition: { x: number; y: number }
+): TreeNode[] {
+  const nodeMap = new Map<string, TreeNode>();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const movedNode = nodeMap.get(nodeId);
+  if (!movedNode) return nodes;
+
+  // Calculate position delta
+  const deltaX = newPosition.x - movedNode.position.x;
+  const deltaY = newPosition.y - movedNode.position.y;
+
+  // Recursively get all descendants
+  const getAllDescendants = (parentId: string): string[] => {
+    const parent = nodeMap.get(parentId);
+    if (!parent) return [];
+    
+    let descendants: string[] = [];
+    parent.children.forEach(childId => {
+      descendants.push(childId);
+      descendants = descendants.concat(getAllDescendants(childId));
+    });
+    return descendants;
+  };
+
+  const descendantIds = getAllDescendants(nodeId);
+  
+  // Update positions maintaining relative layout but with proper organization
+  const updatedNodes = nodes.map(node => {
+    if (node.id === nodeId) {
+      // Move the parent to the new position
+      return {
+        ...node,
+        position: snapToGrid(newPosition)
+      };
+    } else if (descendantIds.includes(node.id)) {
+      // Move children maintaining their relative positions but reorganized
+      const newChildPosition = {
+        x: node.position.x + deltaX,
+        y: node.position.y + deltaY
+      };
+      return {
+        ...node,
+        position: snapToGrid(newChildPosition)
+      };
+    }
+    return node;
+  });
+
+  // Apply smart reorganization to the moved subtree
+  return reorganizeSubtree(updatedNodes, nodeId);
+}
+
+// Reorganize a subtree to maintain clean hierarchical layout
+export function reorganizeSubtree(nodes: TreeNode[], rootNodeId: string): TreeNode[] {
+  const nodeMap = new Map<string, TreeNode>();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const rootNode = nodeMap.get(rootNodeId);
+  if (!rootNode) return nodes;
+
+  const updatedNodes = [...nodes];
+  const levelSpacing = 180;
+  const siblingSpacing = 280;
+
+  const layoutSubtree = (nodeId: string, x: number, y: number, level: number) => {
+    const node = nodeMap.get(nodeId);
+    if (!node) return;
+
+    // Update node position
+    const nodeIndex = updatedNodes.findIndex(n => n.id === nodeId);
+    if (nodeIndex !== -1) {
+      updatedNodes[nodeIndex] = {
+        ...updatedNodes[nodeIndex],
+        position: snapToGrid({ x, y })
+      };
+    }
+
+    // Layout children
+    if (node.children.length > 0) {
+      const childY = y + levelSpacing;
+      let childX = x;
+
+      // Center children under parent
+      const totalChildWidth = (node.children.length - 1) * siblingSpacing;
+      childX = x - totalChildWidth / 2;
+
+      node.children.forEach((childId, index) => {
+        layoutSubtree(childId, childX + (index * siblingSpacing), childY, level + 1);
+      });
+    }
+  };
+
+  layoutSubtree(rootNodeId, rootNode.position.x, rootNode.position.y, 0);
+  return updatedNodes;
+}
+
 export function getHomePosition(nodes: TreeNode[]): { zoom: number; pan: { x: number; y: number } } {
   // If no nodes, position at top-left corner
   if (nodes.length === 0) {
