@@ -15,9 +15,9 @@ const CONNECTION_CONFIG = {
   cardHeight: 144, // Fixed card height - no extension for children
   connectionOffset: 40,
   strokeWidth: {
-    shadow: 10,
-    main: 6,
-    hover: 8,
+    shadow: 3,
+    main: 2,
+    hover: 3,
   },
   colors: {
     main: '#6366F1',
@@ -194,7 +194,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
           <path
             d={path}
             stroke="url(#modernConnectionGradient)"
-            strokeWidth={Math.max((strokeWidth.shadow + 2) / zoom, 6)}
+            strokeWidth={Math.max((strokeWidth.shadow + 2) / zoom, 2)}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -207,7 +207,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
           <path
             d={path}
             stroke={CONNECTION_CONFIG.colors.main}
-            strokeWidth={Math.max(strokeWidth.main / zoom, 1.5)}
+            strokeWidth={Math.max(strokeWidth.main / zoom, 0.5)}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -219,7 +219,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
           <path
             d={path}
             stroke={CONNECTION_CONFIG.colors.shadow}
-            strokeWidth={Math.max(strokeWidth.shadow / zoom, 4)}
+            strokeWidth={Math.max(strokeWidth.shadow / zoom, 1.5)}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -231,7 +231,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
           <path
             d={path}
             stroke="url(#modernConnectionGradient)"
-            strokeWidth={Math.max(strokeWidth.main / zoom, 2)}
+            strokeWidth={Math.max(strokeWidth.main / zoom, 0.7)}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
