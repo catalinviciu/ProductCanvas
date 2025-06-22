@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
+import { throttle } from "@/lib/performance-utils";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -121,6 +122,14 @@ export function TreeNode({
     }
   }, [node, onSelect, isEditing]);
 
+  // Throttled drag handler for better performance
+  const throttledDragHandler = useCallback(
+    throttle((position: { x: number; y: number }) => {
+      onDrag(node.id, position);
+    }, 16), // ~60fps
+    [node.id, onDrag]
+  );
+
   // Global mouse event handlers for smooth dragging
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
@@ -134,7 +143,7 @@ export function TreeNode({
           y: dragRef.current.nodeY + deltaY,
         };
         
-        onDrag(node.id, newPosition);
+        throttledDragHandler(newPosition);
       }
     };
 
@@ -253,19 +262,25 @@ export function TreeNode({
 
   return (
     <div
-      className={`absolute w-64 hover:shadow-lg transition-all tree-node-container ${
+      className={`absolute w-64 transition-all duration-200 tree-node-container ${
         config.className
-      } ${isSelected ? 'ring-2 ring-blue-400' : ''} ${isDragging ? 'dragging' : ''} ${
-        isEditing ? 'z-50' : ''
-      } ${draggedOverNodeId === node.id ? 'ring-2 ring-green-400 bg-green-50' : ''} ${
-        isDropTarget && draggedNode ? 'ring-2 ring-dashed ring-blue-300' : ''
+      } ${isSelected ? 'ring-2 ring-blue-400 shadow-lg' : 'hover:shadow-lg'} ${
+        isDragging ? 'dragging scale-105 shadow-2xl rotate-1 z-50' : ''
+      } ${isEditing ? 'z-50' : ''} ${
+        draggedOverNodeId === node.id ? 'ring-2 ring-green-400 bg-green-50 scale-102' : ''
+      } ${
+        isDropTarget && draggedNode ? 'ring-2 ring-dashed ring-blue-300 animate-pulse' : ''
+      } ${
+        isDraggedOver ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''
       }`}
       style={{ 
         left: node.position.x, 
         top: node.position.y,
-        zIndex: isSelected ? 10 : 1,
-        cursor: isDragging ? 'grabbing' : 'grab',
+        zIndex: isDragging ? 100 : isSelected ? 20 : isEditing ? 50 : 1,
+        cursor: isDragging ? 'grabbing' : isEditing ? 'text' : 'grab',
         userSelect: 'none',
+        transform: isDragging ? 'rotate(2deg) scale(1.05)' : 'none',
+        boxShadow: isDragging ? '0 20px 40px rgba(0,0,0,0.15)' : undefined,
       }}
       draggable={!isEditing}
       title={`${config.label}: ${node.title}${!isEditing ? `\n\nDrag to move ${node.children.length > 0 ? '(children will follow)' : 'position'}\nHold Alt + drag to reattach to other cards` : ''}`}
