@@ -39,6 +39,7 @@ export interface TreeNode {
   testCategory?: TestCategory;
   children: string[];
   isCollapsed?: boolean;
+  hiddenChildren?: string[]; // Track which specific children are hidden
 }
 
 export interface NodeConnection {

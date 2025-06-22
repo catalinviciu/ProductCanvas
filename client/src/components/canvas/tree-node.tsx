@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
+import { isChildHidden } from "@/lib/canvas-utils";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -12,6 +13,8 @@ interface TreeNodeProps {
   onContextMenu: (position: { x: number; y: number }) => void;
   onReattach?: (nodeId: string, newParentId: string | null) => void;
   onToggleCollapse?: (nodeId: string) => void;
+  onToggleChildVisibility?: (parentId: string, childId: string) => void;
+  allNodes?: TreeNodeType[]; // Needed to get child node info for individual toggles
   isDropTarget?: boolean;
   isDraggedOver?: boolean;
   orientation?: 'horizontal' | 'vertical';
@@ -87,6 +90,8 @@ export function TreeNode({
   onContextMenu,
   onReattach,
   onToggleCollapse,
+  onToggleChildVisibility,
+  allNodes = [],
   isDropTarget = false,
   isDraggedOver = false,
   orientation = 'horizontal',
@@ -421,7 +426,42 @@ export function TreeNode({
           </div>
         )}
 
-        {/* Collapse/Expand Button */}
+        {/* Individual Child Toggle Buttons */}
+        {node.children.length > 0 && !node.isCollapsed && (
+          <div className={`absolute flex ${
+            orientation === 'horizontal' 
+              ? 'flex-col -right-8 top-2 space-y-1' 
+              : 'flex-row -bottom-8 left-2 space-x-1'
+          }`}>
+            {node.children.map((childId, index) => {
+              const childNode = allNodes.find(n => n.id === childId);
+              const isHidden = isChildHidden(node, childId);
+              
+              return (
+                <button
+                  key={childId}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleChildVisibility?.(node.id, childId);
+                  }}
+                  className={`w-4 h-4 rounded-full text-xs font-bold
+                           flex items-center justify-center
+                           shadow-sm hover:shadow-md transition-all duration-200
+                           border border-white z-10 ${
+                             isHidden 
+                               ? 'bg-gray-400 hover:bg-gray-500 text-white opacity-60' 
+                               : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                           }`}
+                  title={`${isHidden ? 'Show' : 'Hide'} ${childNode?.title || 'child'} branch`}
+                >
+                  {isHidden ? '+' : '−'}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Master Collapse/Expand Button */}
         {node.children.length > 0 && (
           <button
             onClick={(e) => {
@@ -437,7 +477,7 @@ export function TreeNode({
                          ? '-right-3 top-1/2 -translate-y-1/2' 
                          : '-bottom-3 left-1/2 -translate-x-1/2'
                      }`}
-            title={node.isCollapsed ? 'Expand children' : 'Collapse children'}
+            title={node.isCollapsed ? 'Expand all children' : 'Collapse all children'}
           >
             {node.isCollapsed ? '+' : '−'}
           </button>

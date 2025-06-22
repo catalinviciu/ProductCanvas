@@ -211,7 +211,7 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
   return layoutNodes;
 }
 
-// Get visible nodes (excluding collapsed subtrees)
+// Get visible nodes (excluding collapsed subtrees and hidden children)
 export function getVisibleNodes(nodes: TreeNode[]): TreeNode[] {
   const nodeMap = new Map<string, TreeNode>();
   nodes.forEach(n => nodeMap.set(n.id, n));
@@ -233,7 +233,11 @@ export function getVisibleNodes(nodes: TreeNode[]): TreeNode[] {
     
     // Only traverse children if node is not collapsed
     if (!node.isCollapsed && node.children.length > 0) {
-      node.children.forEach(childId => traverseVisible(childId));
+      // Filter out hidden children
+      const visibleChildren = node.children.filter(childId => 
+        !node.hiddenChildren?.includes(childId)
+      );
+      visibleChildren.forEach(childId => traverseVisible(childId));
     }
   };
   
@@ -258,6 +262,45 @@ export function toggleNodeCollapse(nodes: TreeNode[], nodeId: string): TreeNode[
       ? { ...node, isCollapsed: !node.isCollapsed }
       : node
   );
+}
+
+// Toggle visibility of a specific child node
+export function toggleChildVisibility(nodes: TreeNode[], parentId: string, childId: string): TreeNode[] {
+  return nodes.map(node => {
+    if (node.id === parentId) {
+      const hiddenChildren = node.hiddenChildren || [];
+      const isCurrentlyHidden = hiddenChildren.includes(childId);
+      
+      return {
+        ...node,
+        hiddenChildren: isCurrentlyHidden
+          ? hiddenChildren.filter(id => id !== childId)
+          : [...hiddenChildren, childId]
+      };
+    }
+    return node;
+  });
+}
+
+// Get visible child nodes for a parent (excluding hidden ones)
+export function getVisibleChildNodes(node: TreeNode, allNodes: TreeNode[]): TreeNode[] {
+  if (!node.children.length) return [];
+  
+  const nodeMap = new Map<string, TreeNode>();
+  allNodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const visibleChildIds = node.children.filter(childId => 
+    !node.hiddenChildren?.includes(childId)
+  );
+  
+  return visibleChildIds
+    .map(id => nodeMap.get(id))
+    .filter((n): n is TreeNode => n !== undefined);
+}
+
+// Check if a child node is hidden
+export function isChildHidden(parentNode: TreeNode, childId: string): boolean {
+  return parentNode.hiddenChildren?.includes(childId) || false;
 }
 
 // Snap position to grid for clean alignment
