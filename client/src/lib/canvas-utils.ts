@@ -127,7 +127,7 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
         const existingNodesAtLevel = layoutNodes.filter(n => Math.abs(n.position.x - childX) < 50);
         if (existingNodesAtLevel.length > 0) {
           const maxY = Math.max(...existingNodesAtLevel.map(n => n.position.y));
-          childY = Math.max(childY, maxY + 200); // Add buffer space
+          childY = Math.max(childY, maxY + siblingSpacing); // Use consistent 15% buffer spacing
         }
 
         visibleChildren.forEach(childId => {
@@ -144,7 +144,7 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
   let rootY = 200;
   rootNodes.forEach((root, index) => {
     if (index > 0) {
-      rootY += getSubtreeHeight(root.id) * siblingSpacing + 300; // Extra spacing between trees
+      rootY += getSubtreeHeight(root.id) * siblingSpacing + (siblingSpacing * 2); // Use consistent 15% buffer spacing between trees
     }
     layoutTree(root.id, 100, rootY, 0);
   });
@@ -232,7 +232,7 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
   rootNodes.forEach((root, index) => {
     if (index > 0) {
       // Add spacing between separate root trees
-      currentX += getSubtreeWidth(root.id) * siblingSpacing + 400;
+      currentX += getSubtreeWidth(root.id) * siblingSpacing + (siblingSpacing * 2);
     }
     
     // Center the root tree based on its total width
@@ -479,7 +479,8 @@ export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosit
     if (!hasOverlap) break;
     
     // Apply calculated movement with distance adjusted for new card dimensions
-    const pushDistance = 320;
+    const cardWidth = 300;
+    const pushDistance = cardWidth + Math.round(cardWidth * 0.15); // 15% buffer spacing
     adjustedPosition.x += bestDirection.x * pushDistance;
     adjustedPosition.y += bestDirection.y * pushDistance;
     
@@ -506,14 +507,18 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
       const rightmostRoot = rootNodes.reduce((max, node) => 
         node.position.x > max.position.x ? node : max, rootNodes[0]);
       
-      const initialPosition = { x: rightmostRoot.position.x + 400, y: rightmostRoot.position.y };
+      const cardWidth = 300;
+      const bufferWidth = Math.round(cardWidth * 0.15);
+      const initialPosition = { x: rightmostRoot.position.x + cardWidth + bufferWidth, y: rightmostRoot.position.y };
       return findOptimalPosition(visibleNodes, initialPosition);
     } else {
       // Position below existing root nodes in vertical layout
       const bottommostRoot = rootNodes.reduce((max, node) => 
         node.position.y > max.position.y ? node : max, rootNodes[0]);
       
-      const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + 400 };
+      const cardHeight = 144;
+      const bufferHeight = Math.round(cardHeight * 0.15);
+      const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + cardHeight + bufferHeight };
       return findOptimalPosition(visibleNodes, initialPosition);
     }
   }
@@ -522,8 +527,10 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
   
   if (orientation === 'horizontal') {
     // Position child nodes to the right of parent (horizontal layout)
+    const cardWidth = 300;
+    const bufferWidth = Math.round(cardWidth * 0.15);
     const basePosition = {
-      x: parentNode.position.x + 350,
+      x: parentNode.position.x + cardWidth + bufferWidth,
       y: parentNode.position.y
     };
 
