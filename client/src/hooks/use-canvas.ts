@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, handleBranchDrag } from "@/lib/canvas-utils";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -127,28 +127,16 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
-    // Check if this node has children - if so, move the entire subtree
-    if (updatedNode.children && updatedNode.children.length > 0) {
-      const updatedNodes = moveNodeWithChildren(nodes, updatedNode.id, updatedNode.position);
-      setNodes(updatedNodes);
-      saveTree(updatedNodes);
-    } else {
-      // Apply smart positioning to prevent overlaps for leaf nodes
-      const adjustedPosition = preventOverlap(nodes, updatedNode, updatedNode.position);
-      const snappedPosition = snapToGrid(adjustedPosition);
-      
-      const finalNode = {
-        ...updatedNode,
-        position: snappedPosition
-      };
-      
-      const updatedNodes = nodes.map(node => 
-        node.id === updatedNode.id ? finalNode : node
-      );
-      
-      setNodes(updatedNodes);
-      saveTree(updatedNodes);
-    }
+    // Use comprehensive branch drag system that handles both single nodes and complex branches
+    const updatedNodes = handleBranchDrag(nodes, updatedNode.id, updatedNode.position);
+    
+    // Apply any other node updates (title, description, etc.) that aren't position-related
+    const finalNodes = updatedNodes.map(node => 
+      node.id === updatedNode.id ? { ...updatedNode, position: node.position } : node
+    );
+    
+    setNodes(finalNodes);
+    saveTree(finalNodes);
   }, [nodes, saveTree]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
@@ -168,7 +156,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     
     if (newParentId && isDescendant(nodeId, newParentId)) return;
 
-    const updatedNodes = [...nodes];
+    let updatedNodes = [...nodes];
     const updatedConnections = [...connections];
 
     // Remove from old parent
@@ -199,7 +187,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       };
     }
 
-    // Add to new parent
+    // Add to new parent and get smart positioning
     if (newParentId) {
       const newParentIndex = updatedNodes.findIndex(n => n.id === newParentId);
       if (newParentIndex !== -1) {
@@ -212,6 +200,50 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       // Create new connection
       const connection = createConnection(newParentId, nodeId);
       updatedConnections.push(connection);
+      
+      // Calculate smart position for the reattached branch
+      const newParent = updatedNodes[newParentIndex];
+      if (newParent) {
+        const smartPosition = getSmartNodePosition(updatedNodes, newParent);
+        
+        // Apply collision-free positioning for the entire branch being moved
+        if (nodeToReattach.children && nodeToReattach.children.length > 0) {
+          // This is a branch with children - use comprehensive collision detection
+          updatedNodes = moveNodeWithChildren(updatedNodes, nodeId, smartPosition);
+        } else {
+          // Single node - use simple positioning
+          const adjustedPosition = preventOverlap(updatedNodes, nodeToReattach, smartPosition);
+          const snappedPosition = snapToGrid(adjustedPosition);
+          
+          const nodeToUpdateIndex = updatedNodes.findIndex(n => n.id === nodeId);
+          if (nodeToUpdateIndex !== -1) {
+            updatedNodes[nodeToUpdateIndex] = {
+              ...updatedNodes[nodeToUpdateIndex],
+              position: snappedPosition
+            };
+          }
+        }
+      }
+    } else {
+      // Moving to root level - find a good position among other root nodes
+      const rootPosition = getSmartNodePosition(updatedNodes);
+      
+      if (nodeToReattach.children && nodeToReattach.children.length > 0) {
+        // Branch with children
+        updatedNodes = moveNodeWithChildren(updatedNodes, nodeId, rootPosition);
+      } else {
+        // Single node
+        const adjustedPosition = preventOverlap(updatedNodes, nodeToReattach, rootPosition);
+        const snappedPosition = snapToGrid(adjustedPosition);
+        
+        const nodeToUpdateIndex = updatedNodes.findIndex(n => n.id === nodeId);
+        if (nodeToUpdateIndex !== -1) {
+          updatedNodes[nodeToUpdateIndex] = {
+            ...updatedNodes[nodeToUpdateIndex],
+            position: snappedPosition
+          };
+        }
+      }
     }
 
     setNodes(updatedNodes);

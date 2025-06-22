@@ -210,6 +210,7 @@ export function ImpactTreeCanvas({
   const handleNodeDrag = useCallback((nodeId: string, newPosition: { x: number; y: number }) => {
     const node = nodes.find(n => n.id === nodeId);
     if (node) {
+      // Use the enhanced collision detection system that handles branches with sub-branches
       onNodeUpdate({ ...node, position: newPosition });
     }
   }, [nodes, onNodeUpdate]);

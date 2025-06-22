@@ -417,6 +417,33 @@ export function findCollisionFreePosition(
   return snapToGrid(hasCollision(fallbackPos) ? { x: targetPosition.x, y: targetPosition.y + 400 } : fallbackPos);
 }
 
+// Handle branch-level drag operations with comprehensive collision detection
+export function handleBranchDrag(
+  nodes: TreeNode[],
+  nodeId: string,
+  newPosition: { x: number; y: number }
+): TreeNode[] {
+  const nodeMap = new Map<string, TreeNode>();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+  
+  const draggedNode = nodeMap.get(nodeId);
+  if (!draggedNode) return nodes;
+
+  // Check if this is a branch (has children) or single node
+  if (draggedNode.children && draggedNode.children.length > 0) {
+    // This is a branch - use comprehensive collision detection
+    return moveNodeWithChildren(nodes, nodeId, newPosition);
+  } else {
+    // Single node - use simple collision detection
+    const adjustedPosition = preventOverlap(nodes, draggedNode, newPosition);
+    const snappedPosition = snapToGrid(adjustedPosition);
+    
+    return nodes.map(node => 
+      node.id === nodeId ? { ...node, position: snappedPosition } : node
+    );
+  }
+}
+
 // Move parent and reorganize all children in a clean layout
 export function moveNodeWithChildren(
   nodes: TreeNode[], 
