@@ -194,7 +194,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
           <path
             d={path}
             stroke="url(#modernConnectionGradient)"
-            strokeWidth={(strokeWidth.shadow + 2) / zoom}
+            strokeWidth={Math.max((strokeWidth.shadow + 2) / zoom, 6)}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -203,11 +203,23 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
             className="connection-glow"
           />
           
+          {/* Fallback solid color line for better visibility */}
+          <path
+            d={path}
+            stroke={CONNECTION_CONFIG.colors.main}
+            strokeWidth={Math.max(strokeWidth.main / zoom, 1.5)}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.8"
+            className="connection-fallback"
+          />
+          
           {/* Shadow path for depth */}
           <path
             d={path}
             stroke={CONNECTION_CONFIG.colors.shadow}
-            strokeWidth={strokeWidth.shadow / zoom}
+            strokeWidth={Math.max(strokeWidth.shadow / zoom, 4)}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -219,11 +231,12 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
           <path
             d={path}
             stroke="url(#modernConnectionGradient)"
-            strokeWidth={strokeWidth.main / zoom}
+            strokeWidth={Math.max(strokeWidth.main / zoom, 2)}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
             className="connection-main"
+            opacity="1"
             style={{
               transition: `all ${CONNECTION_CONFIG.animation.duration} ${CONNECTION_CONFIG.animation.easing}`
             }}
@@ -243,7 +256,7 @@ const NodeConnectionsComponent = memo(function NodeConnections({ connections, no
             <circle
               cx={arrowPosition.cx}
               cy={arrowPosition.cy}
-              r={arrowPosition.r}
+              r={Math.max(arrowPosition.r, 3)}
               fill="url(#modernConnectionGradient)"
               className="arrow-main"
               style={{
