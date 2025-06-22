@@ -150,7 +150,7 @@ export class MemStorage implements IStorage {
         { id: "conn-10", fromNodeId: "assumption-2", toNodeId: "kpi-2" },
         { id: "conn-11", fromNodeId: "assumption-3", toNodeId: "kpi-3" }
       ],
-      canvasState: { zoom: 1, pan: { x: 0, y: 0 } },
+      canvasState: { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'horizontal' },
       createdAt: new Date(),
       updatedAt: new Date()
     };

@@ -333,6 +333,17 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(layoutedNodes, undefined, homePosition);
   }, [nodes, canvasState.orientation, saveTree]);
 
+  const handleOrientationToggle = useCallback(() => {
+    const newOrientation = canvasState.orientation === 'horizontal' ? 'vertical' : 'horizontal';
+    const layoutedNodes = calculateNodeLayout(nodes, newOrientation);
+    setNodes(layoutedNodes);
+    
+    // Update canvas state with new orientation and home position
+    const homePosition = getHomePosition(layoutedNodes, newOrientation);
+    setCanvasState(homePosition);
+    saveTree(layoutedNodes, undefined, homePosition);
+  }, [nodes, canvasState.orientation, saveTree]);
+
   const handleToggleCollapse = useCallback((nodeId: string) => {
     const updatedNodes = toggleNodeCollapse(nodes, nodeId);
     setNodes(updatedNodes);
@@ -356,6 +367,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     handleNodeReattach,
     handleToggleCollapse,
     handleAutoLayout,
+    handleOrientationToggle,
     closeContextMenu,
     closeEditModal,
     openEditModal,

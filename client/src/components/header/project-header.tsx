@@ -3,13 +3,17 @@ interface ProjectHeaderProps {
   lastSaved: Date | string;
   onAutoLayout: () => void;
   onFitToScreen: () => void;
+  orientation: 'horizontal' | 'vertical';
+  onOrientationToggle: () => void;
 }
 
 export function ProjectHeader({ 
   projectName, 
   lastSaved, 
   onAutoLayout, 
-  onFitToScreen 
+  onFitToScreen,
+  orientation,
+  onOrientationToggle
 }: ProjectHeaderProps) {
   const formatLastSaved = (date: Date | string) => {
     if (!date) return 'Never saved';
@@ -46,6 +50,14 @@ export function ProjectHeader({
         </div>
         <div className="h-6 w-px bg-gray-200"></div>
         <div className="flex items-center space-x-2">
+          <button 
+            onClick={onOrientationToggle}
+            className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            title={`Switch to ${orientation === 'horizontal' ? 'vertical' : 'horizontal'} layout`}
+          >
+            <i className={`fas ${orientation === 'horizontal' ? 'fa-arrows-alt-h' : 'fa-arrows-alt-v'} mr-1`}></i>
+            {orientation === 'horizontal' ? 'Horizontal' : 'Vertical'}
+          </button>
           <button 
             onClick={onAutoLayout}
             className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"

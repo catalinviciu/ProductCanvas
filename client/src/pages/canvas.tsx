@@ -34,6 +34,7 @@ export default function CanvasPage() {
     handleNodeReattach,
     handleToggleCollapse,
     handleAutoLayout,
+    handleOrientationToggle,
     closeContextMenu,
     closeEditModal,
     openEditModal,
@@ -76,6 +77,8 @@ export default function CanvasPage() {
         lastSaved={impactTree.updatedAt}
         onAutoLayout={handleAutoLayout}
         onFitToScreen={resetToHome}
+        orientation={canvasState.orientation}
+        onOrientationToggle={handleOrientationToggle}
       />
       
       <main className="flex-1 bg-white relative overflow-hidden">
