@@ -31,19 +31,20 @@ export function ImpactTreeCanvas({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
+  const [isPanMode, setIsPanMode] = useState(false);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 1 || (e.button === 0 && e.metaKey)) { // Middle click or Cmd+click for panning
+    if (e.button === 1 || (e.button === 0 && e.metaKey) || (e.button === 0 && isPanMode)) { // Middle click, Cmd+click, or pan mode
       setIsPanning(true);
       setDragStart({ x: e.clientX - canvasState.pan.x, y: e.clientY - canvasState.pan.y });
       e.preventDefault();
-    } else if (e.button === 0) { // Left click
+    } else if (e.button === 0 && !isPanMode) { // Left click in select mode
       // Check if clicking on empty canvas
       if (e.target === canvasRef.current) {
         onNodeSelect(null);
       }
     }
-  }, [canvasState.pan, onNodeSelect]);
+  }, [canvasState.pan, onNodeSelect, isPanMode]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
@@ -88,6 +89,8 @@ export function ImpactTreeCanvas({
         onZoomIn={() => onCanvasUpdate({ zoom: Math.min(3, canvasState.zoom + 0.1) })}
         onZoomOut={() => onCanvasUpdate({ zoom: Math.max(0.1, canvasState.zoom - 0.1) })}
         onResetView={() => onCanvasUpdate({ zoom: 1, pan: { x: 0, y: 0 } })}
+        isPanMode={isPanMode}
+        onTogglePanMode={() => setIsPanMode(!isPanMode)}
       />
 
       {/* Canvas Grid Background */}
@@ -108,7 +111,7 @@ export function ImpactTreeCanvas({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
-        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+        style={{ cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default') }}
       >
         <div style={canvasStyle}>
           {/* Node Connections */}
@@ -157,8 +160,31 @@ export function ImpactTreeCanvas({
       <div className="absolute bottom-4 left-4 z-10">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 w-32 h-24">
           <div className="text-xs text-gray-500 mb-2">Mini Map</div>
-          <div className="relative w-full h-full mini-map">
-            <div className="absolute inset-2 mini-map-viewport"></div>
+          <div 
+            className="relative w-full h-full mini-map cursor-pointer"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              
+              // Convert minimap coordinates to canvas coordinates
+              const canvasX = (x / rect.width) * 1400 - 400;
+              const canvasY = (y / rect.height) * 800 - 300;
+              
+              onCanvasUpdate({ pan: { x: -canvasX, y: -canvasY } });
+            }}
+          >
+            {/* Viewport indicator */}
+            <div 
+              className="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded"
+              style={{
+                left: `${Math.max(0, Math.min(80, (-canvasState.pan.x / 1400) * 100))}%`,
+                top: `${Math.max(0, Math.min(80, (-canvasState.pan.y / 800) * 100))}%`,
+                width: '20%',
+                height: '20%',
+              }}
+            />
+            {/* Node indicators */}
             {nodes.map((node) => (
               <div
                 key={node.id}
