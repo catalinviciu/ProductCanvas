@@ -68,7 +68,7 @@ export function NodePalette({ onNodeCreate }: NodePaletteProps) {
     <div className="space-y-6">
       {/* Node Types Section */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Node Types</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Card Types</h3>
         <div className="space-y-3">
           {nodeTypes.map((nodeType) => (
             <div
@@ -90,7 +90,6 @@ export function NodePalette({ onNodeCreate }: NodePaletteProps) {
           ))}
         </div>
       </div>
-
       {/* Test Categories */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">Test Categories</h3>
