@@ -12,16 +12,16 @@ interface NodeConnectionsProps {
 const CONNECTION_CONFIG = {
   cardWidth: 300,
   nodeHeight: 144,
-  connectionOffset: 60,
+  connectionOffset: 40,
   strokeWidth: {
-    shadow: 8,
-    main: 4,
-    hover: 5,
+    shadow: 10,
+    main: 6,
+    hover: 8,
   },
   colors: {
     main: '#6366F1',
     hover: '#4F46E5',
-    shadow: 'rgba(99, 102, 241, 0.15)',
+    shadow: 'rgba(99, 102, 241, 0.35)',
     gradient: {
       start: '#6366F1',
       middle: '#8B5CF6',

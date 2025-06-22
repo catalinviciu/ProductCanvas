@@ -74,8 +74,9 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
   const layoutNodes: TreeNode[] = [];
   const nodeWidth = 300; // Card width
   const nodeHeight = 144; // Card height (reduced by 10%)
+  const bufferWidth = Math.round(nodeWidth * 0.15); // 15% buffer = ~45px
   const bufferHeight = Math.round(nodeHeight * 0.15); // 15% buffer = ~22px
-  const levelSpacing = nodeWidth + 80; // Horizontal spacing between levels
+  const levelSpacing = nodeWidth + bufferWidth; // Horizontal spacing between levels with 15% buffer
   const siblingSpacing = nodeHeight + bufferHeight; // Vertical spacing between siblings with 15% buffer
 
   // Build tree structure to calculate subtree heights for horizontal layout
