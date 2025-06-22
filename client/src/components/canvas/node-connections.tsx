@@ -10,23 +10,17 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
   const getNodeById = (id: string) => nodes.find(node => node.id === id);
 
   const generateConnectionPath = (fromNode: TreeNode, toNode: TreeNode) => {
-    // Calculate exact button center position:
-    // Card: w-64 = 256px width, positioned at node.position.x
+    // Calculate exact button center position based on user feedback:
+    // The button appears to be positioned so its center is at the card's right edge
+    // Looking at the screenshot, the button center aligns with the card boundary
     // Button CSS: "absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6"
-    // 
-    // Correct understanding of -right-3:
-    // -right-3 = -0.75rem = -12px means the button extends 12px BEYOND the card's right edge
-    // Button right edge = card_right + 12 = (card_x + 256) + 12 = card_x + 268
-    // Button width = w-6 = 24px
-    // Button left edge = button_right - width = (card_x + 268) - 24 = card_x + 244
-    // Button center = button_left + (width/2) = (card_x + 244) + 12 = card_x + 256
-    // 
-    // So the button center is exactly at the card's right edge!
+    // -right-3 positions the button so it extends from the card edge
+    // The visual center appears to be exactly at card_x + 256
     
     const cardWidth = 256;
     
     const fromX = fromNode.children.length > 0 ? 
-      fromNode.position.x + cardWidth + 12 : // Button center is 12px beyond card edge
+      fromNode.position.x + cardWidth + 12 : // Button center is 12px beyond card edge (where arrow points)
       fromNode.position.x + cardWidth; // Card edge for nodes without children
     
     const fromY = fromNode.position.y + 60; // Card vertical center (matches button center)
