@@ -451,29 +451,17 @@ const TreeNodeComponent = memo(function TreeNode({
         <div className="flex-1 flex flex-col min-h-0">
           {isEditing ? (
             <div className="edit-mode-container" onClick={(e) => e.stopPropagation()}>
-              <div className="edit-inputs-container">
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onFocus={(e) => e.stopPropagation()}
-                  className="edit-title-input"
-                  placeholder="Enter title..."
-                  autoFocus
-                />
-                <textarea
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onFocus={(e) => e.stopPropagation()}
-                  className="edit-description-input"
-                  placeholder="Add description..."
-                  rows={2}
-                />
-              </div>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
+                className="edit-title-input-single"
+                placeholder="Enter title..."
+                autoFocus
+              />
               <div className="edit-actions-container">
                 <button
                   onClick={(e) => {
