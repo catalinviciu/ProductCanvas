@@ -232,6 +232,23 @@
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.children-indicator-bottom-left.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.children-indicator-bottom-left.clickable:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.children-indicator-bottom-left.clickable:active {
+  transform: translateY(0);
 }
 
 .children-badge-external {

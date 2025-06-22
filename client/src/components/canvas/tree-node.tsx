@@ -530,9 +530,20 @@ const TreeNodeComponent = memo(function TreeNode({
         )}
       </div>
 
-      {/* Children indicator bottom left */}
+      {/* Children indicator bottom left - clickable to toggle visibility */}
       {!isEditing && (
-        <div className="children-indicator-bottom-left">
+        <div 
+          className={`children-indicator-bottom-left ${collapseState.hasChildren ? 'clickable' : ''}`}
+          onClick={collapseState.hasChildren ? (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleCollapse?.(node.id);
+          } : undefined}
+          title={collapseState.hasChildren ? 
+            (node.isCollapsed ? 'Click to show children' : 'Click to hide children') : 
+            'No children'
+          }
+        >
           <div className={`children-badge-external ${
             collapseState.hasChildren ? 
               (node.isCollapsed ? 'collapsed' : 'expanded') 
@@ -546,10 +557,8 @@ const TreeNodeComponent = memo(function TreeNode({
           </span>
           
           {collapseState.hasChildren && (
-            <div className="status-icon-external" title={
-              node.isCollapsed ? 'Children are hidden - click + to expand' : 'Moving this card will reorganize all children'
-            }>
-              <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-sitemap'} text-xs ${
+            <div className="status-icon-external">
+              <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-eye'} text-xs ${
                 node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
               }`}></i>
             </div>
