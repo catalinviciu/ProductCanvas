@@ -57,7 +57,7 @@
   height: 144px; /* Fixed height - no extension for children */
   overflow: hidden; /* Prevent content overflow */
   padding: 12px; /* Reduced from 16px to 12px */
-  border-radius: 20px;
+  border-radius: 0; /* Rectangular shape */
   border: none;
 }
 
