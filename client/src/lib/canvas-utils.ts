@@ -53,9 +53,11 @@ export function createConnection(fromNodeId: string, toNodeId: string): NodeConn
 }
 
 export function calculateNodeLayout(nodes: TreeNode[], orientation: 'horizontal' | 'vertical' = 'horizontal'): TreeNode[] {
+  // Only layout visible nodes to save space on canvas
+  const visibleNodes = getVisibleNodes(nodes);
   return orientation === 'horizontal' 
-    ? calculateHorizontalLayout(nodes)
-    : calculateVerticalLayout(nodes);
+    ? calculateHorizontalLayout(visibleNodes)
+    : calculateVerticalLayout(visibleNodes);
 }
 
 function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
@@ -395,7 +397,9 @@ function getNearbyNodes(grid: SpatialGrid, position: { x: number; y: number }, w
 // Optimized overlap prevention with spatial partitioning
 export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosition: { x: number; y: number }): { x: number; y: number } {
   const padding = 40;
-  const spatialGrid = createSpatialGrid(nodes.filter(n => n.id !== targetNode.id));
+  // Only consider visible nodes for collision detection to save canvas space
+  const visibleNodes = getVisibleNodes(nodes).filter(n => n.id !== targetNode.id);
+  const spatialGrid = createSpatialGrid(visibleNodes);
   
   let adjustedPosition = { ...newPosition };
   let attempts = 0;
@@ -460,9 +464,12 @@ export function preventOverlap(nodes: TreeNode[], targetNode: TreeNode, newPosit
 
 // Enhanced smart positioning for new nodes using comprehensive collision detection
 export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, orientation: 'horizontal' | 'vertical' = 'horizontal'): { x: number; y: number } {
+  // Only consider visible nodes for positioning to save canvas space
+  const visibleNodes = getVisibleNodes(nodes);
+  
   if (!parentNode) {
     // Find a good position for root nodes
-    const rootNodes = nodes.filter(n => !n.parentId);
+    const rootNodes = visibleNodes.filter(n => !n.parentId);
     if (rootNodes.length === 0) {
       return orientation === 'horizontal' ? { x: 200, y: 100 } : { x: 300, y: 100 };
     }
@@ -473,18 +480,18 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
         node.position.x > max.position.x ? node : max, rootNodes[0]);
       
       const initialPosition = { x: rightmostRoot.position.x + 400, y: rightmostRoot.position.y };
-      return findOptimalPosition(nodes, initialPosition);
+      return findOptimalPosition(visibleNodes, initialPosition);
     } else {
       // Position below existing root nodes in vertical layout
       const bottommostRoot = rootNodes.reduce((max, node) => 
         node.position.y > max.position.y ? node : max, rootNodes[0]);
       
       const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + 400 };
-      return findOptimalPosition(nodes, initialPosition);
+      return findOptimalPosition(visibleNodes, initialPosition);
     }
   }
 
-  const siblings = nodes.filter(n => n.parentId === parentNode.id);
+  const siblings = visibleNodes.filter(n => n.parentId === parentNode.id);
   
   if (orientation === 'horizontal') {
     // Position child nodes to the right of parent (horizontal layout)
@@ -496,7 +503,7 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     const initialY = basePosition.y + (siblings.length * 200);
     const initialPosition = { x: basePosition.x, y: initialY };
     
-    return findOptimalPosition(nodes, initialPosition);
+    return findOptimalPosition(visibleNodes, initialPosition);
   } else {
     // Position child nodes below parent (vertical layout) - centered like horizontal
     const basePosition = {
@@ -512,7 +519,7 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     
     const initialPosition = { x: initialX, y: basePosition.y };
     
-    return findOptimalPosition(nodes, initialPosition);
+    return findOptimalPosition(visibleNodes, initialPosition);
   }
 }
 
@@ -646,16 +653,18 @@ export function findCollisionFreePosition(
   movingNodeId: string,
   targetPosition: { x: number; y: number }
 ): { x: number; y: number } {
+  // Only consider visible nodes for collision detection to save canvas space
+  const visibleNodes = getVisibleNodes(nodes);
   const nodeMap = new Map<string, TreeNode>();
-  nodes.forEach(n => nodeMap.set(n.id, n));
+  visibleNodes.forEach(n => nodeMap.set(n.id, n));
   
   const movingNode = nodeMap.get(movingNodeId);
   if (!movingNode) return targetPosition;
 
-  // Get all nodes in the moving subtree
-  const descendantIds = getAllDescendants(nodes, movingNodeId);
+  // Get all nodes in the moving subtree (only visible ones)
+  const descendantIds = getAllDescendants(visibleNodes, movingNodeId);
   const subtreeIds = new Set([movingNodeId, ...descendantIds]);
-  const otherNodes = nodes.filter(node => !subtreeIds.has(node.id));
+  const otherNodes = visibleNodes.filter(node => !subtreeIds.has(node.id));
   
   // Early exit if no other nodes to collide with
   if (otherNodes.length === 0) return snapToGrid(targetPosition);
@@ -670,7 +679,7 @@ export function findCollisionFreePosition(
     
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     
-    nodes.forEach(node => {
+    visibleNodes.forEach(node => {
       if (subtreeIds.has(node.id)) {
         const newPos = {
           x: node.position.x + adjustedDeltaX,
