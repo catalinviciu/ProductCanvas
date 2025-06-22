@@ -37,6 +37,9 @@ export function ImpactTreeCanvas({
   const [canvasContextMenu, setCanvasContextMenu] = useState<{isOpen: boolean, position: {x: number, y: number}} | null>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Close canvas context menu on any click
+    setCanvasContextMenu(null);
+    
     if (e.button === 1 || (e.button === 0 && e.metaKey) || (e.button === 0 && isPanMode)) { // Middle click, Cmd+click, or pan mode
       setIsPanning(true);
       setDragStart({ x: e.clientX - canvasState.pan.x, y: e.clientY - canvasState.pan.y });
@@ -45,14 +48,22 @@ export function ImpactTreeCanvas({
       // Check if clicking on empty canvas
       if (e.target === canvasRef.current) {
         onNodeSelect(null);
-        setCanvasContextMenu(null);
       }
     }
   }, [canvasState.pan, onNodeSelect, isPanMode]);
 
   const handleCanvasContextMenu = useCallback((e: React.MouseEvent) => {
-    if (e.target === canvasRef.current) {
-      e.preventDefault();
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if right-clicking on a node (has node-created class or is inside a TreeNode)
+    const target = e.target as HTMLElement;
+    const isOnNode = target.closest('.node-created') || 
+                     target.closest('[data-node-id]') ||
+                     target.closest('.absolute');
+    
+    // Only show canvas context menu if NOT clicking on a node
+    if (!isOnNode) {
       setCanvasContextMenu({
         isOpen: true,
         position: { x: e.clientX, y: e.clientY }
@@ -140,6 +151,15 @@ export function ImpactTreeCanvas({
         onContextMenu={handleCanvasContextMenu}
         style={{ cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default') }}
       >
+        {/* Canvas Background Layer - ensures right-click works everywhere */}
+        <div 
+          className="absolute inset-0 canvas-background"
+          style={{ 
+            pointerEvents: 'all',
+            zIndex: 0
+          }}
+        />
+        
         <div style={canvasStyle}>
           {/* Node Connections */}
           <NodeConnections 
@@ -240,7 +260,9 @@ export function ImpactTreeCanvas({
             left: canvasContextMenu.position.x,
             top: canvasContextMenu.position.y,
           }}
-          onMouseLeave={() => setCanvasContextMenu(null)}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
         >
           <div className="px-4 py-2">
             <div className="text-xs font-medium text-gray-500 mb-2">Create Node</div>
