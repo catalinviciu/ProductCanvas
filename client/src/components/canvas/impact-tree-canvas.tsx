@@ -317,10 +317,10 @@ export function ImpactTreeCanvas({
 
       {/* Mini Map */}
       <div className="absolute bottom-4 left-4 z-10">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 w-32 h-24">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 w-40 h-32">
           <div className="text-xs text-gray-500 mb-2">Mini Map</div>
           <div 
-            className="relative w-full h-full mini-map cursor-pointer select-none"
+            className="relative w-full h-16 bg-gray-50 border border-gray-200 rounded cursor-pointer select-none overflow-hidden"
             onMouseDown={handleMiniMapMouseDown}
             onMouseMove={handleMiniMapMouseMove}
             onMouseUp={() => {
@@ -351,16 +351,16 @@ export function ImpactTreeCanvas({
             {nodes.map((node) => (
               <div
                 key={node.id}
-                className="absolute w-1 h-1 rounded-full"
+                className="absolute w-1.5 h-1.5 rounded-full"
                 style={{
-                  left: `${(node.position.x / 1400) * 100}%`,
-                  top: `${(node.position.y / 800) * 100}%`,
+                  left: `${Math.max(0, Math.min(95, ((node.position.x + 700) / 1400) * 100))}%`,
+                  top: `${Math.max(0, Math.min(95, ((node.position.y + 400) / 800) * 100))}%`,
                   backgroundColor: 
-                    node.type === 'outcome' ? 'var(--primary-indigo)' :
-                    node.type === 'opportunity' ? 'var(--secondary-purple)' :
-                    node.type === 'solution' ? 'var(--accent-emerald)' :
-                    node.type === 'assumption' ? 'var(--orange-test)' :
-                    'var(--kpi-color)'
+                    node.type === 'outcome' ? '#4f46e5' :
+                    node.type === 'opportunity' ? '#7c3aed' :
+                    node.type === 'solution' ? '#059669' :
+                    node.type === 'assumption' ? '#ea580c' :
+                    '#dc2626'
                 }}
               />
             ))}
