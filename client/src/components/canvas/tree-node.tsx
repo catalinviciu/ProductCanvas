@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, memo } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
@@ -14,73 +14,89 @@ interface TreeNodeProps {
   onReattach?: (nodeId: string, newParentId: string | null) => void;
   onToggleCollapse?: (nodeId: string) => void;
   onToggleChildVisibility?: (parentId: string, childId: string) => void;
-  allNodes?: TreeNodeType[]; // Needed to get child node info for individual toggles
+  allNodes?: TreeNodeType[];
   isDropTarget?: boolean;
   isDraggedOver?: boolean;
   orientation?: 'horizontal' | 'vertical';
 }
 
-const nodeTypeConfig = {
+// Enhanced node type configuration with improved styling
+const NODE_TYPE_CONFIG = {
   outcome: {
-    color: 'var(--primary-indigo)',
+    color: '#6366F1',
+    bgColor: '#EEF2FF',
+    borderColor: '#C7D2FE',
     className: 'node-outcome',
     label: 'Outcome',
     icon: 'fas fa-bullseye',
+    gradient: 'from-indigo-50 to-indigo-100',
   },
   opportunity: {
-    color: 'var(--secondary-purple)', 
+    color: '#8B5CF6',
+    bgColor: '#F3E8FF',
+    borderColor: '#DDD6FE',
     className: 'node-opportunity',
     label: 'Opportunity',
     icon: 'fas fa-lightbulb',
+    gradient: 'from-purple-50 to-purple-100',
   },
   solution: {
-    color: 'var(--accent-emerald)',
+    color: '#059669',
+    bgColor: '#ECFDF5',
+    borderColor: '#BBF7D0',
     className: 'node-solution',
     label: 'Solution',
     icon: 'fas fa-cog',
+    gradient: 'from-emerald-50 to-emerald-100',
   },
   assumption: {
-    color: 'var(--orange-test)',
+    color: '#EA580C',
+    bgColor: '#FFF7ED',
+    borderColor: '#FED7AA',
     className: 'node-assumption',
     label: 'Assumption Test',
     icon: 'fas fa-flask',
+    gradient: 'from-orange-50 to-orange-100',
   },
   kpi: {
-    color: 'var(--kpi-color)',
+    color: '#DC2626',
+    bgColor: '#FEF2F2',
+    borderColor: '#FECACA',
     className: 'node-kpi',
     label: 'KPI',
     icon: 'fas fa-chart-line',
+    gradient: 'from-red-50 to-red-100',
   },
-};
+} as const;
 
-const testCategoryConfig = {
+const TEST_CATEGORY_CONFIG = {
   viability: { 
-    color: 'var(--viability-color)', 
-    bg: 'hsl(217, 91%, 95%)', 
+    color: '#2563EB', 
+    bg: '#EFF6FF', 
     label: 'Viability',
     icon: 'fas fa-seedling'
   },
   value: { 
-    color: 'var(--value-color)', 
-    bg: 'hsl(142, 76%, 95%)', 
+    color: '#059669', 
+    bg: '#ECFDF5', 
     label: 'Value',
     icon: 'fas fa-gem'
   },
   feasibility: { 
-    color: 'var(--feasibility-color)', 
-    bg: 'hsl(271, 81%, 95%)', 
+    color: '#7C3AED', 
+    bg: '#F3E8FF', 
     label: 'Feasibility',
     icon: 'fas fa-wrench'
   },
   usability: { 
-    color: 'var(--usability-color)', 
-    bg: 'hsl(330, 81%, 95%)', 
+    color: '#DB2777', 
+    bg: '#FDF2F8', 
     label: 'Usability',
     icon: 'fas fa-user-check'
   },
-};
+} as const;
 
-export function TreeNode({
+export const TreeNode = memo(function TreeNode({
   node,
   isSelected,
   onUpdate,
@@ -551,4 +567,4 @@ export function TreeNode({
       </div>
     </div>
   );
-}
+});
