@@ -535,19 +535,27 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     
     return findOptimalPosition(visibleNodes, initialPosition);
   } else {
-    // Position child nodes below parent (vertical layout) - centered like horizontal
+    // Position child nodes below parent (vertical layout)
     const basePosition = {
       x: parentNode.position.x,
       y: parentNode.position.y + 220
     };
 
-    // Center children horizontally relative to parent, spacing them out
-    const totalSiblings = siblings.length + 1; // Include the new node
-    const totalWidth = (totalSiblings - 1) * 300; // 300px spacing between siblings
-    const startX = basePosition.x - (totalWidth / 2);
-    const initialX = startX + (siblings.length * 300);
+    if (siblings.length === 0) {
+      // First child - position directly below parent
+      return findOptimalPosition(visibleNodes, basePosition);
+    }
+
+    // Calculate the center position of existing siblings
+    const siblingCenterX = siblings.reduce((sum, sibling) => sum + sibling.position.x, 0) / siblings.length;
+    const siblingSpacing = 300;
     
-    const initialPosition = { x: initialX, y: basePosition.y };
+    // Position new child to maintain proper spacing and alignment
+    const newX = siblings.length === 1 
+      ? parentNode.position.x + (siblings[0].position.x > parentNode.position.x ? -siblingSpacing : siblingSpacing)
+      : siblingCenterX + (siblings.length % 2 === 0 ? siblingSpacing : -siblingSpacing);
+    
+    const initialPosition = { x: newX, y: basePosition.y };
     
     return findOptimalPosition(visibleNodes, initialPosition);
   }
