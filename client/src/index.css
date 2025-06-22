@@ -46,6 +46,93 @@
   --usability-color: hsl(330, 81%, 60%);
 }
 
+/* Enhanced node animations and visual states */
+.tree-node-container {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+}
+
+.tree-node-container.dragging {
+  transform: rotate(2deg) scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  filter: brightness(1.05);
+}
+
+.tree-node-container:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.tree-node-container.scale-102 {
+  transform: scale(1.02);
+}
+
+.tree-node-container.scale-105 {
+  transform: scale(1.05);
+}
+
+.attachment-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #10B981, #059669);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  animation: attachmentPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes attachmentPulse {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  }
+  50% { 
+    transform: scale(1.15); 
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.6);
+  }
+}
+
+/* Connection line optimizations */
+.connection-group {
+  pointer-events: none;
+}
+
+.connection-group path {
+  transition: stroke-opacity 0.2s ease;
+}
+
+.connection-group:hover path {
+  stroke-opacity: 0.8;
+}
+
+/* Performance optimizations */
+.canvas-viewport {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+/* Collision detection visual feedback */
+.collision-indicator {
+  position: absolute;
+  pointer-events: none;
+  border: 2px dashed #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  animation: collisionWarning 0.5s ease-in-out;
+}
+
+@keyframes collisionWarning {
+  0% { opacity: 0; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
 .dark {
   --background: hsl(224, 71%, 4%);
   --foreground: hsl(213, 31%, 91%);
