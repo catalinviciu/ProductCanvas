@@ -48,14 +48,9 @@ const ContextMenuComponent = memo(function ContextMenu({
   }, [node, onDelete, onClose]);
 
   const handleAddChild = useCallback((type: NodeType, testCategory?: TestCategory) => {
-    try {
-      console.log('Context menu: Creating child node', { type, testCategory, parentNode: node?.id });
-      onAddChild(type, testCategory);
-      onClose();
-    } catch (error) {
-      console.error('Error creating child node from context menu:', error);
-    }
-  }, [onAddChild, onClose, node]);
+    onAddChild(type, testCategory);
+    onClose();
+  }, [onAddChild, onClose]);
 
   const handleToggleCollapse = useCallback(() => {
     if (node && onToggleCollapse) {
@@ -253,7 +248,11 @@ const ContextMenuComponent = memo(function ContextMenu({
 
         {/* KPI Option */}
         <button
-          onClick={() => handleAddChild('kpi')}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleAddChild('kpi');
+          }}
           className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
         >
           <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>

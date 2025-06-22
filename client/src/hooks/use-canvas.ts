@@ -88,47 +88,40 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [nodes, connections, canvasState, updateTreeMutation, impactTree?.id]);
 
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
-    try {
-      console.log('Creating node:', { type, testCategory, parentId: parentNode?.id, hasCustomPosition: !!customPosition });
-      
-      const nodeId = generateNodeId(type);
-      
-      // Use enhanced smart positioning with comprehensive collision detection
-      const position = customPosition || getSmartNodePosition(nodes, parentNode, canvasState.orientation);
-      const snappedPosition = snapToGrid(position);
+    const nodeId = generateNodeId(type);
+    
+    // Use enhanced smart positioning with comprehensive collision detection
+    const position = customPosition || getSmartNodePosition(nodes, parentNode, canvasState.orientation);
+    const snappedPosition = snapToGrid(position);
 
-      const newNode = createNode(nodeId, type, snappedPosition, testCategory, parentNode?.id);
-      let updatedNodes = [...nodes, newNode];
+    const newNode = createNode(nodeId, type, snappedPosition, testCategory, parentNode?.id);
+    let updatedNodes = [...nodes, newNode];
+    
+    let updatedConnections = connections;
+    
+    // Create connection if there's a parent
+    if (parentNode) {
+      const connection = createConnection(parentNode.id, nodeId);
+      updatedConnections = [...connections, connection];
       
-      let updatedConnections = connections;
-      
-      // Create connection if there's a parent
-      if (parentNode) {
-        const connection = createConnection(parentNode.id, nodeId);
-        updatedConnections = [...connections, connection];
-        
-        // Update parent's children array
-        const updatedParent = { ...parentNode, children: [...parentNode.children, nodeId] };
-        const nodeIndex = updatedNodes.findIndex(n => n.id === parentNode.id);
-        if (nodeIndex !== -1) {
-          updatedNodes[nodeIndex] = updatedParent;
-        }
+      // Update parent's children array
+      const updatedParent = { ...parentNode, children: [...parentNode.children, nodeId] };
+      const nodeIndex = updatedNodes.findIndex(n => n.id === parentNode.id);
+      if (nodeIndex !== -1) {
+        updatedNodes[nodeIndex] = updatedParent;
       }
-
-      // After adding the new node, reorganize the parent's subtree if it has children
-      // This ensures the new branch fits perfectly without overlaps
-      if (parentNode && parentNode.children && parentNode.children.length > 0) {
-        // Use the same reorganization system as drag operations
-        updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id, canvasState.orientation);
-      }
-
-      console.log('Node created successfully:', { nodeId, type, position: snappedPosition });
-      setNodes(updatedNodes);
-      setConnections(updatedConnections);
-      saveTree(updatedNodes, updatedConnections);
-    } catch (error) {
-      console.error('Error creating node:', error);
     }
+
+    // After adding the new node, reorganize the parent's subtree if it has children
+    // This ensures the new branch fits perfectly without overlaps
+    if (parentNode && parentNode.children && parentNode.children.length > 0) {
+      // Use the same reorganization system as drag operations
+      updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id, canvasState.orientation);
+    }
+
+    setNodes(updatedNodes);
+    setConnections(updatedConnections);
+    saveTree(updatedNodes, updatedConnections);
   }, [nodes, connections, canvasState.orientation, saveTree]);
 
   const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
@@ -144,18 +137,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, []);
 
   const handleAddChildFromContext = useCallback((type: NodeType, testCategory?: TestCategory) => {
-    try {
-      console.log('Canvas hook: Adding child from context', { type, testCategory, parentNode: contextMenu.node?.id });
-      if (contextMenu.node) {
-        handleNodeCreate(type, testCategory, contextMenu.node);
-      } else {
-        console.warn('No parent node found in context menu');
-      }
-    } catch (error) {
-      console.error('Error in handleAddChildFromContext:', error);
-    } finally {
-      setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null });
+    if (contextMenu.node) {
+      handleNodeCreate(type, testCategory, contextMenu.node);
     }
+    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null });
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
