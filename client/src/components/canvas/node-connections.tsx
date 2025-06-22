@@ -10,22 +10,27 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
   const getNodeById = (id: string) => nodes.find(node => node.id === id);
 
   const generateConnectionPath = (fromNode: TreeNode, toNode: TreeNode) => {
-    // Calculate exact button center position based on user feedback:
-    // The button appears to be positioned so its center is at the card's right edge
-    // Looking at the screenshot, the button center aligns with the card boundary
+    // Calculate exact button center position:
     // Button CSS: "absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6"
-    // -right-3 positions the button so it extends from the card edge
-    // The visual center appears to be exactly at card_x + 256
+    // -right-3 = -12px from card's right edge
+    // w-6 h-6 = 24px width/height
+    // Button center is at: card_right_edge + (-12px + 12px) = card_right_edge + 0px
     
-    const cardWidth = 256;
+    const cardWidth = 256; // w-64 = 256px
+    const nodeHeight = 120; // Approximate node height based on padding and content
     
+    // For nodes with children, start from collapse/expand button center
+    // For nodes without children, start from card's right edge
     const fromX = fromNode.children.length > 0 ? 
-      fromNode.position.x + cardWidth + 12 : // Button center is 12px beyond card edge (where arrow points)
+      fromNode.position.x + cardWidth : // Button center is exactly at card's right edge
       fromNode.position.x + cardWidth; // Card edge for nodes without children
     
-    const fromY = fromNode.position.y + 60; // Card vertical center (matches button center)
+    // Button is positioned at top-1/2 (vertical center of card)
+    const fromY = fromNode.position.y + (nodeHeight / 2);
+    
+    // End at left edge of target node, vertically centered
     const toX = toNode.position.x;
-    const toY = toNode.position.y + 60;
+    const toY = toNode.position.y + (nodeHeight / 2);
 
     // Create smooth curved path
     const controlX1 = fromX + 50;
@@ -79,7 +84,7 @@ export function NodeConnections({ connections, nodes, zoom }: NodeConnectionsPro
             {/* Arrow marker at the end */}
             <circle
               cx={toNode.position.x}
-              cy={toNode.position.y + 60}
+              cy={toNode.position.y + (120 / 2)}
               r={4 / zoom}
               fill="#6366F1"
               className="transition-all duration-200"
