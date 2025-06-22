@@ -509,8 +509,8 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
         node.position.x > max.position.x ? node : max, rootNodes[0]);
       
       const cardWidth = 300;
-      const bufferWidth = Math.round(cardWidth * 0.15);
-      const initialPosition = { x: rightmostRoot.position.x + cardWidth + bufferWidth, y: rightmostRoot.position.y };
+      const levelSpacing = cardWidth + 120; // Match new horizontal spacing
+      const initialPosition = { x: rightmostRoot.position.x + levelSpacing, y: rightmostRoot.position.y };
       return findOptimalPosition(visibleNodes, initialPosition);
     } else {
       // Position below existing root nodes in vertical layout
@@ -518,8 +518,8 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
         node.position.y > max.position.y ? node : max, rootNodes[0]);
       
       const cardHeight = 144;
-      const bufferHeight = Math.round(cardHeight * 0.15);
-      const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + cardHeight + bufferHeight };
+      const levelSpacing = cardHeight + 80; // Match new vertical spacing
+      const initialPosition = { x: bottommostRoot.position.x, y: bottommostRoot.position.y + levelSpacing };
       return findOptimalPosition(visibleNodes, initialPosition);
     }
   }
@@ -529,15 +529,15 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
   if (orientation === 'horizontal') {
     // Position child nodes to the right of parent (horizontal layout)
     const cardWidth = 300;
-    const bufferWidth = Math.round(cardWidth * 0.15);
+    const cardHeight = 144;
+    const levelSpacing = cardWidth + 120; // Match new horizontal spacing
+    const siblingSpacing = cardHeight + 60; // Match new vertical spacing
     const basePosition = {
-      x: parentNode.position.x + cardWidth + bufferWidth,
+      x: parentNode.position.x + levelSpacing,
       y: parentNode.position.y
     };
 
-    const cardHeight = 144;
-    const bufferHeight = Math.round(cardHeight * 0.15);
-    const initialY = basePosition.y + (siblings.length * (cardHeight + bufferHeight));
+    const initialY = basePosition.y + (siblings.length * siblingSpacing);
     const initialPosition = { x: basePosition.x, y: initialY };
     
     return findOptimalPosition(visibleNodes, initialPosition);
@@ -545,16 +545,15 @@ export function getSmartNodePosition(nodes: TreeNode[], parentNode?: TreeNode, o
     // Position child nodes below parent (vertical layout) - centered like horizontal
     const cardHeight = 144;
     const cardWidth = 300;
-    const bufferHeight = Math.round(cardHeight * 0.15);
-    const bufferWidth = Math.round(cardWidth * 0.15);
+    const levelSpacing = cardHeight + 80; // Match new vertical spacing
+    const siblingSpacing = cardWidth + 80; // Match new horizontal spacing in vertical layout
     const basePosition = {
       x: parentNode.position.x,
-      y: parentNode.position.y + cardHeight + bufferHeight
+      y: parentNode.position.y + levelSpacing
     };
 
     // Center children horizontally relative to parent, spacing them out
     const totalSiblings = siblings.length + 1; // Include the new node
-    const siblingSpacing = cardWidth + bufferWidth; // 15% buffer spacing between siblings
     const totalWidth = (totalSiblings - 1) * siblingSpacing;
     const startX = basePosition.x - (totalWidth / 2);
     const initialX = startX + (siblings.length * siblingSpacing);
