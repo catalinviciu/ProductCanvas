@@ -209,9 +209,22 @@ export function TreeNode({
       // Automatically handle the reattachment with smart positioning
       onReattach(draggedNodeId, node.id);
       
-      // Clear drag state immediately to avoid requiring extra click
+      // Clear drag state immediately
       setDraggedNode(null);
       setDraggedOverNodeId(null);
+      
+      // Force clear browser drag state by triggering a blur/focus cycle
+      setTimeout(() => {
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && activeElement.blur) {
+          activeElement.blur();
+        }
+        // Force canvas to regain focus to clear any lingering drag states
+        const canvas = document.querySelector('.impact-tree-canvas') as HTMLElement;
+        if (canvas) {
+          canvas.focus();
+        }
+      }, 10);
     } else {
       setDraggedOverNodeId(null);
     }
@@ -224,6 +237,11 @@ export function TreeNode({
       e.dataTransfer.setData('text/plain', node.id);
       e.dataTransfer.effectAllowed = 'move';
       setDraggedNode(node.id);
+      
+      // Force clear the drag ghost to minimize visual artifacts
+      const emptyImg = new Image();
+      emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
+      e.dataTransfer.setDragImage(emptyImg, 0, 0);
     } else {
       e.preventDefault();
     }
@@ -234,13 +252,43 @@ export function TreeNode({
     setDraggedNode(null);
     setDraggedOverNodeId(null);
     
-    // Force deselect any selected state to avoid requiring extra clicks
-    if (e.dataTransfer.dropEffect === 'move') {
-      // The drop was successful, automatically deselect
-      setTimeout(() => {
+    // Force complete drag state cleanup with multiple strategies
+    const cleanup = () => {
+      // Strategy 1: Clear element-specific styles
+      const draggedElement = e.target as HTMLElement;
+      if (draggedElement) {
+        draggedElement.style.transform = '';
+        draggedElement.style.opacity = '1';
+        draggedElement.style.pointerEvents = '';
+        // Force remove any :active or :focus-visible states
+        draggedElement.blur();
+      }
+      
+      // Strategy 2: Force focus to canvas to break drag state
+      const canvas = document.querySelector('.impact-tree-canvas');
+      if (canvas) {
+        (canvas as HTMLElement).focus();
+        setTimeout(() => (canvas as HTMLElement).blur(), 10);
+      }
+      
+      // Strategy 3: Trigger mouse events to force state reset
+      const mouseEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      document.dispatchEvent(mouseEvent);
+      
+      // Strategy 4: Clear selection if successful drop
+      if (e.dataTransfer.dropEffect === 'move') {
         onSelect(null);
-      }, 50);
-    }
+      }
+    };
+    
+    // Execute cleanup immediately and with delay for persistent states
+    cleanup();
+    setTimeout(cleanup, 50);
+    setTimeout(cleanup, 200);
   }, [onSelect]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {

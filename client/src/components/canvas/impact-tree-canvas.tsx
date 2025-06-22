@@ -309,6 +309,16 @@ export function ImpactTreeCanvas({
           const draggedNodeId = e.dataTransfer.getData('text/plain');
           if (draggedNodeId) {
             onNodeReattach(draggedNodeId, null); // Detach from parent
+            // Force clear all drag states and selection
+            setDraggedNodeId(null);
+            setDraggedOverNodeId(null);
+            setTimeout(() => {
+              onNodeSelect(null);
+              // Force browser to clear any remaining drag states
+              if (document.activeElement) {
+                (document.activeElement as HTMLElement).blur();
+              }
+            }, 50);
           }
         }}
         style={{ cursor: isPanning ? 'grabbing' : (isPanMode ? 'grab' : 'default') }}

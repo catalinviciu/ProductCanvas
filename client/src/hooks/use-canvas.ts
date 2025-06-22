@@ -258,7 +258,21 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setNodes(updatedNodes);
     setConnections(updatedConnections);
     saveTree(updatedNodes, updatedConnections);
-  }, [nodes, connections, saveTree]);
+    
+    // Force clear all drag-related states after reattachment
+    setTimeout(() => {
+      // Clear any browser-level drag states by forcing focus away from dragged elements
+      const draggedElements = document.querySelectorAll('[draggable="true"]');
+      draggedElements.forEach(element => {
+        if (element === document.activeElement) {
+          (element as HTMLElement).blur();
+        }
+      });
+      
+      // Ensure node selection is cleared to prevent sticky selection
+      setSelectedNode(null);
+    }, 100);
+  }, [nodes, connections, saveTree, setSelectedNode]);
 
   const handleNodeDelete = useCallback((nodeId: string) => {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
