@@ -400,7 +400,7 @@ const TreeNodeComponent = memo(function TreeNode({
         
         {/* Card Accent Border */}
         <div 
-          className="absolute inset-0 rounded-xl opacity-20 bg-gradient-to-br"
+          className="absolute inset-0 rounded-xl opacity-20 bg-gradient-to-br text-[#ffffff]"
           style={{
             background: `linear-gradient(135deg, ${config.color}22 0%, ${config.color}11 50%, transparent 100%)`
           }}
@@ -529,7 +529,6 @@ const TreeNodeComponent = memo(function TreeNode({
           </button>
         )}
       </div>
-
       {/* Children indicator bottom left - clickable to toggle visibility */}
       {!isEditing && (
         <div 
