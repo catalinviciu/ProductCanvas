@@ -136,6 +136,11 @@ const TreeNodeComponent = memo(function TreeNode({
   }, [node.title, node.description]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Don't handle mouse down if we're in editing mode or clicking on form elements
+    if (isEditing || (e.target as HTMLElement).closest('.space-y-3')) {
+      return;
+    }
+    
     if (e.button === 0) { // Left click
       e.stopPropagation();
       onSelect(node);
@@ -304,13 +309,17 @@ const TreeNodeComponent = memo(function TreeNode({
   }, [onContextMenu]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    console.log('Double click - entering edit mode for node:', node.id);
     setIsEditing(true);
-  }, []);
+  }, [node.id]);
 
   const handleSaveEdit = useCallback(() => {
+    console.log('Save edit clicked for node:', node.id, { editTitle, editDescription });
     setIsEditing(false);
     if (editTitle !== node.title || editDescription !== node.description) {
+      console.log('Updating node with new values');
       onUpdate({
         ...node,
         title: editTitle,
@@ -320,6 +329,7 @@ const TreeNodeComponent = memo(function TreeNode({
   }, [editTitle, editDescription, node, onUpdate]);
 
   const handleCancelEdit = useCallback(() => {
+    console.log('Cancel edit clicked for node:', node.id);
     setIsEditing(false);
     setEditTitle(node.title);
     setEditDescription(node.description);
@@ -437,12 +447,14 @@ const TreeNodeComponent = memo(function TreeNode({
 
         {/* Node Content */}
         {isEditing ? (
-          <div className="space-y-3">
+          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
             <input
               type="text"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
+              onMouseDown={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
               className="modern-input font-semibold"
               placeholder="Enter title..."
               autoFocus
@@ -451,21 +463,33 @@ const TreeNodeComponent = memo(function TreeNode({
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               onKeyDown={handleKeyDown}
+              onMouseDown={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
               className="modern-input text-sm resize-none"
               placeholder="Add description..."
               rows={3}
             />
             <div className="flex space-x-2">
               <button
-                onClick={handleSaveEdit}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSaveEdit();
+                }}
                 className="btn-primary"
+                type="button"
               >
                 <i className="fas fa-check text-xs mr-1"></i>
                 Save
               </button>
               <button
-                onClick={handleCancelEdit}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleCancelEdit();
+                }}
                 className="btn-secondary"
+                type="button"
               >
                 <i className="fas fa-times text-xs mr-1"></i>
                 Cancel
@@ -473,7 +497,7 @@ const TreeNodeComponent = memo(function TreeNode({
             </div>
           </div>
         ) : (
-          <div className="content-area">
+          <div className="content-area" onDoubleClick={handleDoubleClick}>
             <h3 className="node-title">{node.title}</h3>
             <p className="node-description">{node.description}</p>
           </div>

@@ -435,14 +435,19 @@
 }
 
 .modern-input {
-  @apply w-full border-none outline-none bg-gray-50 hover:bg-gray-100 focus:bg-white rounded-lg px-3 py-2;
+  @apply w-full bg-gray-50 hover:bg-gray-100 focus:bg-white rounded-lg px-3 py-2;
   border: 1px solid transparent;
+  outline: none;
   transition: all 0.2s ease;
+  pointer-events: auto;
+  user-select: text;
+  cursor: text;
 }
 
 .modern-input:focus {
   border-color: #6366F1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  pointer-events: auto;
 }
 
 .btn-primary {
