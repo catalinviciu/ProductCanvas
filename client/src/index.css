@@ -52,7 +52,7 @@
 
 /* Modern Card Design System */
 .modern-card {
-  @apply bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md;
+  @apply bg-white border border-gray-200 p-4 shadow-sm hover:shadow-md;
   backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, box-shadow, filter;
@@ -740,17 +740,14 @@
 
 /* Modern drop zone feedback */
 .tree-node-container.drop-target {
-  border: 2px dashed var(--primary) !important;
   background-color: hsla(262, 83%, 58%, 0.05) !important;
 }
 
 .tree-node-container.drop-target:hover {
-  border-color: var(--primary) !important;
   background-color: hsla(262, 83%, 58%, 0.1) !important;
 }
 
 .tree-node-container.dragged-over {
-  border: 2px solid var(--accent-emerald) !important;
   background-color: hsla(160, 84%, 39%, 0.1) !important;
   box-shadow: 0 0 20px hsla(160, 84%, 39%, 0.3) !important;
 }
