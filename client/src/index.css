@@ -652,14 +652,14 @@
   }
 }
 
-/* Canvas grid pattern */
+/* Canvas utilities */
 .canvas-grid {
-  background-image: radial-gradient(circle, hsl(220, 13%, 91%) 1px, transparent 1px);
+  background-image: radial-gradient(circle, var(--node-border) 1px, transparent 1px);
   background-size: 20px 20px;
   opacity: 0.5;
 }
 
-/* Drag and drop states */
+/* Modern drag and drop states */
 .dragging {
   @apply shadow-2xl z-50;
   transform: scale(1.05) rotate(1deg);
@@ -668,14 +668,16 @@
 }
 
 .drag-over {
-  @apply ring-2 ring-blue-400 ring-opacity-50;
+  @apply ring-2 ring-opacity-50;
+  ring-color: var(--primary);
 }
 
-/* Connection lines */
+/* Connection line styling */
 .connection-line {
   stroke: var(--node-border);
   stroke-width: 2;
   fill: none;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
 }
 
 .connection-line:hover {
@@ -699,46 +701,57 @@
   animation: nodeCreated 0.3s ease-out;
 }
 
-/* Canvas controls */
+/* Canvas control components */
 .canvas-control-btn {
-  @apply p-2 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors;
+  @apply p-2 rounded-md transition-colors;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  color: var(--card-foreground);
 }
 
-/* Mini map styles */
+.canvas-control-btn:hover {
+  background: var(--muted);
+}
+
+/* Mini-map component styling */
 .mini-map {
-  @apply bg-gray-50 rounded border;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .mini-map-viewport {
-  @apply border-2 border-blue-500 bg-blue-500 bg-opacity-20 rounded;
+  border: 2px solid var(--primary);
+  background: hsla(262, 83%, 58%, 0.2);
+  border-radius: calc(var(--radius) - 2px);
 }
 
-/* Drop zone visual feedback */
+/* Modern drop zone feedback */
 .tree-node-container.drop-target {
-  border: 2px dashed #3b82f6 !important;
-  background-color: rgba(59, 130, 246, 0.05) !important;
+  border: 2px dashed var(--primary) !important;
+  background-color: hsla(262, 83%, 58%, 0.05) !important;
 }
 
 .tree-node-container.drop-target:hover {
-  border-color: #2563eb !important;
-  background-color: rgba(37, 99, 235, 0.1) !important;
+  border-color: var(--primary) !important;
+  background-color: hsla(262, 83%, 58%, 0.1) !important;
 }
 
 .tree-node-container.dragged-over {
-  border: 2px solid #10b981 !important;
-  background-color: rgba(16, 185, 129, 0.1) !important;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
+  border: 2px solid var(--accent-emerald) !important;
+  background-color: hsla(160, 84%, 39%, 0.1) !important;
+  box-shadow: 0 0 20px hsla(160, 84%, 39%, 0.3) !important;
 }
 
-/* Attachment indicator */
+/* Attachment indicator styling */
 .attachment-indicator {
   position: absolute;
   top: -10px;
   right: -10px;
   width: 20px;
   height: 20px;
-  background: #10b981;
-  border: 2px solid white;
+  background: var(--accent-emerald);
+  border: 2px solid var(--card);
   border-radius: 50%;
   display: flex;
   align-items: center;
