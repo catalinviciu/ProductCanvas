@@ -122,6 +122,7 @@ export default function CanvasPage() {
         onDelete={handleNodeDelete}
         onAddChild={handleAddChildFromContext}
         onToggleCollapse={handleToggleCollapse}
+        menuType={contextMenu.menuType}
       />
 
       <CreateFirstNodeModal

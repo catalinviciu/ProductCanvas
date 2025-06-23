@@ -8,6 +8,7 @@ interface ContextMenuState {
   isOpen: boolean;
   position: { x: number; y: number };
   node: TreeNode | null;
+  menuType: 'full' | 'addChild' | 'nodeActions';
 }
 
 interface EditModalState {
@@ -25,6 +26,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     isOpen: false,
     position: { x: 0, y: 0 },
     node: null,
+    menuType: 'full',
   });
   const [editModal, setEditModal] = useState<EditModalState>({ isOpen: false });
   const [createFirstNodeModal, setCreateFirstNodeModal] = useState<CreateFirstNodeModalState>({ isOpen: false });
@@ -62,6 +64,20 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       }
     }
   }, [impactTree]);
+
+  // Add event listener for add child context menu
+  useEffect(() => {
+    const handleAddChildContextMenuEvent = (event: CustomEvent) => {
+      const { x, y, node } = event.detail;
+      handleAddChildContextMenu(node, { x, y });
+    };
+
+    document.addEventListener('addChildContextMenu', handleAddChildContextMenuEvent as EventListener);
+    
+    return () => {
+      document.removeEventListener('addChildContextMenu', handleAddChildContextMenuEvent as EventListener);
+    };
+  }, []);
 
   const updateTreeMutation = useMutation({
     mutationFn: async (updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {
@@ -129,18 +145,28 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       isOpen: true,
       position,
       node,
+      menuType: 'nodeActions',
+    });
+  }, []);
+
+  const handleAddChildContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
+    setContextMenu({
+      isOpen: true,
+      position,
+      node,
+      menuType: 'addChild',
     });
   }, []);
 
   const closeContextMenu = useCallback(() => {
-    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null });
+    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null, menuType: 'full' });
   }, []);
 
   const handleAddChildFromContext = useCallback((type: NodeType, testCategory?: TestCategory) => {
     if (contextMenu.node) {
       handleNodeCreate(type, testCategory, contextMenu.node);
     }
-    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null });
+    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null, menuType: 'full' });
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
