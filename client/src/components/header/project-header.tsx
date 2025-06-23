@@ -37,56 +37,48 @@ export function ProjectHeader({
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <i className="fas fa-project-diagram text-white text-sm"></i>
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">{projectName}</h1>
-            <p className="text-xs text-gray-500">Last saved {formatLastSaved(lastSaved)}</p>
+    <header className="modern-project-header">
+      <div className="project-header-content">
+        <div className="project-info">
+          <h1 className="project-title">{projectName}</h1>
+          <div className="project-meta">
+            <span className="last-saved">
+              <i className="fas fa-clock"></i>
+              Last saved {formatLastSaved(lastSaved)}
+            </span>
           </div>
         </div>
-        <div className="h-6 w-px bg-gray-200"></div>
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={onOrientationToggle}
-            className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-            title={`Switch to ${orientation === 'horizontal' ? 'vertical' : 'horizontal'} layout`}
-          >
-            <i className={`fas ${orientation === 'horizontal' ? 'fa-arrows-alt-h' : 'fa-arrows-alt-v'} mr-1`}></i>
-            {orientation === 'horizontal' ? 'Horizontal' : 'Vertical'}
-          </button>
-          
-          <button 
-            onClick={onFitToScreen}
-            className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-          >
-            <i className="fas fa-expand-arrows-alt mr-1"></i>
-            Fit to Screen
-          </button>
-        </div>
-      </div>
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
-          <div className="flex -space-x-2">
-            <div className="w-8 h-8 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
-              <span className="text-xs font-medium text-white">JD</span>
-            </div>
-            <div className="w-8 h-8 bg-purple-500 rounded-full border-2 border-white flex items-center justify-center">
-              <span className="text-xs font-medium text-white">AS</span>
-            </div>
+        
+        <div className="project-controls">
+          <div className="control-group">
+            <button
+              onClick={onOrientationToggle}
+              className="control-btn control-btn-secondary"
+              title={`Switch to ${orientation === 'horizontal' ? 'vertical' : 'horizontal'} layout`}
+            >
+              <i className={`fas ${orientation === 'horizontal' ? 'fa-arrows-alt-v' : 'fa-arrows-alt-h'}`}></i>
+              <span className="control-label">{orientation === 'horizontal' ? 'Vertical' : 'Horizontal'}</span>
+            </button>
+            
+            <button
+              onClick={onAutoLayout}
+              className="control-btn control-btn-primary"
+              title="Auto-arrange nodes"
+            >
+              <i className="fas fa-magic"></i>
+              <span className="control-label">Auto Layout</span>
+            </button>
+            
+            <button
+              onClick={onFitToScreen}
+              className="control-btn control-btn-secondary"
+              title="Fit all nodes to screen"
+            >
+              <i className="fas fa-expand-arrows-alt"></i>
+              <span className="control-label">Fit to Screen</span>
+            </button>
           </div>
-          <button className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center hover:border-indigo-600 transition-colors">
-            <i className="fas fa-plus text-gray-400 text-xs"></i>
-          </button>
         </div>
-        <div className="h-6 w-px bg-gray-200"></div>
-        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-          <i className="fas fa-share mr-2"></i>
-          Share
-        </button>
       </div>
     </header>
   );
