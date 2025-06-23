@@ -518,7 +518,7 @@ const TreeNodeComponent = memo(function TreeNode({
       {/* Children indicator bottom left - clickable to toggle visibility - only visible on hover */}
       {!isEditing && (
         <div 
-          className={`children-indicator-bottom-left opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${collapseState.hasChildren ? 'clickable' : ''}`}
+          className={`children-indicator-bottom-left node-hover-button ${collapseState.hasChildren ? 'clickable' : ''}`}
           onClick={collapseState.hasChildren ? (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -554,7 +554,7 @@ const TreeNodeComponent = memo(function TreeNode({
       {/* +1 Action button bottom right - only visible on hover */}
       {!isEditing && (
         <div 
-          className="action-button-bottom-right opacity-0 group-hover:opacity-100 transition-opacity duration-200 clickable"
+          className="action-button-bottom-right node-hover-button clickable"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();

@@ -81,6 +81,16 @@
   /* Remove general transitions - only dragging state should have animations */
 }
 
+/* Hover-based button visibility for buttons outside the card */
+.node-hover-button {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.tree-node-container:hover .node-hover-button {
+  opacity: 1;
+}
+
 .tree-node-container.dragging {
   transform: rotate(2deg) scale(1.05);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.15);
