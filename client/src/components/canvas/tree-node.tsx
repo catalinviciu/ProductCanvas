@@ -349,17 +349,26 @@ const TreeNodeComponent = memo(function TreeNode({
     const baseClass = `absolute w-75 transition-all duration-200 tree-node-container ${config.className}`;
     const stateClasses = [];
     
-    if (isSelected) stateClasses.push('shadow-lg');
-    else stateClasses.push('hover:shadow-lg');
-    
-    if (isDragging) stateClasses.push('dragging scale-105 shadow-2xl rotate-1 z-50');
+    if (isDragging) stateClasses.push('dragging z-50');
     if (isEditing) stateClasses.push('editing z-50');
-    if (draggedOverNodeId === node.id) stateClasses.push('bg-green-50 scale-102');
+    if (draggedOverNodeId === node.id) stateClasses.push('scale-102');
     if (isDropTarget && draggedNode) stateClasses.push('animate-pulse');
     if (isDraggedOver) stateClasses.push('bg-yellow-50');
     
     return `${baseClass} ${stateClasses.join(' ')}`;
-  }, [config.className, isSelected, isDragging, isEditing, draggedOverNodeId, node.id, isDropTarget, draggedNode, isDraggedOver]);
+  }, [config.className, isDragging, isEditing, draggedOverNodeId, node.id, isDropTarget, draggedNode, isDraggedOver]);
+
+  // Memoize card className for the clean card
+  const cardClassName = useMemo(() => {
+    const baseClass = 'clean-card node-created relative group';
+    const cardStates = [];
+    
+    if (isSelected) cardStates.push('selected');
+    if (isDragging) cardStates.push('dragging');
+    if (isEditing) cardStates.push('editing');
+    
+    return `${baseClass} ${cardStates.join(' ')}`;
+  }, [isSelected, isDragging, isEditing]);
 
   // Memoize style object to prevent unnecessary re-renders
   const nodeStyle = useMemo(() => ({
@@ -388,7 +397,7 @@ const TreeNodeComponent = memo(function TreeNode({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="modern-card node-created relative group flex flex-col">
+      <div className={cardClassName}>
         {/* Enhanced Attachment Indicator */}
         {(draggedOverNodeId === node.id || (isDropTarget && draggedNode)) && (
           <div className="enhanced-attachment-indicator">
@@ -397,36 +406,65 @@ const TreeNodeComponent = memo(function TreeNode({
             <i className="fas fa-plus text-white text-xs"></i>
           </div>
         )}
-        
 
-        
-        {/* Node Header - Compact */}
-        <div className="flex items-center justify-between mb-2 flex-shrink-0">
-          <div className="flex items-center space-x-1.5">
-            <div 
-              className="icon-container-compact"
-              style={{ '--accent-color': config.color } as any}
-            >
-              <i className={`${config.icon} text-xs`} />
-            </div>
-            <div className="flex flex-col">
-              <span 
-                className="text-xs font-medium uppercase tracking-wide"
-                style={{ color: config.color }}
+        {isEditing ? (
+          <div className="edit-mode-container p-4" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onMouseDown={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
+              className="edit-title-input-single"
+              placeholder="Enter title..."
+              autoFocus
+            />
+            <div className="edit-actions-container">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSaveEdit();
+                }}
+                className="edit-btn-save"
+                type="button"
               >
-                {config.label}
-              </span>
-              {node.type === 'assumption' && testConfig && (
-                <span className="text-xs text-gray-400 -mt-0.5">
-                  {testConfig.label}
-                </span>
-              )}
+                <i className="fas fa-check"></i>
+                Save
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleCancelEdit();
+                }}
+                className="edit-btn-cancel"
+                type="button"
+              >
+                <i className="fas fa-times"></i>
+                Cancel
+              </button>
             </div>
           </div>
-          
-          {/* Action buttons container */}
-          <div className="flex items-center">
-            {!isEditing && (
+        ) : (
+          <>
+            {/* Card Header with Icon and Type */}
+            <div className="card-header-clean">
+              <div 
+                className="card-type-icon"
+                style={{ backgroundColor: config.color }}
+              >
+                <i className={`${config.icon} text-white text-sm`} />
+              </div>
+              <span 
+                className="card-type-name"
+                style={{ color: config.color }}
+              >
+                {config.label.toUpperCase()}
+              </span>
+              
+              {/* Three dots menu - only visible on hover */}
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -434,73 +472,27 @@ const TreeNodeComponent = memo(function TreeNode({
                   const rect = e.currentTarget.getBoundingClientRect();
                   onContextMenu({ x: rect.right, y: rect.bottom });
                 }}
-                className="action-btn-compact"
+                className="card-menu-button opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                 title="More options"
               >
-                <i className="fas fa-ellipsis-v text-xs"></i>
+                <i className="fas fa-ellipsis-h text-gray-400 text-sm"></i>
               </button>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* Node Content - Compact layout */}
-        <div className="flex-1 flex flex-col min-h-0">
-          {isEditing ? (
-            <div className="edit-mode-container" onClick={(e) => e.stopPropagation()}>
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onMouseDown={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
-                className="edit-title-input-single"
-                placeholder="Enter title..."
-                autoFocus
-              />
-              <div className="edit-actions-container">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSaveEdit();
-                  }}
-                  className="edit-btn-save"
-                  type="button"
-                >
-                  <i className="fas fa-check"></i>
-                  Save
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleCancelEdit();
-                  }}
-                  className="edit-btn-cancel"
-                  type="button"
-                >
-                  <i className="fas fa-times"></i>
-                  Cancel
-                </button>
+            {/* Card Title */}
+            <div className="card-content-clean" onDoubleClick={handleDoubleClick}>
+              <h3 className="card-title-clean">{node.title}</h3>
+            </div>
+
+            {/* Test category badge for assumptions */}
+            {node.type === 'assumption' && testConfig && (
+              <div className="test-category-badge-clean">
+                <i className={`${testConfig.icon} text-xs mr-1`} />
+                <span className="text-xs">{testConfig.label}</span>
               </div>
-            </div>
-          ) : (
-            <div className="content-area-compact flex-1 overflow-hidden" onDoubleClick={handleDoubleClick}>
-              <h3 className="node-title-compact line-clamp-2">{node.title}</h3>
-            </div>
-          )}
-        </div>
-
-        {/* Test category badge in card if needed */}
-        {!isEditing && node.type === 'assumption' && testConfig && (
-          <div className="test-category-badge-inline">
-            <i className={`${testConfig.icon} text-xs mr-1`} />
-            <span>{testConfig.label}</span>
-          </div>
+            )}
+          </>
         )}
-
-        
       </div>
       {/* Children indicator bottom left - clickable to toggle visibility */}
       {!isEditing && (
