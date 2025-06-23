@@ -118,7 +118,7 @@ const ContextMenuComponent = memo(function ContextMenu({
       type: 'outcome' as NodeType,
       icon: 'fas fa-bullseye',
       color: 'var(--primary-indigo)',
-      hoverClass: 'hover:bg-blue-50',
+      hoverClass: 'hover:bg-muted',
       title: 'Outcome',
       description: 'Business goal or result'
     },
