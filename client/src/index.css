@@ -1138,7 +1138,7 @@
 .modern-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: none;
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -1164,12 +1164,10 @@
 .modern-card:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
-  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .tree-node-container.selected .modern-card {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2), 0 12px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3), 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
 /* Performance Optimizations */
@@ -1273,11 +1271,6 @@
 
 .dark .modern-card {
   background: rgba(15, 23, 42, 0.95);
-  border-color: rgba(51, 65, 85, 0.8);
-}
-
-.dark .modern-card:hover {
-  border-color: rgba(99, 102, 241, 0.4);
 }
 
 /* Modern Project Header Styles */
