@@ -69,7 +69,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   useEffect(() => {
     const handleAddChildContextMenuEvent = (event: CustomEvent) => {
       const { x, y, node } = event.detail;
-      handleAddChildContextMenu(node, { x, y });
+      setContextMenu({
+        isOpen: true,
+        position: { x, y },
+        node,
+        menuType: 'addChild',
+      });
     };
 
     document.addEventListener('addChildContextMenu', handleAddChildContextMenuEvent as EventListener);
@@ -146,15 +151,6 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       position,
       node,
       menuType: 'nodeActions',
-    });
-  }, []);
-
-  const handleAddChildContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
-    setContextMenu({
-      isOpen: true,
-      position,
-      node,
-      menuType: 'addChild',
     });
   }, []);
 
