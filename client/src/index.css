@@ -172,7 +172,7 @@
 }
 
 .children-badge-compact.expanded {
-  @apply bg-blue-100 border-blue-200 text-blue-600;
+  @apply bg-muted border-border text-foreground;
 }
 
 .children-badge-compact.collapsed {
@@ -252,7 +252,7 @@
 }
 
 .children-badge-external.expanded {
-  @apply bg-blue-100 border-blue-200 text-blue-600;
+  @apply bg-muted border-border text-foreground;
 }
 
 .children-badge-external.collapsed {
@@ -956,7 +956,7 @@
 }
 
 .children-badge.expanded {
-  @apply bg-blue-100 border-blue-200 text-blue-600;
+  @apply bg-muted border-border text-foreground;
 }
 
 .children-badge.collapsed {
@@ -1341,17 +1341,19 @@
 }
 
 .viewport-border {
-  @apply absolute inset-0 border-2 border-blue-500 rounded-sm;
-  background: rgba(59, 130, 246, 0.1);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+  @apply absolute inset-0 border-2 rounded-sm;
+  border-color: var(--primary);
+  background: hsla(262, 83%, 58%, 0.1);
+  box-shadow: 0 0 8px hsla(262, 83%, 58%, 0.3);
 }
 
 .viewport-fill {
-  @apply absolute inset-1 bg-blue-500 rounded-sm opacity-20;
+  @apply absolute inset-1 rounded-sm opacity-20;
+  background: var(--primary);
 }
 
 .viewport-indicator:hover .viewport-border {
-  border-color: #3B82F6;
+  border-color: var(--primary);
   box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
 }
 

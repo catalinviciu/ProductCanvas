@@ -29,9 +29,9 @@ export function CreateFirstNodeModal({
         <div className="space-y-3">
           <button 
             onClick={() => handleNodeCreate('outcome')}
-            className="w-full px-4 py-3 text-left hover:bg-blue-50 rounded-lg flex items-center transition-colors border border-transparent hover:border-blue-200"
+            className="w-full px-4 py-3 text-left hover:bg-muted rounded-lg flex items-center transition-colors border border-transparent hover:border-border"
           >
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center mr-3">
               <i className="fas fa-bullseye text-sm" style={{ color: 'var(--primary-indigo)' }}></i>
             </div>
             <div>
