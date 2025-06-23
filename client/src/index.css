@@ -1302,8 +1302,14 @@
 }
 
 .zoom-btn {
-  @apply w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200;
+  @apply w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200;
+  color: var(--muted-foreground);
   border: 1px solid transparent;
+}
+
+.zoom-btn:hover {
+  color: var(--primary);
+  background: var(--muted);
 }
 
 .zoom-btn:hover {
