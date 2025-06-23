@@ -146,7 +146,8 @@ const TreeNodeComponent = memo(function TreeNode({
       onSelect(node);
       
       // Only enable position dragging if not in editing mode and not using attachment dragging
-      if (!isEditing && !e.shiftKey) {
+      // Don't start position dragging when ALT is pressed (for HTML5 drag and drop)
+      if (!isEditing && !e.shiftKey && !e.altKey) {
         setIsDragging(true);
         dragRef.current = {
           startX: e.clientX,
@@ -231,7 +232,10 @@ const TreeNodeComponent = memo(function TreeNode({
     e.stopPropagation();
     
     const draggedNodeId = e.dataTransfer.getData('text/plain');
+    console.log('Drop event - draggedNodeId:', draggedNodeId, 'targetNodeId:', node.id);
+    
     if (draggedNodeId && draggedNodeId !== node.id && onReattach) {
+      console.log('Reattaching node:', draggedNodeId, 'to parent:', node.id);
       onReattach(draggedNodeId, node.id);
       setDraggedNode(null);
       setDraggedOverNodeId(null);
@@ -254,19 +258,28 @@ const TreeNodeComponent = memo(function TreeNode({
   const handleDragStart = useCallback((e: React.DragEvent) => {
     // Only allow HTML5 drag when Alt key is held for attachment
     if (e.altKey) {
+      console.log('Alt+drag started for node:', node.id);
       e.dataTransfer.setData('text/plain', node.id);
       e.dataTransfer.effectAllowed = 'move';
       setDraggedNode(node.id);
       
+      // Create a custom drag image or use empty image
       const emptyImg = new Image();
       emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
       e.dataTransfer.setDragImage(emptyImg, 0, 0);
+      
+      // Add visual feedback
+      const element = e.currentTarget as HTMLElement;
+      element.style.opacity = '0.5';
     } else {
+      // Prevent default drag behavior when ALT is not pressed
       e.preventDefault();
+      return false;
     }
   }, [node.id]);
 
   const handleDragEnd = useCallback((e: React.DragEvent) => {
+    console.log('Drag ended for node:', node.id, 'Drop effect:', e.dataTransfer.dropEffect);
     setDraggedNode(null);
     setDraggedOverNodeId(null);
     
