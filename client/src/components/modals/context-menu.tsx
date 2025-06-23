@@ -10,6 +10,7 @@ interface ContextMenuProps {
   onDelete: (nodeId: string) => void;
   onAddChild: (type: NodeType, testCategory?: TestCategory) => void;
   onToggleCollapse?: (nodeId: string) => void;
+  menuType?: 'full' | 'addChild' | 'nodeActions';
 }
 
 const ContextMenuComponent = memo(function ContextMenu({
@@ -21,6 +22,7 @@ const ContextMenuComponent = memo(function ContextMenu({
   onDelete,
   onAddChild,
   onToggleCollapse,
+  menuType = 'full',
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showTestCategories, setShowTestCategories] = useState(false);
@@ -167,111 +169,218 @@ const ContextMenuComponent = memo(function ContextMenu({
           {node.title || 'Untitled Node'}
         </div>
         
-        {/* Edit Option */}
-        <button
-          onClick={handleEdit}
-          className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
-        >
-          <i className="fas fa-edit mr-3 text-gray-600"></i>
-          Edit Node
-        </button>
+        {/* Node Actions Menu (3 dots button) */}
+        {menuType === 'nodeActions' && (
+          <>
+            <button
+              onClick={handleEdit}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
+            >
+              <i className="fas fa-edit mr-3 text-gray-600"></i>
+              Edit Node
+            </button>
 
-        {/* Collapse/Expand Option */}
-        {node.children && node.children.length > 0 && onToggleCollapse && (
-          <button
-            onClick={handleToggleCollapse}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
-          >
-            <i className={`fas ${node.isCollapsed ? 'fa-expand' : 'fa-compress'} mr-3 text-gray-600`}></i>
-            {node.isCollapsed ? 'Expand' : 'Collapse'} Children
-          </button>
+            {node.children && node.children.length > 0 && onToggleCollapse && (
+              <button
+                onClick={handleToggleCollapse}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
+              >
+                <i className={`fas ${node.isCollapsed ? 'fa-expand' : 'fa-compress'} mr-3 text-gray-600`}></i>
+                {node.isCollapsed ? 'Expand' : 'Collapse'} Children
+              </button>
+            )}
+
+            <div className="border-t border-gray-100 my-2"></div>
+
+            <button
+              onClick={handleDelete}
+              className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center"
+            >
+              <i className="fas fa-trash mr-2"></i>
+              Delete Node
+            </button>
+          </>
         )}
 
-        <div className="border-t border-gray-100 my-2"></div>
+        {/* Add Child Menu (+1 button) */}
+        {menuType === 'addChild' && (
+          <>
+            <div className="text-xs font-medium text-gray-500 mb-2">Add Child Node</div>
+            
+            {menuItems.map((item) => (
+              <button 
+                key={item.type}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAddChild(item.type);
+                }}
+                className={`w-full px-3 py-2 text-sm text-left ${item.hoverClass} rounded flex items-center transition-colors`}
+              >
+                <i className={`${item.icon} mr-3 text-sm`} style={{ color: item.color }}></i>
+                <div>
+                  <div className="font-medium text-gray-900">{item.title}</div>
+                  <div className="text-xs text-gray-500">{item.description}</div>
+                </div>
+              </button>
+            ))}
 
-        {/* Add Child Options */}
-        <div className="text-xs font-medium text-gray-500 mb-2">Add Child Node</div>
-        
-        {menuItems.map((item) => (
-          <button 
-            key={item.type}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleAddChild(item.type);
-            }}
-            className={`w-full px-3 py-2 text-sm text-left ${item.hoverClass} rounded flex items-center transition-colors`}
-          >
-            <i className={`${item.icon} mr-3 text-sm`} style={{ color: item.color }}></i>
-            <div>
-              <div className="font-medium text-gray-900">{item.title}</div>
-              <div className="text-xs text-gray-500">{item.description}</div>
+            <div className="relative">
+              <button
+                onClick={() => setShowTestCategories(!showTestCategories)}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center justify-between transition-colors"
+              >
+                <div className="flex items-center">
+                  <i className="fas fa-flask mr-3 text-sm" style={{ color: 'var(--orange-test)' }}></i>
+                  <div>
+                    <div className="font-medium text-gray-900">Assumption Test</div>
+                    <div className="text-xs text-gray-500">Hypothesis to validate</div>
+                  </div>
+                </div>
+                <i className={`fas fa-chevron-${showTestCategories ? 'up' : 'down'} text-xs text-gray-400`}></i>
+              </button>
+
+              {showTestCategories && (
+                <div className="ml-6 mt-1 space-y-1">
+                  {testCategories.map((category) => (
+                    <button
+                      key={category.type}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddChild('assumption', category.type as TestCategory);
+                      }}
+                      className="w-full px-3 py-1 text-xs text-left hover:bg-orange-50 rounded flex items-center transition-colors"
+                    >
+                      <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </button>
-        ))}
 
-        {/* Assumption Test with Categories */}
-        <div className="relative">
-          <button
-            onClick={() => setShowTestCategories(!showTestCategories)}
-            className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center justify-between transition-colors"
-          >
-            <div className="flex items-center">
-              <i className="fas fa-flask mr-3 text-sm" style={{ color: 'var(--orange-test)' }}></i>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddChild('kpi');
+              }}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
+            >
+              <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
               <div>
-                <div className="font-medium text-gray-900">Assumption Test</div>
-                <div className="text-xs text-gray-500">Hypothesis to validate</div>
+                <div className="font-medium text-gray-900">KPI</div>
+                <div className="text-xs text-gray-500">Key performance indicator</div>
               </div>
+            </button>
+          </>
+        )}
+
+        {/* Full Menu (default) */}
+        {menuType === 'full' && (
+          <>
+            <button
+              onClick={handleEdit}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
+            >
+              <i className="fas fa-edit mr-3 text-gray-600"></i>
+              Edit Node
+            </button>
+
+            {node.children && node.children.length > 0 && onToggleCollapse && (
+              <button
+                onClick={handleToggleCollapse}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 rounded flex items-center transition-colors"
+              >
+                <i className={`fas ${node.isCollapsed ? 'fa-expand' : 'fa-compress'} mr-3 text-gray-600`}></i>
+                {node.isCollapsed ? 'Expand' : 'Collapse'} Children
+              </button>
+            )}
+
+            <div className="border-t border-gray-100 my-2"></div>
+
+            <div className="text-xs font-medium text-gray-500 mb-2">Add Child Node</div>
+            
+            {menuItems.map((item) => (
+              <button 
+                key={item.type}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAddChild(item.type);
+                }}
+                className={`w-full px-3 py-2 text-sm text-left ${item.hoverClass} rounded flex items-center transition-colors`}
+              >
+                <i className={`${item.icon} mr-3 text-sm`} style={{ color: item.color }}></i>
+                <div>
+                  <div className="font-medium text-gray-900">{item.title}</div>
+                  <div className="text-xs text-gray-500">{item.description}</div>
+                </div>
+              </button>
+            ))}
+
+            <div className="relative">
+              <button
+                onClick={() => setShowTestCategories(!showTestCategories)}
+                className="w-full px-3 py-2 text-sm text-left hover:bg-orange-50 rounded flex items-center justify-between transition-colors"
+              >
+                <div className="flex items-center">
+                  <i className="fas fa-flask mr-3 text-sm" style={{ color: 'var(--orange-test)' }}></i>
+                  <div>
+                    <div className="font-medium text-gray-900">Assumption Test</div>
+                    <div className="text-xs text-gray-500">Hypothesis to validate</div>
+                  </div>
+                </div>
+                <i className={`fas fa-chevron-${showTestCategories ? 'up' : 'down'} text-xs text-gray-400`}></i>
+              </button>
+
+              {showTestCategories && (
+                <div className="ml-6 mt-1 space-y-1">
+                  {testCategories.map((category) => (
+                    <button
+                      key={category.type}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddChild('assumption', category.type as TestCategory);
+                      }}
+                      className="w-full px-3 py-1 text-xs text-left hover:bg-orange-50 rounded flex items-center transition-colors"
+                    >
+                      <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <i className={`fas fa-chevron-${showTestCategories ? 'up' : 'down'} text-xs text-gray-400`}></i>
-          </button>
 
-          {showTestCategories && (
-            <div className="ml-6 mt-1 space-y-1">
-              {testCategories.map((category) => (
-                <button
-                  key={category.type}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAddChild('assumption', category.type as TestCategory);
-                  }}
-                  className="w-full px-3 py-1 text-xs text-left hover:bg-orange-50 rounded flex items-center transition-colors"
-                >
-                  <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
-                  {category.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddChild('kpi');
+              }}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
+            >
+              <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
+              <div>
+                <div className="font-medium text-gray-900">KPI</div>
+                <div className="text-xs text-gray-500">Key performance indicator</div>
+              </div>
+            </button>
 
-        {/* KPI Option */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleAddChild('kpi');
-          }}
-          className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
-        >
-          <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
-          <div>
-            <div className="font-medium text-gray-900">KPI</div>
-            <div className="text-xs text-gray-500">Key performance indicator</div>
-          </div>
-        </button>
+            <div className="border-t border-gray-100 my-2"></div>
 
-        <div className="border-t border-gray-100 my-2"></div>
-
-        {/* Delete Option */}
-        <button
-          onClick={handleDelete}
-          className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center"
-        >
-          <i className="fas fa-trash mr-2"></i>
-          Delete Node
-        </button>
+            <button
+              onClick={handleDelete}
+              className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center"
+            >
+              <i className="fas fa-trash mr-2"></i>
+              Delete Node
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -302,11 +302,11 @@
   display: flex;
   align-items: center;
   margin-top: 4px;
-  padding: 2px 6px;
+  padding: 4px 8px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  font-size: 10px;
+  border-radius: 14px;
+  font-size: 12px;
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 10;
@@ -327,14 +327,14 @@
 }
 
 .action-badge-external {
-  @apply w-6 h-4 rounded-full flex items-center justify-center font-medium border;
+  @apply w-8 h-6 rounded-full flex items-center justify-center font-medium border;
   background: linear-gradient(135deg, #22C55E, #16A34A);
   border-color: #16A34A;
   color: white;
 }
 
 .action-text-external {
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1;
   font-weight: 600;
 }

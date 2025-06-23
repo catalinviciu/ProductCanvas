@@ -321,6 +321,16 @@ const TreeNodeComponent = memo(function TreeNode({
     onContextMenu({ x: e.clientX, y: e.clientY });
   }, [onContextMenu]);
 
+  const handleAddChildContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Dispatch a custom event to indicate this is for add child menu
+    const customEvent = new CustomEvent('addChildContextMenu', {
+      detail: { x: e.clientX, y: e.clientY, node }
+    });
+    document.dispatchEvent(customEvent);
+  }, [node]);
+
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -558,7 +568,7 @@ const TreeNodeComponent = memo(function TreeNode({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            handleContextMenu(e);
+            handleAddChildContextMenu(e);
           }}
           title="Add child node"
         >
