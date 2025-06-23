@@ -3,14 +3,22 @@
 @tailwind utilities;
 
 :root {
+  /* Base color system */
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(220, 9%, 46%);
   --muted: hsl(210, 40%, 98%);
   --muted-foreground: hsl(215, 16%, 47%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(224, 71%, 4%);
+  
+  /* Card color system - Updated for modernized design */
   --card: hsl(0, 0%, 100%);
   --card-foreground: hsl(224, 71%, 4%);
+  --card-border: hsl(210, 16%, 90%); /* #E5E7EB equivalent */
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  /* UI element colors */
   --border: hsl(214, 32%, 91%);
   --input: hsl(214, 32%, 91%);
   --primary: hsl(262, 83%, 58%);
@@ -24,7 +32,7 @@
   --ring: hsl(262, 83%, 58%);
   --radius: 0.5rem;
 
-  /* Custom colors for impact tree */
+  /* Impact tree color palette */
   --primary-indigo: hsl(238, 84%, 67%);
   --secondary-purple: hsl(258, 84%, 67%);
   --accent-emerald: hsl(160, 84%, 39%);
@@ -34,12 +42,8 @@
   --node-border: hsl(220, 13%, 91%);
   --orange-test: hsl(25, 95%, 53%);
   --kpi-color: hsl(45, 93%, 47%);
-  --viability-color: hsl(160, 84%, 39%);
-  --value-color: hsl(217, 91%, 60%);
-  --feasibility-color: hsl(271, 81%, 56%);
-  --usability-color: hsl(330, 81%, 60%);
 
-  /* Test category colors */
+  /* Test category color system */
   --viability-color: hsl(217, 91%, 60%);
   --value-color: hsl(142, 76%, 36%);
   --feasibility-color: hsl(271, 81%, 56%);
@@ -477,31 +481,23 @@
   will-change: transform;
 }
 
-/* Collision detection visual feedback */
-.collision-indicator {
-  position: absolute;
-  pointer-events: none;
-  border: 2px dashed #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 4px;
-  animation: collisionWarning 0.5s ease-in-out;
-}
-
-@keyframes collisionWarning {
-  0% { opacity: 0; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.02); }
-  100% { opacity: 0.7; transform: scale(1); }
-}
-
 .dark {
+  /* Base dark theme colors */
   --background: hsl(224, 71%, 4%);
   --foreground: hsl(213, 31%, 91%);
   --muted: hsl(223, 47%, 11%);
   --muted-foreground: hsl(215, 16%, 57%);
   --popover: hsl(224, 71%, 4%);
   --popover-foreground: hsl(215, 20%, 65%);
+  
+  /* Dark theme card colors */
   --card: hsl(224, 71%, 4%);
   --card-foreground: hsl(213, 31%, 91%);
+  --card-border: hsl(216, 34%, 17%);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.4);
+  
+  /* Dark theme UI colors */
   --border: hsl(216, 34%, 17%);
   --input: hsl(216, 34%, 17%);
   --primary: hsl(262, 83%, 58%);
@@ -515,6 +511,31 @@
   --ring: hsl(262, 83%, 58%);
 }
 
+/* Collision detection visual feedback */
+.collision-indicator {
+  position: absolute;
+  pointer-events: none;
+  border: 2px dashed hsl(0, 84%, 60%);
+  background: hsla(0, 84%, 60%, 0.1);
+  border-radius: 0.25rem;
+  animation: collisionWarning 0.5s ease-in-out;
+}
+
+@keyframes collisionWarning {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.9); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.02); 
+  }
+  100% { 
+    opacity: 0.7; 
+    transform: scale(1); 
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -526,49 +547,109 @@
   }
 }
 
-/* Custom utility classes for the impact tree */
-.node-outcome {
-  @apply border-2;
-  border-color: var(--primary-indigo);
-}
+@layer components {
+  /* Modernized card component styles */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    box-shadow: var(--card-shadow);
+    transition: box-shadow 0.3s ease;
+    color: var(--card-foreground);
+  }
 
-.node-opportunity {
-  @apply border-2;
-  border-color: var(--secondary-purple);
-}
+  .card:hover {
+    box-shadow: var(--card-shadow-hover);
+  }
 
-.node-solution {
-  @apply border-2;
-  border-color: var(--accent-emerald);
-}
+  /* Ensure card utilities work with both light and dark themes */
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
 
-.node-assumption {
-  @apply border-2;
-  border-color: var(--orange-test);
-}
+  .card-content {
+    @apply p-6 pt-0;
+  }
 
-.test-category-viability {
-  background-color: hsl(217, 91%, 95%);
-  color: var(--viability-color);
-  border-color: var(--viability-color);
-}
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
 
-.test-category-value {
-  background-color: hsl(142, 76%, 95%);
-  color: var(--value-color);
-  border-color: var(--value-color);
-}
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+  }
 
-.test-category-feasibility {
-  background-color: hsl(271, 81%, 95%);
-  color: var(--feasibility-color);
-  border-color: var(--feasibility-color);
-}
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
 
-.test-category-usability {
-  background-color: hsl(330, 81%, 95%);
-  color: var(--usability-color);
-  border-color: var(--usability-color);
+  /* Impact tree node styling */
+  .node-outcome {
+    @apply border-2;
+    border-color: var(--primary-indigo);
+  }
+
+  .node-opportunity {
+    @apply border-2;
+    border-color: var(--secondary-purple);
+  }
+
+  .node-solution {
+    @apply border-2;
+    border-color: var(--accent-emerald);
+  }
+
+  .node-assumption {
+    @apply border-2;
+    border-color: var(--orange-test);
+  }
+
+  .node-kpi {
+    @apply border-2;
+    border-color: var(--kpi-color);
+  }
+
+  /* Test category indicators */
+  .test-viability {
+    --test-color: var(--viability-color);
+  }
+
+  .test-value {
+    --test-color: var(--value-color);
+  }
+
+  .test-feasibility {
+    --test-color: var(--feasibility-color);
+  }
+
+  .test-usability {
+    --test-color: var(--usability-color);
+  }
+  /* Test category badge styling */
+  .test-category-viability {
+    background-color: hsl(217, 91%, 95%);
+    color: var(--viability-color);
+    border-color: var(--viability-color);
+  }
+
+  .test-category-value {
+    background-color: hsl(142, 76%, 95%);
+    color: var(--value-color);
+    border-color: var(--value-color);
+  }
+
+  .test-category-feasibility {
+    background-color: hsl(271, 81%, 95%);
+    color: var(--feasibility-color);
+    border-color: var(--feasibility-color);
+  }
+
+  .test-category-usability {
+    background-color: hsl(330, 81%, 95%);
+    color: var(--usability-color);
+    border-color: var(--usability-color);
+  }
 }
 
 /* Canvas grid pattern */
