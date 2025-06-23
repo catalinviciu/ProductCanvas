@@ -359,11 +359,11 @@ const TreeNodeComponent = memo(function TreeNode({
 
   // Memoize dynamic className to prevent excessive recalculations
   const nodeClassName = useMemo(() => {
-    const baseClass = `absolute w-75 transition-all duration-200 tree-node-container ${config.className}`;
+    const baseClass = `absolute w-75 tree-node-container ${config.className}`;
     const stateClasses = [];
     
     if (isSelected) stateClasses.push('shadow-lg');
-    else stateClasses.push('hover:shadow-lg');
+    else stateClasses.push('hover:shadow-md');
     
     if (isDragging) stateClasses.push('dragging scale-105 shadow-2xl rotate-1 z-50');
     if (isEditing) stateClasses.push('editing z-50');
@@ -437,8 +437,8 @@ const TreeNodeComponent = memo(function TreeNode({
             </div>
           </div>
           
-          {/* Action buttons container */}
-          <div className="flex items-center">
+          {/* Action buttons container - only visible on hover */}
+          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             {!isEditing && (
               <button
                 onClick={(e) => {
@@ -447,7 +447,7 @@ const TreeNodeComponent = memo(function TreeNode({
                   const rect = e.currentTarget.getBoundingClientRect();
                   onContextMenu({ x: rect.right, y: rect.bottom });
                 }}
-                className="action-btn-compact"
+                className="action-btn-compact hover:scale-110 transition-transform duration-200"
                 title="More options"
               >
                 <i className="fas fa-ellipsis-v text-xs"></i>
@@ -515,10 +515,10 @@ const TreeNodeComponent = memo(function TreeNode({
 
         
       </div>
-      {/* Children indicator bottom left - clickable to toggle visibility */}
+      {/* Children indicator bottom left - clickable to toggle visibility - only visible on hover */}
       {!isEditing && (
         <div 
-          className={`children-indicator-bottom-left ${collapseState.hasChildren ? 'clickable' : ''}`}
+          className={`children-indicator-bottom-left opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${collapseState.hasChildren ? 'clickable' : ''}`}
           onClick={collapseState.hasChildren ? (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -529,7 +529,7 @@ const TreeNodeComponent = memo(function TreeNode({
             'No children'
           }
         >
-          <div className={`children-badge-external ${
+          <div className={`children-badge-external hover:scale-110 transition-transform duration-200 ${
             collapseState.hasChildren ? 
               (node.isCollapsed ? 'collapsed' : 'expanded') 
               : 'empty'
@@ -542,7 +542,7 @@ const TreeNodeComponent = memo(function TreeNode({
           </span>
           
           {collapseState.hasChildren && (
-            <div className="status-icon-external">
+            <div className="status-icon-external hover:scale-110 transition-transform duration-200">
               <i className={`fas ${node.isCollapsed ? 'fa-eye-slash' : 'fa-eye'} text-xs ${
                 node.isCollapsed ? 'text-purple-500' : 'text-blue-500'
               }`}></i>
@@ -551,10 +551,10 @@ const TreeNodeComponent = memo(function TreeNode({
         </div>
       )}
 
-      {/* +1 Action button bottom right */}
+      {/* +1 Action button bottom right - only visible on hover */}
       {!isEditing && (
         <div 
-          className="action-button-bottom-right clickable"
+          className="action-button-bottom-right opacity-0 group-hover:opacity-100 transition-opacity duration-200 clickable"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -562,7 +562,7 @@ const TreeNodeComponent = memo(function TreeNode({
           }}
           title="Add child node"
         >
-          <div className="action-badge-external">
+          <div className="action-badge-external hover:scale-110 transition-transform duration-200">
             <span className="action-text-external">+1</span>
           </div>
         </div>
