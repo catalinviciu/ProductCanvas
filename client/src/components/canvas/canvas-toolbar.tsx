@@ -26,7 +26,6 @@ export function CanvasToolbar({
             title="Select Tool - Click and drag nodes"
           >
             <i className="fas fa-mouse-pointer"></i>
-            <span className="toolbar-btn-label">Select</span>
           </button>
           <button 
             className={`toolbar-btn ${isPanMode ? 'toolbar-btn-active' : ''}`}
@@ -34,7 +33,7 @@ export function CanvasToolbar({
             title="Pan Tool - Click and drag canvas"
           >
             <i className="fas fa-hand-paper"></i>
-            <span className="toolbar-btn-label">Pan</span>
+
           </button>
         </div>
       </div>
@@ -50,7 +49,6 @@ export function CanvasToolbar({
             title="Reset View - Fit all nodes to screen"
           >
             <i className="fas fa-home"></i>
-            <span className="toolbar-btn-label">Home</span>
           </button>
         </div>
       </div>
