@@ -117,6 +117,14 @@ const ContextMenuComponent = memo(function ContextMenu({
   // Memoize menu items
   const menuItems = useMemo(() => [
     {
+      type: 'objective' as NodeType,
+      icon: 'fas fa-flag',
+      color: 'var(--primary-blue)',
+      hoverClass: 'hover:bg-blue-50',
+      title: 'Objective',
+      description: 'Strategic objective or goal'
+    },
+    {
       type: 'outcome' as NodeType,
       icon: 'fas fa-bullseye',
       color: 'var(--primary-indigo)',

@@ -28,6 +28,19 @@ export function CreateFirstNodeModal({
         
         <div className="space-y-3">
           <button 
+            onClick={() => handleNodeCreate('objective')}
+            className="w-full px-4 py-3 text-left hover:bg-blue-50 rounded-lg flex items-center transition-colors border border-transparent hover:border-blue-200"
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+              <i className="fas fa-flag text-sm" style={{ color: 'var(--primary-blue)' }}></i>
+            </div>
+            <div>
+              <div className="font-medium text-gray-900">Objective</div>
+              <div className="text-xs text-gray-500">Strategic objective or goal</div>
+            </div>
+          </button>
+          
+          <button 
             onClick={() => handleNodeCreate('outcome')}
             className="w-full px-4 py-3 text-left hover:bg-muted rounded-lg flex items-center transition-colors border border-transparent hover:border-border"
           >
@@ -80,14 +93,14 @@ export function CreateFirstNodeModal({
           </button>
           
           <button 
-            onClick={() => handleNodeCreate('kpi')}
+            onClick={() => handleNodeCreate('metric')}
             className="w-full px-4 py-3 text-left hover:bg-yellow-50 rounded-lg flex items-center transition-colors border border-transparent hover:border-yellow-200"
           >
             <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
               <i className="fas fa-chart-line text-sm" style={{ color: 'var(--kpi-color)' }}></i>
             </div>
             <div>
-              <div className="font-medium text-gray-900">KPI</div>
+              <div className="font-medium text-gray-900">Metric</div>
               <div className="text-xs text-gray-500">Key performance indicator</div>
             </div>
           </button>

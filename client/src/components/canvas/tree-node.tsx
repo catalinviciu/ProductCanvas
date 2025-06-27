@@ -21,6 +21,12 @@ interface TreeNodeProps {
 }
 
 const nodeTypeConfig = {
+  objective: {
+    color: 'var(--primary-blue)',
+    className: 'node-objective',
+    label: 'Objective',
+    icon: 'fas fa-flag',
+  },
   outcome: {
     color: 'var(--primary-indigo)',
     className: 'node-outcome',
@@ -45,10 +51,10 @@ const nodeTypeConfig = {
     label: 'Assumption Test',
     icon: 'fas fa-flask',
   },
-  kpi: {
+  metric: {
     color: 'var(--kpi-color)',
-    className: 'node-kpi',
-    label: 'KPI',
+    className: 'node-metric',
+    label: 'Metric',
     icon: 'fas fa-chart-line',
   },
 };

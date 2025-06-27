@@ -23,7 +23,7 @@ export type InsertImpactTree = z.infer<typeof insertImpactTreeSchema>;
 export type ImpactTree = typeof impactTrees.$inferSelect;
 
 // Node types
-export const nodeTypes = ["outcome", "opportunity", "solution", "assumption", "kpi"] as const;
+export const nodeTypes = ["objective", "outcome", "opportunity", "solution", "assumption", "metric"] as const;
 export const testCategories = ["viability", "value", "feasibility", "usability"] as const;
 
 export type NodeType = typeof nodeTypes[number];

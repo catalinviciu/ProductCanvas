@@ -6,6 +6,15 @@ interface NodePaletteProps {
 
 const nodeTypes = [
   {
+    type: 'objective' as NodeType,
+    color: 'var(--primary-blue)',
+    borderColor: 'border-blue-500',
+    hoverColor: 'hover:border-blue-600',
+    title: 'Objective',
+    description: 'Define strategic objectives',
+    icon: 'fas fa-flag',
+  },
+  {
     type: 'outcome' as NodeType,
     color: 'var(--primary-indigo)',
     borderColor: 'border-indigo-500',
@@ -42,11 +51,11 @@ const nodeTypes = [
     icon: 'fas fa-flask',
   },
   {
-    type: 'kpi' as NodeType,
+    type: 'metric' as NodeType,
     color: 'var(--kpi-color)',
     borderColor: 'border-yellow-500',
     hoverColor: 'hover:border-yellow-600',
-    title: 'KPI',
+    title: 'Metric',
     description: 'Track key performance indicators',
     icon: 'fas fa-chart-line',
   },
