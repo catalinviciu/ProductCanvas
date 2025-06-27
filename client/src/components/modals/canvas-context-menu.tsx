@@ -99,6 +99,14 @@ const CanvasContextMenuComponent = memo(function CanvasContextMenu({
   // Memoize menu items for performance
   const menuItems = useMemo(() => [
     {
+      type: 'objective' as NodeType,
+      icon: 'fas fa-flag',
+      color: 'var(--primary-blue)',
+      hoverClass: 'hover:bg-blue-50',
+      title: 'Objective',
+      description: 'Strategic objective or goal'
+    },
+    {
       type: 'outcome' as NodeType,
       icon: 'fas fa-bullseye',
       color: 'var(--primary-indigo)',
@@ -132,11 +140,11 @@ const CanvasContextMenuComponent = memo(function CanvasContextMenu({
       description: 'Hypothesis to validate'
     },
     {
-      type: 'kpi' as NodeType,
+      type: 'metric' as NodeType,
       icon: 'fas fa-chart-line',
       color: 'var(--kpi-color)',
       hoverClass: 'hover:bg-yellow-50',
-      title: 'KPI',
+      title: 'Metric',
       description: 'Key performance indicator'
     }
   ], []);

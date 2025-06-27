@@ -16,19 +16,21 @@ export function createNode(
   parentId?: string
 ): TreeNode {
   const defaultTitles = {
+    objective: "New Objective",
     outcome: "New Outcome",
     opportunity: "New Opportunity", 
     solution: "New Solution",
     assumption: "New Assumption Test",
-    kpi: "New KPI",
+    metric: "New Metric",
   };
 
   const defaultDescriptions = {
+    objective: "Define strategic objective",
     outcome: "Define the desired business outcome",
     opportunity: "Identify the market opportunity",
     solution: "Design the solution approach", 
     assumption: "Test key assumptions",
-    kpi: "Track key performance indicator",
+    metric: "Track key performance indicator",
   };
 
   return {
