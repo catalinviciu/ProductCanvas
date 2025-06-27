@@ -22,6 +22,7 @@ export function createNode(
     solution: "New Solution",
     assumption: "New Assumption Test",
     metric: "New Metric",
+    research: "New Research",
   };
 
   const defaultDescriptions = {
@@ -31,6 +32,7 @@ export function createNode(
     solution: "Design the solution approach", 
     assumption: "Test key assumptions",
     metric: "Track key performance indicator",
+    research: "Research and discovery activities",
   };
 
   return {

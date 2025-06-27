@@ -57,6 +57,12 @@ const nodeTypeConfig = {
     label: 'Metric',
     icon: 'fas fa-chart-line',
   },
+  research: {
+    color: 'var(--research-color)',
+    className: 'node-research',
+    label: 'Research',
+    icon: 'fas fa-search',
+  },
 };
 
 const testCategoryConfig = {

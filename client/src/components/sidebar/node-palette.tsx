@@ -59,6 +59,15 @@ const nodeTypes = [
     description: 'Track key performance indicators',
     icon: 'fas fa-chart-line',
   },
+  {
+    type: 'research' as NodeType,
+    color: 'var(--research-color)',
+    borderColor: 'border-teal-500',
+    hoverColor: 'hover:border-teal-600',
+    title: 'Research',
+    description: 'Research and discovery activities',
+    icon: 'fas fa-search',
+  },
 ];
 
 const testCategories: { type: TestCategory; color: string; label: string; icon: string }[] = [

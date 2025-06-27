@@ -90,6 +90,9 @@ Environment variables required:
 
 ## Changelog
 - June 27, 2025. Initial setup
+- June 27, 2025. Added "Objective" node type as first option in creation menus
+- June 27, 2025. Renamed "KPI" to "Metric" throughout application
+- June 27, 2025. Added "Research" node type for research and discovery activities
 
 ## User Preferences
 

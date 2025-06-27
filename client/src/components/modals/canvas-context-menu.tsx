@@ -146,6 +146,14 @@ const CanvasContextMenuComponent = memo(function CanvasContextMenu({
       hoverClass: 'hover:bg-yellow-50',
       title: 'Metric',
       description: 'Key performance indicator'
+    },
+    {
+      type: 'research' as NodeType,
+      icon: 'fas fa-search',
+      color: 'var(--research-color)',
+      hoverClass: 'hover:bg-teal-50',
+      title: 'Research',
+      description: 'Research and discovery activities'
     }
   ], []);
 

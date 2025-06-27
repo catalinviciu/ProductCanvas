@@ -147,6 +147,14 @@ const ContextMenuComponent = memo(function ContextMenu({
       hoverClass: 'hover:bg-emerald-50',
       title: 'Solution',
       description: 'Product or feature approach'
+    },
+    {
+      type: 'research' as NodeType,
+      icon: 'fas fa-search',
+      color: 'var(--research-color)',
+      hoverClass: 'hover:bg-teal-50',
+      title: 'Research',
+      description: 'Research and discovery activities'
     }
   ], []);
 

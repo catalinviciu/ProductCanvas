@@ -104,6 +104,19 @@ export function CreateFirstNodeModal({
               <div className="text-xs text-gray-500">Key performance indicator</div>
             </div>
           </button>
+          
+          <button 
+            onClick={() => handleNodeCreate('research')}
+            className="w-full px-4 py-3 text-left hover:bg-teal-50 rounded-lg flex items-center transition-colors border border-transparent hover:border-teal-200"
+          >
+            <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center mr-3">
+              <i className="fas fa-search text-sm" style={{ color: 'var(--research-color)' }}></i>
+            </div>
+            <div>
+              <div className="font-medium text-gray-900">Research</div>
+              <div className="text-xs text-gray-500">Research and discovery activities</div>
+            </div>
+          </button>
         </div>
         
         <div className="mt-6 pt-4 border-t border-gray-100">
