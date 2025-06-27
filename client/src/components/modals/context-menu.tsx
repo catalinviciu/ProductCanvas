@@ -272,13 +272,13 @@ const ContextMenuComponent = memo(function ContextMenu({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                handleAddChild('kpi');
+                handleAddChild('metric');
               }}
               className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
             >
               <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
               <div>
-                <div className="font-medium text-gray-900">KPI</div>
+                <div className="font-medium text-gray-900">Metric</div>
                 <div className="text-xs text-gray-500">Key performance indicator</div>
               </div>
             </button>
@@ -367,13 +367,13 @@ const ContextMenuComponent = memo(function ContextMenu({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                handleAddChild('kpi');
+                handleAddChild('metric');
               }}
               className="w-full px-3 py-2 text-sm text-left hover:bg-yellow-50 rounded flex items-center transition-colors"
             >
               <i className="fas fa-chart-line mr-3 text-sm" style={{ color: 'var(--kpi-color)' }}></i>
               <div>
-                <div className="font-medium text-gray-900">KPI</div>
+                <div className="font-medium text-gray-900">Metric</div>
                 <div className="text-xs text-gray-500">Key performance indicator</div>
               </div>
             </button>
