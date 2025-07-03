@@ -1,4 +1,5 @@
 import { type TreeNode, type NodeConnection, type NodeType, type TestCategory } from "@shared/schema";
+import { NODE_DIMENSIONS, CANVAS_CONSTANTS } from "@/lib/node-constants";
 
 export function generateNodeId(type: NodeType): string {
   return `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -76,11 +77,11 @@ function calculateHorizontalLayout(nodes: TreeNode[]): TreeNode[] {
   });
 
   const layoutNodes: TreeNode[] = [];
-  const nodeWidth = 300; // Card width
-  const nodeHeight = 144; // Card height
+  const nodeWidth = NODE_DIMENSIONS.WIDTH; // Card width
+  const nodeHeight = NODE_DIMENSIONS.HEIGHT; // Card height
   // Increased spacing for better visual hierarchy
-  const levelSpacing = nodeWidth + 120; // 420px total horizontal spacing between levels
-  const siblingSpacing = nodeHeight + 60; // 204px total vertical spacing between siblings
+  const levelSpacing = nodeWidth + 120; // horizontal spacing between levels
+  const siblingSpacing = nodeHeight + CANVAS_CONSTANTS.MIN_NODE_SPACING + 10; // vertical spacing between siblings
 
   // Build tree structure to calculate subtree heights for horizontal layout
   // Only consider visible (non-hidden) children for height calculation
@@ -167,12 +168,12 @@ function calculateVerticalLayout(nodes: TreeNode[]): TreeNode[] {
   });
 
   const layoutNodes: TreeNode[] = [];
-  const nodeWidth = 300; // Card width
-  const nodeHeight = 144; // Base card height
+  const nodeWidth = NODE_DIMENSIONS.WIDTH; // Card width
+  const nodeHeight = NODE_DIMENSIONS.HEIGHT; // Base card height
   const actualCardHeight = 180; // Actual card height including footer
   // Increased spacing for better visual hierarchy in vertical layout
   const levelSpacing = actualCardHeight + 84; // 264px total vertical spacing between levels for better curve space
-  const siblingSpacing = nodeWidth + 60; // 360px total horizontal spacing between siblings
+  const siblingSpacing = nodeWidth + CANVAS_CONSTANTS.MIN_NODE_SPACING + 10; // horizontal spacing between siblings
 
   // Build tree structure to calculate subtree widths for vertical layout
   // Only consider visible (non-hidden) children for width calculation
@@ -871,7 +872,8 @@ function calculateSubtreeHeight(nodes: TreeNode[], nodeId: string): number {
   
   const calculateHeight = (id: string): number => {
     const node = nodeMap.get(id);
-    if (!node || node.children.length === 0) return 204; // Single node height with spacing (144 + 60)
+    const nodeHeightWithSpacing = NODE_DIMENSIONS.HEIGHT + CANVAS_CONSTANTS.MIN_NODE_SPACING + 10; // 144 + 60 = 204
+    if (!node || node.children.length === 0) return nodeHeightWithSpacing;
     
     // Calculate total height of all children
     let totalChildHeight = 0;
@@ -880,8 +882,8 @@ function calculateSubtreeHeight(nodes: TreeNode[], nodeId: string): number {
     });
     
     // Add proper spacing between children to match layout
-    const spacing = Math.max(0, (node.children.length - 1) * 60);
-    return Math.max(204, totalChildHeight + spacing);
+    const spacing = Math.max(0, (node.children.length - 1) * CANVAS_CONSTANTS.MIN_NODE_SPACING + 10);
+    return Math.max(nodeHeightWithSpacing, totalChildHeight + spacing);
   };
   
   return calculateHeight(nodeId);
@@ -913,8 +915,8 @@ function reorganizeSubtreeHorizontal(nodes: TreeNode[], rootNodeId: string): Tre
   if (!rootNode) return nodes;
 
   const updatedNodes = [...nodes];
-  const levelSpacing = 420; // Match main layout horizontal spacing (300 + 120)
-  const siblingSpacing = 204; // Match main layout vertical spacing (144 + 60)
+  const levelSpacing = NODE_DIMENSIONS.WIDTH + 120; // Match main layout horizontal spacing
+  const siblingSpacing = NODE_DIMENSIONS.HEIGHT + CANVAS_CONSTANTS.MIN_NODE_SPACING + 10; // Match main layout vertical spacing
   const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   
   // Use the same logic as calculateHorizontalLayout but for a subtree
@@ -995,8 +997,8 @@ function reorganizeSubtreeVertical(nodes: TreeNode[], rootNodeId: string): TreeN
 
   const updatedNodes = [...nodes];
   const actualCardHeight = 180; // Actual card height including footer
-  const levelSpacing = actualCardHeight + 84; // Match main layout vertical spacing (180 + 84)
-  const siblingSpacing = 360; // Match main layout horizontal spacing in vertical mode (300 + 60)
+  const levelSpacing = NODE_DIMENSIONS.HEIGHT + 84; // Match main layout vertical spacing
+  const siblingSpacing = NODE_DIMENSIONS.WIDTH + CANVAS_CONSTANTS.MIN_NODE_SPACING + 10; // Match main layout horizontal spacing in vertical mode
   const subtreeIds = new Set([rootNodeId, ...getAllDescendants(visibleNodes, rootNodeId)]);
   
   // Use the same logic as calculateVerticalLayout but for a subtree
@@ -1118,9 +1120,9 @@ export function fitNodesToScreen(nodes: TreeNode[], canvasWidth: number, canvasH
   const visibleNodes = getVisibleNodes(nodes);
   if (visibleNodes.length === 0) return getHomePosition(nodes, currentOrientation);
 
-  const padding = 100; // Increased padding for better visual spacing
-  const nodeWidth = 256;
-  const nodeHeight = 160;
+  const padding = CANVAS_CONSTANTS.CANVAS_PADDING; // Use centralized padding
+  const nodeWidth = NODE_DIMENSIONS.WIDTH;
+  const nodeHeight = NODE_DIMENSIONS.HEIGHT;
   
   const minX = Math.min(...visibleNodes.map(n => n.position.x));
   const maxX = Math.max(...visibleNodes.map(n => n.position.x + nodeWidth));
@@ -1137,7 +1139,7 @@ export function fitNodesToScreen(nodes: TreeNode[], canvasWidth: number, canvasH
   
   const scaleX = (canvasWidth - padding * 2) / contentWidth;
   const scaleY = (canvasHeight - padding * 2) / contentHeight;
-  const zoom = Math.min(Math.max(scaleX, 0.1), Math.max(scaleY, 0.1), 2); // Limit zoom between 0.1 and 2
+  const zoom = Math.min(Math.max(scaleX, CANVAS_CONSTANTS.MIN_ZOOM), Math.max(scaleY, CANVAS_CONSTANTS.MIN_ZOOM), CANVAS_CONSTANTS.MAX_ZOOM);
   
   const pan = {
     x: (canvasWidth - contentWidth * zoom) / 2 - minX * zoom,

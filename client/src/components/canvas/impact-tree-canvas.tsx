@@ -5,6 +5,7 @@ import { CanvasToolbar } from "./canvas-toolbar";
 import { CanvasContextMenu } from "../modals/canvas-context-menu";
 import { getVisibleNodes, getVisibleConnections } from "@/lib/canvas-utils";
 import { throttle, debounce } from "@/lib/performance-utils";
+import { NODE_DIMENSIONS, CANVAS_CONSTANTS } from "@/lib/node-constants";
 import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ImpactTreeCanvasProps {
@@ -60,11 +61,11 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
       return { minX: -1000, maxX: 1000, minY: -1000, maxY: 1000, width: 2000, height: 2000 };
     }
 
-    const padding = 500;
+    const padding = CANVAS_CONSTANTS.CANVAS_PADDING * 5; // 500px padding
     const minX = Math.min(...nodes.map(n => n.position.x)) - padding;
-    const maxX = Math.max(...nodes.map(n => n.position.x + 300)) + padding; // 300 is node width
+    const maxX = Math.max(...nodes.map(n => n.position.x + NODE_DIMENSIONS.WIDTH)) + padding;
     const minY = Math.min(...nodes.map(n => n.position.y)) - padding;
-    const maxY = Math.max(...nodes.map(n => n.position.y + 144)) + padding; // 144 is node height
+    const maxY = Math.max(...nodes.map(n => n.position.y + NODE_DIMENSIONS.HEIGHT)) + padding;
 
     return {
       minX,

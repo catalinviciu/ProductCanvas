@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, memo, useMemo } from "react";
 import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
+import { NODE_DIMENSIONS, DRAG_FEEDBACK } from "@/lib/node-constants";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -389,9 +390,19 @@ const TreeNodeComponent = memo(function TreeNode({
     
     if (isDragging) stateClasses.push('dragging scale-105 shadow-2xl rotate-1 z-50');
     if (isEditing) stateClasses.push('editing z-50');
-    if (draggedOverNodeId === node.id) stateClasses.push('bg-green-50 scale-102');
-    if (isDropTarget && draggedNode) stateClasses.push('animate-pulse');
-    if (isDraggedOver) stateClasses.push('bg-yellow-50');
+    
+    // Enhanced drag and drop visual feedback
+    if (draggedOverNodeId === node.id) {
+      stateClasses.push('bg-green-50 border-green-300 scale-102 shadow-lg');
+    }
+    
+    if (isDropTarget && draggedNode) {
+      stateClasses.push('drop-target animate-pulse border-2 border-blue-400 bg-blue-50 shadow-xl');
+    }
+    
+    if (isDraggedOver) {
+      stateClasses.push('dragged-over bg-yellow-50 border-yellow-300 border-2 shadow-lg transform scale-105');
+    }
     
     return `${baseClass} ${stateClasses.join(' ')}`;
   }, [config.className, isSelected, isDragging, isEditing, draggedOverNodeId, node.id, isDropTarget, draggedNode, isDraggedOver]);
