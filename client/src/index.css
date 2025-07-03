@@ -76,7 +76,14 @@
   transform: translateY(-2px);
 }
 
-.modern-card:hover .card-accent-border {
+/* Node type accent borders on hover */
+.modern-card:hover .node-objective::after,
+.modern-card:hover .node-outcome::after,
+.modern-card:hover .node-opportunity::after,
+.modern-card:hover .node-solution::after,
+.modern-card:hover .node-assumption::after,
+.modern-card:hover .node-metric::after,
+.modern-card:hover .node-research::after {
   opacity: 0.4;
 }
 
@@ -609,6 +616,11 @@
   }
 
   /* Impact tree node styling */
+  .node-objective {
+    @apply border-2;
+    border-color: var(--primary-blue);
+  }
+
   .node-outcome {
     @apply border-2;
     border-color: var(--primary-indigo);
@@ -629,9 +641,106 @@
     border-color: var(--orange-test);
   }
 
-  .node-kpi {
+  .node-metric {
     @apply border-2;
     border-color: var(--kpi-color);
+  }
+
+  .node-research {
+    @apply border-2;
+    border-color: var(--research-color);
+  }
+
+  /* Node type accent borders */
+  .node-objective::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary-blue);
+    border-radius: 8px 8px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .node-outcome::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary-indigo);
+    border-radius: 8px 8px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .node-opportunity::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--secondary-purple);
+    border-radius: 8px 8px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .node-solution::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-emerald);
+    border-radius: 8px 8px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .node-assumption::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--orange-test);
+    border-radius: 8px 8px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .node-metric::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--kpi-color);
+    border-radius: 8px 8px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .node-research::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--research-color);
+    border-radius: 8px 8px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
   }
 
   /* Test category indicators */
@@ -1200,16 +1309,7 @@
 
 /* Enhanced Node Styling - moved to main .modern-card definition above */
 
-.modern-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 12px 12px 0 0;
-  opacity: 0.8;
-}
+/* Generic card accent border removed - using specific node type accent borders instead */
 
 /* Hover styles defined in main .modern-card:hover above */
 
