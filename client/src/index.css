@@ -56,11 +56,12 @@
 .modern-card {
   @apply bg-white border border-gray-200 p-4 shadow-sm hover:shadow-md;
   backdrop-filter: blur(10px);
-  transition: box-shadow 0.2s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
   width: 300px;
-  height: 144px; /* Fixed height - no extension for children */
-  overflow: hidden; /* Prevent content overflow */
+  min-height: 144px; /* Allow content to expand vertically */
+  overflow: visible; /* Allow content to be fully visible */
+  position: relative;
 }
 
 /* Edit mode enhanced styling */
@@ -72,6 +73,7 @@
 
 .modern-card:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .modern-card:hover .card-accent-border {
@@ -80,7 +82,7 @@
 
 /* Enhanced node animations and visual states */
 .tree-node-container {
-  /* Remove general transitions - only dragging state should have animations */
+  /* Node container for positioning and state management */
 }
 
 /* Hover-based button visibility for buttons outside the card */
@@ -1196,19 +1198,7 @@
   pointer-events: none;
 }
 
-/* Enhanced Node Styling */
-.modern-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border: none;
-  padding: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 300px;
-  height: 144px;
-  overflow: hidden;
-  position: relative;
-}
+/* Enhanced Node Styling - moved to main .modern-card definition above */
 
 .modern-card::before {
   content: '';
@@ -1221,10 +1211,7 @@
   opacity: 0.8;
 }
 
-.modern-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-}
+/* Hover styles defined in main .modern-card:hover above */
 
 .tree-node-container.selected .modern-card {
   box-shadow: 0 0 0 0px rgb(255, 255, 255, 0.3), 0 12px 40px rgba(0, 0, 0, 0.12);
