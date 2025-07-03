@@ -62,6 +62,7 @@
   min-height: 144px; /* Allow content to expand vertically */
   overflow: visible; /* Allow content to be fully visible */
   position: relative;
+  border-radius: 12px; /* Rounded corners */
 }
 
 /* Edit mode enhanced styling */
@@ -73,18 +74,7 @@
 
 .modern-card:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-/* Node type accent borders on hover */
-.modern-card:hover .node-objective::after,
-.modern-card:hover .node-outcome::after,
-.modern-card:hover .node-opportunity::after,
-.modern-card:hover .node-solution::after,
-.modern-card:hover .node-assumption::after,
-.modern-card:hover .node-metric::after,
-.modern-card:hover .node-research::after {
-  opacity: 0.4;
+  transform: translateY(-2px) scale(1.01);
 }
 
 /* Enhanced node animations and visual states */
@@ -615,133 +605,43 @@
     @apply text-sm text-muted-foreground;
   }
 
-  /* Impact tree node styling */
+  /* Impact tree node styling - clean border design */
   .node-objective {
-    @apply border-2;
-    border-color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    border-radius: 12px;
   }
 
   .node-outcome {
-    @apply border-2;
-    border-color: var(--primary-indigo);
+    border: 2px solid var(--primary-indigo);
+    border-radius: 12px;
   }
 
   .node-opportunity {
-    @apply border-2;
-    border-color: var(--secondary-purple);
+    border: 2px solid var(--secondary-purple);
+    border-radius: 12px;
   }
 
   .node-solution {
-    @apply border-2;
-    border-color: var(--accent-emerald);
+    border: 2px solid var(--accent-emerald);
+    border-radius: 12px;
   }
 
   .node-assumption {
-    @apply border-2;
-    border-color: var(--orange-test);
+    border: 2px solid var(--orange-test);
+    border-radius: 12px;
   }
 
   .node-metric {
-    @apply border-2;
-    border-color: var(--kpi-color);
+    border: 2px solid var(--kpi-color);
+    border-radius: 12px;
   }
 
   .node-research {
-    @apply border-2;
-    border-color: var(--research-color);
+    border: 2px solid var(--research-color);
+    border-radius: 12px;
   }
 
-  /* Node type accent borders */
-  .node-objective::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--primary-blue);
-    border-radius: 8px 8px 0 0;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
-
-  .node-outcome::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--primary-indigo);
-    border-radius: 8px 8px 0 0;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
-
-  .node-opportunity::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--secondary-purple);
-    border-radius: 8px 8px 0 0;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
-
-  .node-solution::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--accent-emerald);
-    border-radius: 8px 8px 0 0;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
-
-  .node-assumption::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--orange-test);
-    border-radius: 8px 8px 0 0;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
-
-  .node-metric::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--kpi-color);
-    border-radius: 8px 8px 0 0;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
-
-  .node-research::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--research-color);
-    border-radius: 8px 8px 0 0;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
+  /* Clean node styling without accent borders */
 
   /* Test category indicators */
   .test-viability {
