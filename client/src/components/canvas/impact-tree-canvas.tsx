@@ -140,6 +140,27 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
     }
   }, []);
 
+  // Calculate actual canvas viewport dimensions
+  const canvasViewportDimensions = useMemo(() => {
+    // Get actual canvas dimensions or use reasonable defaults
+    const canvasElement = canvasRef.current;
+    const viewportWidth = canvasElement ? 
+      canvasElement.clientWidth / canvasState.zoom : 
+      800 / canvasState.zoom;
+    const viewportHeight = canvasElement ? 
+      canvasElement.clientHeight / canvasState.zoom : 
+      600 / canvasState.zoom;
+    
+    // Calculate as percentage of total canvas bounds
+    const widthPercentage = Math.min(100, (viewportWidth / canvasBounds.width) * 100);
+    const heightPercentage = Math.min(100, (viewportHeight / canvasBounds.height) * 100);
+    
+    return {
+      widthPercentage: Math.max(5, widthPercentage), // Minimum 5% visibility
+      heightPercentage: Math.max(5, heightPercentage), // Minimum 5% visibility
+    };
+  }, [canvasState.zoom, canvasBounds.width, canvasBounds.height]);
+
   const handleCanvasNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory) => {
     if (canvasContextMenu) {
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -163,9 +184,10 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Calculate viewport dimensions
-    const viewportWidth = rect.width * 0.2;
-    const viewportHeight = rect.height * 0.2;
+    // Calculate viewport dimensions based on actual canvas viewport
+    const { widthPercentage, heightPercentage } = canvasViewportDimensions;
+    const viewportWidth = rect.width * (widthPercentage / 100);
+    const viewportHeight = rect.height * (heightPercentage / 100);
     
     // Clamp click position to ensure viewport doesn't go outside minimap bounds
     const clampedX = Math.max(viewportWidth / 2, Math.min(rect.width - viewportWidth / 2, x));
@@ -179,7 +201,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
     const canvasY = canvasBounds.minY + normalizedY * canvasBounds.height;
     
     onCanvasUpdate({ pan: { x: -canvasX + 400, y: -canvasY + 300 } }); // Center in viewport
-  }, [onCanvasUpdate, canvasBounds]);
+  }, [onCanvasUpdate, canvasBounds, canvasViewportDimensions]);
 
   const handleMiniMapMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -197,9 +219,10 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       
-      // Calculate viewport dimensions for proper clamping
-      const viewportWidth = rect.width * 0.2;
-      const viewportHeight = rect.height * 0.2;
+      // Calculate viewport dimensions based on actual canvas viewport
+      const { widthPercentage, heightPercentage } = canvasViewportDimensions;
+      const viewportWidth = rect.width * (widthPercentage / 100);
+      const viewportHeight = rect.height * (heightPercentage / 100);
       
       // Clamp coordinates within mini map bounds with viewport size consideration
       const clampedX = Math.max(viewportWidth / 2, Math.min(rect.width - viewportWidth / 2, x));
@@ -214,7 +237,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
       
       throttledCanvasUpdate({ pan: { x: -canvasX + 400, y: -canvasY + 300 } });
     }
-  }, [miniMapDragging, throttledCanvasUpdate, canvasBounds]);
+  }, [miniMapDragging, throttledCanvasUpdate, canvasBounds, canvasViewportDimensions]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
@@ -256,16 +279,29 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
           const x = e.clientX - rect.left;
           const y = e.clientY - rect.top;
           
-          // Clamp coordinates within mini map bounds with viewport size consideration
-          const viewportWidth = rect.width * 0.2; // 20% width of minimap
-          const viewportHeight = rect.height * 0.2; // 20% height of minimap
+          // Calculate dynamic viewport dimensions based on current zoom and canvas bounds
+          const canvasElement = canvasRef.current;
+          const viewportWidth = canvasElement ? 
+            canvasElement.clientWidth / canvasState.zoom : 
+            800 / canvasState.zoom;
+          const viewportHeight = canvasElement ? 
+            canvasElement.clientHeight / canvasState.zoom : 
+            600 / canvasState.zoom;
           
-          const clampedX = Math.max(viewportWidth / 2, Math.min(rect.width - viewportWidth / 2, x));
-          const clampedY = Math.max(viewportHeight / 2, Math.min(rect.height - viewportHeight / 2, y));
+          // Calculate as percentage of total canvas bounds
+          const widthPercentage = Math.max(5, Math.min(100, (viewportWidth / canvasBounds.width) * 100));
+          const heightPercentage = Math.max(5, Math.min(100, (viewportHeight / canvasBounds.height) * 100));
+          
+          // Calculate actual viewport dimensions on minimap
+          const minimapViewportWidth = rect.width * (widthPercentage / 100);
+          const minimapViewportHeight = rect.height * (heightPercentage / 100);
+          
+          const clampedX = Math.max(minimapViewportWidth / 2, Math.min(rect.width - minimapViewportWidth / 2, x));
+          const clampedY = Math.max(minimapViewportHeight / 2, Math.min(rect.height - minimapViewportHeight / 2, y));
           
           // Convert minimap coordinates to canvas coordinates using dynamic bounds
-          const normalizedX = (clampedX - viewportWidth / 2) / (rect.width - viewportWidth);
-          const normalizedY = (clampedY - viewportHeight / 2) / (rect.height - viewportHeight);
+          const normalizedX = (clampedX - minimapViewportWidth / 2) / (rect.width - minimapViewportWidth);
+          const normalizedY = (clampedY - minimapViewportHeight / 2) / (rect.height - minimapViewportHeight);
           
           const canvasX = canvasBounds.minX + normalizedX * canvasBounds.width;
           const canvasY = canvasBounds.minY + normalizedY * canvasBounds.height;
@@ -291,7 +327,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
         document.body.style.cursor = '';
       };
     }
-  }, [miniMapDragging, onCanvasUpdate, canvasBounds]);
+  }, [miniMapDragging, onCanvasUpdate, canvasBounds, canvasState.zoom]);
 
   // Memoize minimap viewport indicator style for performance
   const minimapViewportStyle = useMemo(() => {
@@ -302,17 +338,20 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
     const normalizedX = (viewportCenterX - canvasBounds.minX) / canvasBounds.width;
     const normalizedY = (viewportCenterY - canvasBounds.minY) / canvasBounds.height;
     
-    // Convert to minimap percentage (account for viewport size)
-    const left = Math.max(0, Math.min(80, normalizedX * 100));
-    const top = Math.max(0, Math.min(80, normalizedY * 100));
+    // Use calculated viewport dimensions instead of hardcoded 20%
+    const { widthPercentage, heightPercentage } = canvasViewportDimensions;
+    
+    // Convert to minimap percentage (account for actual viewport size)
+    const left = Math.max(0, Math.min(100 - widthPercentage, normalizedX * 100 - widthPercentage / 2));
+    const top = Math.max(0, Math.min(100 - heightPercentage, normalizedY * 100 - heightPercentage / 2));
     
     return {
       left: `${left}%`,
       top: `${top}%`,
-      width: '20%',
-      height: '20%',
+      width: `${widthPercentage}%`,
+      height: `${heightPercentage}%`,
     };
-  }, [canvasState.pan.x, canvasState.pan.y, canvasBounds]);
+  }, [canvasState.pan.x, canvasState.pan.y, canvasBounds, canvasViewportDimensions]);
 
   // Memoize minimap node indicators for performance
   const minimapNodeIndicators = useMemo(() => {
