@@ -3,6 +3,7 @@ import { type TreeNode as TreeNodeType, type TestCategory } from "@shared/schema
 import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
 import { NODE_DIMENSIONS, DRAG_FEEDBACK } from "@/lib/node-constants";
+import { useTreeContextOptional } from "@/contexts/tree-context";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -15,7 +16,8 @@ interface TreeNodeProps {
   onReattach?: (nodeId: string, newParentId: string | null) => void;
   onToggleCollapse?: (nodeId: string) => void;
 
-  allNodes?: TreeNodeType[]; // Needed to get child node info for individual toggles
+  // Deprecated: Use TreeContext for better performance. Kept for backward compatibility.
+  allNodes?: TreeNodeType[];
   isDropTarget?: boolean;
   isDraggedOver?: boolean;
   orientation?: 'horizontal' | 'vertical';
@@ -118,16 +120,23 @@ const TreeNodeComponent = memo(function TreeNode({
     startX: 0, startY: 0, nodeX: 0, nodeY: 0 
   });
 
+  // Use tree context for efficient node lookups, fallback to allNodes prop
+  const treeContext = useTreeContextOptional();
+  
   // Memoize config to prevent unnecessary recalculations
   const config = useMemo(() => nodeTypeConfig[node.type], [node.type]);
   
-  // Memoize parent node lookup
-  const parentNode = useMemo(() => 
-    node.parentId ? allNodes.find(n => n.id === node.parentId) : null,
-    [node.parentId, allNodes]
-  );
-  
-
+  // Memoize parent node lookup using context when available
+  const parentNode = useMemo(() => {
+    if (treeContext) {
+      return treeContext.getParentNode(node.id) || null;
+    }
+    // Fallback to prop-based lookup for backward compatibility
+    if (process.env.NODE_ENV === 'development' && allNodes) {
+      console.debug('TreeNode: Using prop-based allNodes lookup (less efficient) - consider using TreeContext');
+    }
+    return node.parentId ? (allNodes || []).find(n => n.id === node.parentId) || null : null;
+  }, [node.id, node.parentId, treeContext, allNodes]);
   
   // Memoize collapse state calculations
   const collapseState = useMemo(() => {
@@ -247,22 +256,27 @@ const TreeNodeComponent = memo(function TreeNode({
     const draggedNodeId = e.dataTransfer.getData('text/plain');
     console.log('Drop event - draggedNodeId:', draggedNodeId, 'targetNodeId:', node.id);
     
-    if (draggedNodeId && draggedNodeId !== node.id && onReattach) {
-      console.log('Reattaching node:', draggedNodeId, 'to parent:', node.id);
-      onReattach(draggedNodeId, node.id);
-      setDraggedNode(null);
-      setDraggedOverNodeId(null);
-      
-      setTimeout(() => {
-        const activeElement = document.activeElement as HTMLElement;
-        if (activeElement && activeElement.blur) {
-          activeElement.blur();
-        }
-        const canvas = document.querySelector('.impact-tree-canvas') as HTMLElement;
-        if (canvas) {
-          canvas.focus();
-        }
-      }, 10);
+    if (draggedNodeId && draggedNodeId !== node.id) {
+      if (onReattach) {
+        console.log('Reattaching node:', draggedNodeId, 'to parent:', node.id);
+        onReattach(draggedNodeId, node.id);
+        setDraggedNode(null);
+        setDraggedOverNodeId(null);
+        
+        setTimeout(() => {
+          const activeElement = document.activeElement as HTMLElement;
+          if (activeElement && activeElement.blur) {
+            activeElement.blur();
+          }
+          const canvas = document.querySelector('.impact-tree-canvas') as HTMLElement;
+          if (canvas) {
+            canvas.focus();
+          }
+        }, 10);
+      } else {
+        console.warn('onReattach prop is not provided - drag and drop reattachment will not work');
+        setDraggedOverNodeId(null);
+      }
     } else {
       setDraggedOverNodeId(null);
     }

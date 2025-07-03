@@ -24,6 +24,7 @@ The application follows a monorepo structure with a clear separation between cli
 - **TanStack Query** for server state management
 - **Wouter** for lightweight client-side routing
 - **Canvas-based** interactive node editor
+- **TreeContext** for efficient node lookups and performance optimization
 
 ### Backend Architecture
 - **Express.js** REST API server
@@ -95,6 +96,7 @@ Environment variables required:
 - June 27, 2025. Added "Research" node type for research and discovery activities
 - January 03, 2025. Enhanced drag and drop visual feedback with improved styling
 - January 03, 2025. Centralized node dimensions and constants to eliminate hardcoded values
+- January 03, 2025. Added TreeContext for efficient node lookups and improved onReattach error handling
 
 ## User Preferences
 

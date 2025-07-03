@@ -3,6 +3,7 @@ import { TreeNode } from "./tree-node";
 import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { CanvasContextMenu } from "../modals/canvas-context-menu";
+import { TreeProvider } from "@/contexts/tree-context";
 import { getVisibleNodes, getVisibleConnections } from "@/lib/canvas-utils";
 import { throttle, debounce } from "@/lib/performance-utils";
 import { NODE_DIMENSIONS, CANVAS_CONSTANTS } from "@/lib/node-constants";
@@ -449,26 +450,26 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
             orientation={canvasState.orientation}
           />
 
-          {/* Tree Nodes */}
-          {visibleNodes.map((node) => (
-            <TreeNode
-              key={node.id}
-              node={node}
-              isSelected={selectedNode?.id === node.id}
-              onUpdate={onNodeUpdate}
-              onSelect={onNodeSelect}
-              onDelete={onNodeDelete}
-              onDrag={handleNodeDrag}
-              onContextMenu={(position: { x: number; y: number }) => onContextMenu(node, position)}
-              onReattach={onNodeReattach}
-              onToggleCollapse={onToggleCollapse}
-
-              allNodes={nodes}
-              isDropTarget={draggedNodeId !== null && draggedNodeId !== node.id}
-              isDraggedOver={draggedOverNodeId === node.id}
-              orientation={canvasState.orientation}
-            />
-          ))}
+          {/* Tree Nodes with Context Provider for Performance */}
+          <TreeProvider nodes={nodes}>
+            {visibleNodes.map((node) => (
+              <TreeNode
+                key={node.id}
+                node={node}
+                isSelected={selectedNode?.id === node.id}
+                onUpdate={onNodeUpdate}
+                onSelect={onNodeSelect}
+                onDelete={onNodeDelete}
+                onDrag={handleNodeDrag}
+                onContextMenu={(position: { x: number; y: number }) => onContextMenu(node, position)}
+                onReattach={onNodeReattach}
+                onToggleCollapse={onToggleCollapse}
+                isDropTarget={draggedNodeId !== null && draggedNodeId !== node.id}
+                isDraggedOver={draggedOverNodeId === node.id}
+                orientation={canvasState.orientation}
+              />
+            ))}
+          </TreeProvider>
 
 
         </div>
