@@ -423,9 +423,15 @@ const TreeNodeComponent = memo(function TreeNode({
       e.preventDefault();
       e.stopPropagation();
       console.log("Double click - entering edit mode for node:", node.id);
+      
+      // Clear the edit title if it's a "New [type]" title so placeholder shows
+      if (node.title.startsWith("New ")) {
+        setEditTitle("");
+      }
+      
       setIsEditing(true);
     },
-    [node.id],
+    [node.id, node.title],
   );
 
   const handleSaveEdit = useCallback(() => {
@@ -449,7 +455,7 @@ const TreeNodeComponent = memo(function TreeNode({
     setIsEditing(false);
     setEditTitle(node.title);
     setEditDescription(node.description);
-  }, [node.title, node.description]);
+  }, [node.title, node.description, node.id]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
