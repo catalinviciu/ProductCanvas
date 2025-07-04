@@ -28,7 +28,7 @@ export class MemStorage implements IStorage {
       canvasState: {
         zoom: 1,
         pan: { x: 0, y: 0 },
-        orientation: 'horizontal'
+        orientation: 'vertical'
       },
       createdAt: new Date('2024-01-15T10:00:00Z'),
       updatedAt: new Date('2024-01-20T14:30:00Z')
@@ -49,10 +49,14 @@ export class MemStorage implements IStorage {
     this.currentId++;
     const tree: ImpactTree = {
       id: this.currentId,
-      ...insertTree,
+      name: insertTree.name,
+      description: insertTree.description ?? null,
+      nodes: insertTree.nodes ?? [],
+      connections: insertTree.connections ?? [],
+      canvasState: insertTree.canvasState ?? { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'vertical' },
       createdAt: new Date(),
       updatedAt: new Date()
-    };
+    } as ImpactTree;
 
     this.impactTrees.set(this.currentId, tree);
     return tree;

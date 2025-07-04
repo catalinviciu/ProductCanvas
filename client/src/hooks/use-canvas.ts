@@ -405,10 +405,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const layoutedNodes = calculateNodeLayout(nodes, newOrientation);
     setNodes(layoutedNodes);
     
-    // Update canvas state with new orientation and home position
-    const homePosition = getHomePosition(layoutedNodes, newOrientation);
-    setCanvasState(homePosition);
-    saveTree(layoutedNodes, undefined, homePosition);
+    // Update canvas state with new orientation and fit to screen
+    const canvasWidth = window.innerWidth - 320; // Account for sidebar
+    const canvasHeight = window.innerHeight - 80; // Account for header
+    const fitPosition = fitNodesToScreen(layoutedNodes, canvasWidth, canvasHeight, newOrientation);
+    setCanvasState(fitPosition);
+    saveTree(layoutedNodes, undefined, fitPosition);
   }, [nodes, canvasState.orientation, saveTree]);
 
   const handleToggleCollapse = useCallback((nodeId: string) => {
