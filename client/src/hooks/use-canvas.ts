@@ -55,11 +55,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         setCanvasState({
           zoom: canvasStateData.zoom,
           pan: canvasStateData.pan,
-          orientation: canvasStateData.orientation || 'horizontal',
+          orientation: canvasStateData.orientation || 'vertical',
         });
       } else {
         // Apply home positioning based on nodes
-        const homePosition = getHomePosition(treeNodes, 'horizontal');
+        const homePosition = getHomePosition(treeNodes, 'vertical');
         setCanvasState(homePosition);
       }
     }

@@ -102,7 +102,10 @@ Environment variables required:
 - January 04, 2025. Added space key toggle functionality for pan mode
 - January 04, 2025. Improved fit-to-screen centering algorithm
 - January 04, 2025. Removed hamburger menu and simplified UI
+- January 04, 2025. Enhanced default vertical view initialization to ensure canvas always starts in vertical mode
+- January 04, 2025. Added automatic fit-to-screen behavior when switching orientations
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Canvas default view: Vertical tree layout with automatic fit-to-screen when switching orientations.
