@@ -118,6 +118,7 @@ const TreeNodeComponent = memo(function TreeNode({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(node.title);
   const [editDescription, setEditDescription] = useState(node.description);
+  const [isTextLimitReached, setIsTextLimitReached] = useState(false);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(
     null,
@@ -429,6 +430,8 @@ const TreeNodeComponent = memo(function TreeNode({
         setEditTitle("");
       }
       
+      // Reset the limit indicator when starting edit
+      setIsTextLimitReached(false);
       setIsEditing(true);
     },
     [node.id, node.title],
@@ -440,6 +443,7 @@ const TreeNodeComponent = memo(function TreeNode({
       editDescription,
     });
     setIsEditing(false);
+    setIsTextLimitReached(false);
     if (editTitle !== node.title || editDescription !== node.description) {
       console.log("Updating node with new values");
       onUpdate({
@@ -455,6 +459,7 @@ const TreeNodeComponent = memo(function TreeNode({
     setIsEditing(false);
     setEditTitle(node.title);
     setEditDescription(node.description);
+    setIsTextLimitReached(false);
   }, [node.title, node.description, node.id]);
 
   const handleKeyDown = useCallback(
@@ -468,6 +473,27 @@ const TreeNodeComponent = memo(function TreeNode({
     },
     [handleSaveEdit, handleCancelEdit],
   );
+
+  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    const lines = text.split('\n');
+    
+    // Check if we're at the 3-line limit
+    if (lines.length > 3) {
+      // Don't allow more than 3 lines
+      setIsTextLimitReached(true);
+      return;
+    }
+    
+    // Check if we're at the 3-line limit (show warning when hitting exactly 3 lines)
+    if (lines.length === 3) {
+      setIsTextLimitReached(true);
+    } else {
+      setIsTextLimitReached(false);
+    }
+    
+    setEditTitle(text);
+  }, []);
 
   // Memoize dynamic className to prevent excessive recalculations
   const nodeClassName = useMemo(() => {
@@ -601,17 +627,25 @@ const TreeNodeComponent = memo(function TreeNode({
               className="edit-mode-container"
               onClick={(e) => e.stopPropagation()}
             >
-              <textarea
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onMouseDown={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
-                className="edit-title-textarea"
-                placeholder={getNodePlaceholder(node.type)}
-                rows={3}
-                autoFocus
-              />
+              <div className="relative">
+                <textarea
+                  value={editTitle}
+                  onChange={handleTextChange}
+                  onKeyDown={handleKeyDown}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  className={`edit-title-textarea ${isTextLimitReached ? 'text-limit-reached' : ''}`}
+                  placeholder={getNodePlaceholder(node.type)}
+                  rows={3}
+                  autoFocus
+                />
+                {isTextLimitReached && (
+                  <div className="text-limit-indicator">
+                    <i className="fas fa-exclamation-triangle text-orange-500 text-xs"></i>
+                    <span className="text-xs text-orange-600">3 lines max</span>
+                  </div>
+                )}
+              </div>
               <div className="edit-actions-container">
                 <button
                   onClick={(e) => {
