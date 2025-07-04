@@ -444,11 +444,15 @@ const TreeNodeComponent = memo(function TreeNode({
     });
     setIsEditing(false);
     setIsTextLimitReached(false);
-    if (editTitle !== node.title || editDescription !== node.description) {
+    
+    // Use placeholder text if title is empty
+    const finalTitle = editTitle.trim() || `New ${node.type}`;
+    
+    if (finalTitle !== node.title || editDescription !== node.description) {
       console.log("Updating node with new values");
       onUpdate({
         ...node,
-        title: editTitle,
+        title: finalTitle,
         description: editDescription,
       });
     }
@@ -478,7 +482,14 @@ const TreeNodeComponent = memo(function TreeNode({
     const text = e.target.value;
     const textarea = e.target as HTMLTextAreaElement;
     
-    // Temporarily set the text to check if it fits
+    // Allow deletion (when new text is shorter than current)
+    if (text.length <= editTitle.length) {
+      setIsTextLimitReached(false);
+      setEditTitle(text);
+      return;
+    }
+    
+    // For additions, check if it fits within 3-row limit
     const previousValue = editTitle;
     textarea.value = text;
     
