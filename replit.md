@@ -104,6 +104,7 @@ Environment variables required:
 - January 04, 2025. Removed hamburger menu and simplified UI
 - January 04, 2025. Enhanced default vertical view initialization to ensure canvas always starts in vertical mode
 - January 04, 2025. Added automatic fit-to-screen behavior when switching orientations
+- January 04, 2025. Added node-specific placeholder text examples for title inputs to guide users
 
 ## User Preferences
 

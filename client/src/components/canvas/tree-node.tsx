@@ -4,6 +4,7 @@ import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
 import { NODE_DIMENSIONS, DRAG_FEEDBACK } from "@/lib/node-constants";
 import { useTreeContextOptional } from "@/contexts/tree-context";
+import { getNodePlaceholder } from "@/lib/node-placeholders";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -515,7 +516,7 @@ const TreeNodeComponent = memo(function TreeNode({
                 onMouseDown={(e) => e.stopPropagation()}
                 onFocus={(e) => e.stopPropagation()}
                 className="edit-title-input-single"
-                placeholder="Enter title..."
+                placeholder={getNodePlaceholder(node.type)}
                 autoFocus
               />
               <div className="edit-actions-container">
