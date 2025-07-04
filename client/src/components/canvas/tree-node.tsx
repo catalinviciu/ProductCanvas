@@ -469,6 +469,16 @@ const TreeNodeComponent = memo(function TreeNode({
         handleSaveEdit();
       } else if (e.key === "Escape") {
         handleCancelEdit();
+      } else if (e.key === "Enter" && e.shiftKey) {
+        // Check if adding a new line would exceed 3 lines
+        const textarea = e.target as HTMLTextAreaElement;
+        const text = textarea.value;
+        const lines = text.split('\n');
+        if (lines.length >= 3) {
+          e.preventDefault();
+          setIsTextLimitReached(true);
+          setTimeout(() => setIsTextLimitReached(false), 2000);
+        }
       }
     },
     [handleSaveEdit, handleCancelEdit],
@@ -478,14 +488,15 @@ const TreeNodeComponent = memo(function TreeNode({
     const text = e.target.value;
     const lines = text.split('\n');
     
-    // Check if we're at the 3-line limit
+    // Don't allow more than 3 lines - prevent the change entirely
     if (lines.length > 3) {
-      // Don't allow more than 3 lines
       setIsTextLimitReached(true);
-      return;
+      // Brief flash to show limit reached
+      setTimeout(() => setIsTextLimitReached(false), 2000);
+      return; // Don't update the text state
     }
     
-    // Check if we're at the 3-line limit (show warning when hitting exactly 3 lines)
+    // Show warning when hitting exactly 3 lines
     if (lines.length === 3) {
       setIsTextLimitReached(true);
     } else {
@@ -494,6 +505,30 @@ const TreeNodeComponent = memo(function TreeNode({
     
     setEditTitle(text);
   }, []);
+
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    const currentText = editTitle;
+    const textarea = e.target as HTMLTextAreaElement;
+    const { selectionStart, selectionEnd } = textarea;
+    
+    // Calculate what the text would be after pasting
+    const newText = currentText.slice(0, selectionStart) + pastedText + currentText.slice(selectionEnd);
+    const newLines = newText.split('\n');
+    
+    // If paste would exceed 3 lines, prevent it
+    if (newLines.length > 3) {
+      e.preventDefault();
+      setIsTextLimitReached(true);
+      setTimeout(() => setIsTextLimitReached(false), 2000);
+      return;
+    }
+    
+    // If paste would result in exactly 3 lines, show warning
+    if (newLines.length === 3) {
+      setIsTextLimitReached(true);
+    }
+  }, [editTitle]);
 
   // Memoize dynamic className to prevent excessive recalculations
   const nodeClassName = useMemo(() => {
@@ -632,6 +667,7 @@ const TreeNodeComponent = memo(function TreeNode({
                   value={editTitle}
                   onChange={handleTextChange}
                   onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
                   onMouseDown={(e) => e.stopPropagation()}
                   onFocus={(e) => e.stopPropagation()}
                   className={`edit-title-textarea ${isTextLimitReached ? 'text-limit-reached' : ''}`}
