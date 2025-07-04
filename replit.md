@@ -97,6 +97,11 @@ Environment variables required:
 - January 03, 2025. Enhanced drag and drop visual feedback with improved styling
 - January 03, 2025. Centralized node dimensions and constants to eliminate hardcoded values
 - January 03, 2025. Added TreeContext for efficient node lookups and improved onReattach error handling
+- January 04, 2025. Consolidated menu system into compact canvas toolbar
+- January 04, 2025. Changed default orientation to vertical tree layout
+- January 04, 2025. Added space key toggle functionality for pan mode
+- January 04, 2025. Improved fit-to-screen centering algorithm
+- January 04, 2025. Removed hamburger menu and simplified UI
 
 ## User Preferences
 

@@ -24,6 +24,8 @@ interface ImpactTreeCanvasProps {
   onToggleCollapse: (nodeId: string) => void;
   onToggleChildVisibility: (parentId: string, childId: string) => void;
   onResetToHome: () => void;
+  onFitToScreen: () => void;
+  onOrientationToggle: () => void;
 }
 
 const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
@@ -41,6 +43,8 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   onToggleCollapse,
   onToggleChildVisibility,
   onResetToHome,
+  onFitToScreen,
+  onOrientationToggle,
 }: ImpactTreeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -390,9 +394,11 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
         zoom={canvasState.zoom}
         onZoomIn={() => onCanvasUpdate({ zoom: Math.min(3, canvasState.zoom + 0.1) })}
         onZoomOut={() => onCanvasUpdate({ zoom: Math.max(0.1, canvasState.zoom - 0.1) })}
-        onResetView={onResetToHome}
         isPanMode={isPanMode}
         onTogglePanMode={() => setIsPanMode(!isPanMode)}
+        onFitToScreen={onFitToScreen}
+        orientation={canvasState.orientation}
+        onOrientationToggle={onOrientationToggle}
       />
 
       {/* Enhanced Canvas Background */}
