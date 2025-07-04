@@ -1137,14 +1137,31 @@ export function fitNodesToScreen(nodes: TreeNode[], canvasWidth: number, canvasH
     return getHomePosition(nodes, currentOrientation);
   }
   
+  // Calculate zoom to fit content with padding
   const scaleX = (canvasWidth - padding * 2) / contentWidth;
   const scaleY = (canvasHeight - padding * 2) / contentHeight;
-  const zoom = Math.min(Math.max(scaleX, CANVAS_CONSTANTS.MIN_ZOOM), Math.max(scaleY, CANVAS_CONSTANTS.MIN_ZOOM), CANVAS_CONSTANTS.MAX_ZOOM);
+  const zoom = Math.min(scaleX, scaleY, CANVAS_CONSTANTS.MAX_ZOOM);
   
+  // Ensure minimum zoom
+  const finalZoom = Math.max(zoom, CANVAS_CONSTANTS.MIN_ZOOM);
+  
+  // Calculate content bounds with zoom applied
+  const scaledContentWidth = contentWidth * finalZoom;
+  const scaledContentHeight = contentHeight * finalZoom;
+  
+  // Center the content in the available space
+  const centerX = canvasWidth / 2;
+  const centerY = canvasHeight / 2;
+  
+  // Calculate the center of the content
+  const contentCenterX = minX + contentWidth / 2;
+  const contentCenterY = minY + contentHeight / 2;
+  
+  // Calculate pan to center the content
   const pan = {
-    x: (canvasWidth - contentWidth * zoom) / 2 - minX * zoom,
-    y: (canvasHeight - contentHeight * zoom) / 2 - minY * zoom,
+    x: centerX - (contentCenterX * finalZoom),
+    y: centerY - (contentCenterY * finalZoom),
   };
   
-  return { zoom, pan, orientation: currentOrientation };
+  return { zoom: finalZoom, pan, orientation: currentOrientation };
 }

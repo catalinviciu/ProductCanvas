@@ -36,7 +36,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const [canvasState, setCanvasState] = useState<CanvasState>({
     zoom: 1,
     pan: { x: 0, y: 0 },
-    orientation: 'horizontal',
+    orientation: 'vertical',
   });
 
   // Initialize state from impactTree

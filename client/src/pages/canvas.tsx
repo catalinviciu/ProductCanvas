@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
 
-import { ProjectHeader } from "@/components/header/project-header";
+import { FloatingSideMenu } from "@/components/ui/floating-side-menu";
 import { NodeEditModal } from "@/components/modals/node-edit-modal";
 import { ContextMenu } from "@/components/modals/context-menu";
 import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
@@ -77,17 +77,15 @@ export default function CanvasPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      <ProjectHeader 
-        projectName={impactTree.name}
-        lastSaved={impactTree.updatedAt}
-        onAutoLayout={handleAutoLayout}
+    <div className="h-screen bg-white relative overflow-hidden">
+      <FloatingSideMenu
+        onNodeCreate={handleNodeCreate}
         onFitToScreen={fitToScreen}
         orientation={canvasState.orientation}
         onOrientationToggle={handleOrientationToggle}
       />
       
-      <main className="flex-1 bg-white relative overflow-hidden">
+      <main className="h-full">
         <ImpactTreeCanvas
           nodes={nodes}
           connections={connections}

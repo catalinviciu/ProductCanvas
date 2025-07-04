@@ -2,7 +2,6 @@ interface CanvasToolbarProps {
   zoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  onResetView: () => void;
   isPanMode: boolean;
   onTogglePanMode: () => void;
 }
@@ -11,7 +10,6 @@ export function CanvasToolbar({
   zoom,
   onZoomIn,
   onZoomOut,
-  onResetView,
   isPanMode,
   onTogglePanMode,
 }: CanvasToolbarProps) {
@@ -40,18 +38,7 @@ export function CanvasToolbar({
 
       
 
-      {/* Navigation Group */}
-      <div className="toolbar-group">
-        <div className="toolbar-section">
-          <button 
-            onClick={onResetView}
-            className="toolbar-btn toolbar-btn-primary"
-            title="Reset View - Fit all nodes to screen"
-          >
-            <i className="fas fa-home"></i>
-          </button>
-        </div>
-      </div>
+
     </div>
   );
 }
