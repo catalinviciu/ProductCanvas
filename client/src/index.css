@@ -163,7 +163,7 @@
 .node-title-compact {
   @apply font-medium text-gray-900 text-sm leading-tight;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
