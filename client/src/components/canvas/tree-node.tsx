@@ -478,17 +478,50 @@ const TreeNodeComponent = memo(function TreeNode({
     const text = e.target.value;
     const textarea = e.target as HTMLTextAreaElement;
     
-    // Check if text is overflowing the 3-row limit
+    // Temporarily set the text to check if it fits
+    const previousValue = editTitle;
+    textarea.value = text;
+    
+    // Check if text exceeds the 3-row limit
     if (textarea.scrollHeight > textarea.clientHeight) {
+      // Revert to previous value and show warning
+      textarea.value = previousValue;
       setIsTextLimitReached(true);
-      // Brief flash to show limit reached
       setTimeout(() => setIsTextLimitReached(false), 2000);
-    } else {
-      setIsTextLimitReached(false);
+      return; // Don't update state
     }
     
+    // Text fits, update state
+    setIsTextLimitReached(false);
     setEditTitle(text);
-  }, []);
+  }, [editTitle]);
+
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    const textarea = e.target as HTMLTextAreaElement;
+    const { selectionStart, selectionEnd } = textarea;
+    
+    // Calculate what the text would be after pasting
+    const newText = editTitle.slice(0, selectionStart) + pastedText + editTitle.slice(selectionEnd);
+    
+    // Temporarily set the new text to check if it fits
+    const originalValue = textarea.value;
+    textarea.value = newText;
+    
+    // Check if the new text exceeds the 3-row limit
+    if (textarea.scrollHeight > textarea.clientHeight) {
+      // Revert and show warning
+      textarea.value = originalValue;
+      setIsTextLimitReached(true);
+      setTimeout(() => setIsTextLimitReached(false), 2000);
+      return;
+    }
+    
+    // Text fits, update state
+    setIsTextLimitReached(false);
+    setEditTitle(newText);
+  }, [editTitle]);
 
   // Memoize dynamic className to prevent excessive recalculations
   const nodeClassName = useMemo(() => {
@@ -627,6 +660,7 @@ const TreeNodeComponent = memo(function TreeNode({
                   value={editTitle}
                   onChange={handleTextChange}
                   onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
                   onMouseDown={(e) => e.stopPropagation()}
                   onFocus={(e) => e.stopPropagation()}
                   className={`edit-title-textarea ${isTextLimitReached ? 'text-limit-reached' : ''}`}
