@@ -612,37 +612,37 @@
 
   /* Impact tree node styling - clean border design */
   .node-objective {
-    border: 2px solid var(--primary-blue);
+
     border-radius: 12px;
   }
 
   .node-outcome {
-    border: 2px solid var(--primary-indigo);
+
     border-radius: 12px;
   }
 
   .node-opportunity {
-    border: 2px solid var(--secondary-purple);
+
     border-radius: 12px;
   }
 
   .node-solution {
-    border: 2px solid var(--accent-emerald);
+
     border-radius: 12px;
   }
 
   .node-assumption {
-    border: 2px solid var(--orange-test);
+
     border-radius: 12px;
   }
 
   .node-metric {
-    border: 2px solid var(--kpi-color);
+
     border-radius: 12px;
   }
 
   .node-research {
-    border: 2px solid var(--research-color);
+ 
     border-radius: 12px;
   }
 
@@ -1573,7 +1573,7 @@
 }
 
 .menu-item-title {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 2px;
@@ -1782,7 +1782,7 @@
 .node-title {
   @apply font-semibold text-gray-900 text-base leading-tight;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
