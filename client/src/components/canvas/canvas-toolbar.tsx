@@ -24,6 +24,12 @@ export function CanvasToolbar({
   // Handle space key for pan mode toggle
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle space key if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+        return;
+      }
+      
       if (e.code === 'Space' && !e.repeat) {
         e.preventDefault();
         if (!isPanMode) {
@@ -33,6 +39,12 @@ export function CanvasToolbar({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      // Don't handle space key if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+        return;
+      }
+      
       if (e.code === 'Space') {
         e.preventDefault();
         if (isPanMode) {
