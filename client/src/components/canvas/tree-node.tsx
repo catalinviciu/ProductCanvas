@@ -595,15 +595,15 @@ const TreeNodeComponent = memo(function TreeNode({
               className="edit-mode-container"
               onClick={(e) => e.stopPropagation()}
             >
-              <input
-                type="text"
+              <textarea
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => e.stopPropagation()}
                 onFocus={(e) => e.stopPropagation()}
-                className="edit-title-input-single"
+                className="edit-title-textarea"
                 placeholder={getNodePlaceholder(node.type)}
+                rows={3}
                 autoFocus
               />
               <div className="edit-actions-container">
