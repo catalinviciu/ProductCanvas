@@ -16,6 +16,7 @@ export function createNode(
   testCategory?: TestCategory,
   parentId?: string
 ): TreeNode {
+  // Use placeholder titles that will guide users about what to enter
   const defaultTitles = {
     objective: "New Objective",
     outcome: "New Outcome",

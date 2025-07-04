@@ -548,7 +548,13 @@ const TreeNodeComponent = memo(function TreeNode({
             </div>
           ) : (
             <div className="content-area-compact flex-1 overflow-hidden" onDoubleClick={handleDoubleClick}>
-              <h3 className="node-title-compact line-clamp-2">{node.title}</h3>
+              <h3 className="node-title-compact line-clamp-2">
+                {node.title.startsWith('New ') ? (
+                  <span className="text-gray-400 italic">{getNodePlaceholder(node.type)}</span>
+                ) : (
+                  node.title
+                )}
+              </h3>
             </div>
           )}
         </div>
