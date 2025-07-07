@@ -297,7 +297,6 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
                     height={200}
                     preview="edit"
                     hideToolbar={false}
-                    toolbarHeight={40}
                     data-color-mode="light"
                   />
                 </div>

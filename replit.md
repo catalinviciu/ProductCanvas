@@ -25,6 +25,8 @@ The application follows a monorepo structure with a clear separation between cli
 - **Wouter** for lightweight client-side routing
 - **Canvas-based** interactive node editor
 - **TreeContext** for efficient node lookups and performance optimization
+- **Enhanced Node Editing** with side drawer interface and rich text support
+- **Markdown Editor** integration for formatted descriptions (@uiw/react-md-editor)
 
 ### Backend Architecture
 - **Express.js** REST API server
@@ -105,6 +107,11 @@ Environment variables required:
 - January 04, 2025. Enhanced default vertical view initialization to ensure canvas always starts in vertical mode
 - January 04, 2025. Added automatic fit-to-screen behavior when switching orientations
 - January 04, 2025. Added node-specific placeholder text examples for title inputs to guide users
+- January 07, 2025. Implemented Enhanced Node Edit Side Drawer feature replacing modal-based editing
+- January 07, 2025. Added rich text editing with markdown support using @uiw/react-md-editor
+- January 07, 2025. Implemented node-type-specific fields for contextual information entry
+- January 07, 2025. Added auto-save functionality with local storage drafts
+- January 07, 2025. Implemented keyboard shortcuts (Ctrl+S save, Esc cancel) for editing workflow
 
 ## User Preferences
 
