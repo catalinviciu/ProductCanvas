@@ -11,7 +11,7 @@ interface ContextMenuState {
   menuType: 'full' | 'addChild' | 'nodeActions';
 }
 
-interface EditModalState {
+interface EditDrawerState {
   isOpen: boolean;
 }
 
@@ -28,7 +28,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     node: null,
     menuType: 'full',
   });
-  const [editModal, setEditModal] = useState<EditModalState>({ isOpen: false });
+  const [editDrawer, setEditDrawer] = useState<EditDrawerState>({ isOpen: false });
   const [createFirstNodeModal, setCreateFirstNodeModal] = useState<CreateFirstNodeModalState>({ isOpen: false });
 
   const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -364,13 +364,13 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(undefined, undefined, updatedCanvasState);
   }, [canvasState, saveTree]);
 
-  const closeEditModal = useCallback(() => {
-    setEditModal({ isOpen: false });
+  const closeEditDrawer = useCallback(() => {
+    setEditDrawer({ isOpen: false });
   }, []);
 
-  const openEditModal = useCallback((node: TreeNode) => {
+  const openEditDrawer = useCallback((node: TreeNode) => {
     setSelectedNode(node);
-    setEditModal({ isOpen: true });
+    setEditDrawer({ isOpen: true });
   }, []);
 
   const resetToHome = useCallback(() => {
@@ -437,7 +437,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   return {
     selectedNode,
     contextMenu,
-    editModal,
+    editDrawer,
     createFirstNodeModal,
     canvasState,
     nodes,
@@ -455,8 +455,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     handleAutoLayout,
     handleOrientationToggle,
     closeContextMenu,
-    closeEditModal,
-    openEditModal,
+    closeEditDrawer,
+    openEditDrawer,
     resetToHome,
     fitToScreen,
     closeCreateFirstNodeModal,

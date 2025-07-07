@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
 
 
-import { NodeEditModal } from "@/components/modals/node-edit-modal";
+import { NodeEditSideDrawer } from "@/components/drawers/node-edit-side-drawer";
 import { ContextMenu } from "@/components/modals/context-menu";
 import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
 import { useCanvas } from "@/hooks/use-canvas";
@@ -21,7 +21,7 @@ export default function CanvasPage() {
   const {
     selectedNode,
     contextMenu,
-    editModal,
+    editDrawer,
     createFirstNodeModal,
     canvasState,
     nodes,
@@ -39,8 +39,8 @@ export default function CanvasPage() {
     handleAutoLayout,
     handleOrientationToggle,
     closeContextMenu,
-    closeEditModal,
-    openEditModal,
+    closeEditDrawer,
+    openEditDrawer,
     resetToHome,
     fitToScreen,
     closeCreateFirstNodeModal,
@@ -99,11 +99,12 @@ export default function CanvasPage() {
         />
       </main>
 
-      <NodeEditModal
+      <NodeEditSideDrawer
         node={selectedNode}
-        isOpen={editModal.isOpen}
-        onClose={closeEditModal}
+        isOpen={editDrawer.isOpen}
+        onClose={closeEditDrawer}
         onSave={handleNodeUpdate}
+        onDelete={handleNodeDelete}
       />
 
       <ContextMenu
@@ -111,7 +112,7 @@ export default function CanvasPage() {
         position={contextMenu.position}
         node={contextMenu.node}
         onClose={closeContextMenu}
-        onEdit={openEditModal}
+        onEdit={openEditDrawer}
         onDelete={handleNodeDelete}
         onAddChild={handleAddChildFromContext}
         onToggleCollapse={handleToggleCollapse}
