@@ -1,6 +1,7 @@
+
 # 🚀 Feature Request Template
 
-> **Use this template to document new features for React + Java projects**
+> **Use this template to document new features for AI-Native Impact Tree projects**
 
 ---
 
@@ -10,17 +11,17 @@
 [Clear, descriptive name for the feature]
 
 ### **Feature Type**
-- [ ] **⚛️ React Component**
-- [ ] **🌐 Backend API Endpoint**
-- [ ] **🗄️ Database Entity/Schema**
-- [ ] **🔗 Frontend-Backend Integration**
-- [ ] **🔒 Authentication/Security**
-- [ ] **📊 Data Processing/Analytics**
-- [ ] **🎨 UI/UX Enhancement**
-- [ ] **📱 Responsive Design**
-- [ ] **⚡ Performance Optimization**
-- [ ] **🧪 Testing Infrastructure**
-- [ ] **🔧 Developer Tool**
+- [ ] **⚛️ React Component** (Tree nodes, canvas controls, modals)
+- [ ] **🌐 Backend API Endpoint** (Express.js REST endpoints)
+- [ ] **🗄️ Database Entity/Schema** (PostgreSQL/Drizzle ORM)
+- [ ] **🔗 Frontend-Backend Integration** (Canvas state sync, real-time updates)
+- [ ] **🔒 Authentication/Security** (User management, tree permissions)
+- [ ] **📊 AI Integration** (Vertex AI discovery insights)
+- [ ] **🎨 Canvas/UI Enhancement** (Tree visualization, interactions)
+- [ ] **📱 Responsive Design** (Mobile canvas experience)
+- [ ] **⚡ Performance Optimization** (Canvas rendering, state management)
+- [ ] **🧪 Testing Infrastructure** (Component/API testing)
+- [ ] **🔧 Discovery Feature** (Continuous discovery support)
 - [ ] **Other**: _______________
 
 ---
@@ -28,23 +29,23 @@
 ## 🎯 **Business Case**
 
 ### **Problem Statement**
-[What problem does this feature solve or what opportunity does it address?]
+[What problem does this feature solve for Product Managers practicing continuous discovery?]
 
 ### **User Story**
-**As a** [type of user]  
+**As a** [Product Manager practicing continuous discovery]  
 **I want** [functionality]  
-**So that** [benefit/value]
+**So that** [I can better organize my product strategy and discovery activities]
 
 ### **Priority & Impact**
 - **Priority**: 
-  - [ ] 🔥 **Critical** (Blocking/Security)
-  - [ ] ⭐ **High** (Important for next release)
-  - [ ] 📋 **Medium** (Nice to have)
+  - [ ] 🔥 **Critical** (Blocking product-market fit discovery)
+  - [ ] ⭐ **High** (Important for discovery workflow)
+  - [ ] 📋 **Medium** (Nice to have for PM productivity)
   - [ ] 📝 **Low** (Future consideration)
 
 - **Impact**: 
-  - [ ] 🎯 **High** (Core functionality, many users)
-  - [ ] 📊 **Medium** (Improves user experience)
+  - [ ] 🎯 **High** (Core discovery functionality, affects all PMs)
+  - [ ] 📊 **Medium** (Improves discovery experience)
   - [ ] 🔧 **Low** (Internal improvement)
 
 ---
@@ -52,14 +53,14 @@
 ## 🔧 **Technical Specification**
 
 ### **Components Affected**
-- [ ] **⚛️ React Frontend** (Components, hooks, state management)
-- [ ] **☕ Java Backend** (Services, controllers, repositories)
-- [ ] **🗄️ Database** (Entities, schema, migrations)
-- [ ] **🌐 REST API** (Endpoints, request/response models)
-- [ ] **🔒 Security** (Authentication, authorization)
-- [ ] **🎨 UI/Styling** (CSS, component library)
-- [ ] **📦 Build System** (Maven/Gradle, npm/yarn)
-- [ ] **🐳 Infrastructure** (Docker, deployment)
+- [ ] **⚛️ React Frontend** (Canvas components, modals, state management)
+- [ ] **🟢 Node.js Backend** (Express.js services, API endpoints)
+- [ ] **🗄️ Database** (PostgreSQL schema, Drizzle ORM entities)
+- [ ] **🌐 REST API** (Impact tree endpoints, canvas state sync)
+- [ ] **🔒 Security** (Session-based auth, tree permissions)
+- [ ] **🎨 Canvas System** (SVG rendering, drag-drop, zoom/pan)
+- [ ] **📦 Build System** (Vite, TypeScript compilation)
+- [ ] **🚀 Replit Deployment** (Production deployment configuration)
 
 ### **Effort Estimate**
 - [ ] **🟢 Small** (1-2 days)
@@ -69,147 +70,158 @@
 
 ### **Dependencies**
 [List any features, services, or external systems this depends on]
-- Dependency 1: [Description]
-- Dependency 2: [Description]
+- Canvas rendering system
+- Tree state management (Zustand)
+- Impact tree API endpoints
+- Vertex AI integration (for AI features)
 
 ### **API Changes**
 - [ ] **No API changes**
 - [ ] **New endpoints only**
-- [ ] **Modify existing endpoints**
+- [ ] **Modify existing impact tree endpoints**
 - [ ] **Breaking changes** (requires version bump)
 
 ---
 
 ## 📝 **Detailed Requirements**
 
-### **Frontend Requirements (React)**
-1. **Component Structure**: [Describe React components needed]
-2. **State Management**: [Redux/Context/Local state requirements]
-3. **User Interface**: [UI/UX specifications]
-4. **Routing**: [Navigation and routing changes]
+### **Frontend Requirements (React + TypeScript)**
+1. **Component Structure**: [Canvas components, modals, tree nodes]
+2. **State Management**: [Zustand for tree state, TanStack Query for server state]
+3. **User Interface**: [Canvas interactions, node editing, discovery workflows]
+4. **Routing**: [Wouter navigation between trees and discovery views]
 
-### **Backend Requirements (Java)**
-1. **API Endpoints**: [REST endpoints to be created/modified]
-2. **Business Logic**: [Service layer requirements]
-3. **Data Access**: [Repository and database operations]
-4. **Security**: [Authentication/authorization requirements]
+### **Backend Requirements (Node.js + Express)**
+1. **API Endpoints**: [Impact tree CRUD, canvas state persistence]
+2. **Business Logic**: [Tree validation, node relationships, discovery workflows]
+3. **Data Access**: [Drizzle ORM operations, PostgreSQL queries]
+4. **AI Integration**: [Vertex AI API calls for discovery insights]
 
 ### **Database Requirements**
-1. **Entities**: [JPA entities to be created/modified]
-2. **Relationships**: [Entity relationships and constraints]
-3. **Migrations**: [Schema changes required]
-4. **Indexes**: [Performance optimization indexes]
+1. **Schema Changes**: [impact_trees table modifications, new discovery tables]
+2. **Relationships**: [Node hierarchies, assumption tracking, research artifacts]
+3. **Migrations**: [Drizzle migrations for schema changes]
+4. **Performance**: [Indexes for tree queries, JSONB optimizations]
 
-### **Integration Requirements**
-1. **Frontend-Backend**: [API integration specifications]
-2. **External Services**: [Third-party integrations]
-3. **Data Flow**: [How data flows through the system]
+### **Canvas Integration Requirements**
+1. **Node Rendering**: [SVG-based node visualization and interactions]
+2. **State Persistence**: [Canvas zoom/pan state, node positions]
+3. **Real-time Updates**: [Efficient re-rendering, state synchronization]
 
 ---
 
 ## 🧪 **Testing Strategy**
 
 ### **Frontend Testing**
-- [ ] **Unit Tests**: Component testing with Jest/React Testing Library
-- [ ] **Integration Tests**: Component integration testing
-- [ ] **E2E Tests**: User workflow testing
-- [ ] **Visual Tests**: UI regression testing
+- [ ] **Component Tests**: React Testing Library for canvas components
+- [ ] **Integration Tests**: Canvas interaction and API integration
+- [ ] **E2E Tests**: Discovery workflow testing with Playwright
+- [ ] **Visual Tests**: Canvas rendering regression testing
 
 ### **Backend Testing**
-- [ ] **Unit Tests**: Service and repository testing with JUnit
-- [ ] **Integration Tests**: API endpoint testing
-- [ ] **Database Tests**: Repository and entity testing
-- [ ] **Security Tests**: Authentication/authorization testing
+- [ ] **Unit Tests**: Service and API endpoint testing
+- [ ] **Integration Tests**: Database operations and AI integration
+- [ ] **API Tests**: Impact tree endpoints and canvas state sync
+- [ ] **Performance Tests**: Large tree handling and canvas optimization
 
 ---
 
 ## 📊 **Success Metrics**
 
 ### **Functional Metrics**
-- [ ] **Feature works as specified**
-- [ ] **All acceptance criteria met**
-- [ ] **No breaking changes introduced**
-- [ ] **Performance requirements met**
+- [ ] **Discovery workflow works** as specified for PM users
+- [ ] **Canvas performance** maintains 60fps with 100+ nodes
+- [ ] **AI suggestions** provide relevant discovery insights
+- [ ] **Tree persistence** handles complex hierarchies correctly
 
 ### **Quality Metrics**
-- [ ] **Test coverage > 80%**
-- [ ] **No critical security vulnerabilities**
-- [ ] **Code review approved**
-- [ ] **Documentation updated**
+- [ ] **Test coverage > 80%** for critical discovery features
+- [ ] **No performance regressions** in canvas rendering
+- [ ] **TypeScript strict mode** compliance
+- [ ] **Accessibility standards** met for PM users
 
 ---
 
 ## 🎓 **Developer Learning Guide**
 
 ### **📚 Concept Overview**
-[Explain the feature concept in plain English, suitable for developers at all levels]
+[Explain the feature in context of Product Management continuous discovery practices]
+
+This feature supports Product Managers who practice continuous discovery by [explain how it fits into the discovery workflow]. The AI-Native Impact Tree serves as a live document that evolves with PM learning, connecting OKR methodology with impact mapping and user story mapping techniques.
 
 ### **🏗️ Architecture Diagram**
 ```mermaid
 graph TD
-    A[React Component] --> B[API Service]
-    B --> C[Java Controller]
-    C --> D[Service Layer]
-    D --> E[Repository]
-    E --> F[Database]
+    A[React Canvas Component] --> B[Tree State Manager]
+    B --> C[Express API Endpoint]
+    C --> D[Drizzle ORM Service]
+    D --> E[PostgreSQL Database]
+    
+    F[Vertex AI Service] --> C
+    G[Discovery Workflow] --> A
+    H[PM User Interaction] --> A
 ```
 
 ### **🔄 Implementation Flow**
-1. **Step 1**: [Detailed explanation of first implementation step]
-2. **Step 2**: [Detailed explanation of second implementation step]
-3. **Step 3**: [Detailed explanation of third implementation step]
+1. **Canvas Interaction**: PM interacts with impact tree nodes on HTML5 canvas
+2. **State Management**: Zustand updates tree state and triggers re-renders
+3. **API Persistence**: TanStack Query syncs changes to Express backend
+4. **AI Enhancement**: Vertex AI provides discovery insights based on tree context
 
 ### **⚠️ Common Pitfalls**
-- **Pitfall 1**: [Description and how to avoid]
-- **Pitfall 2**: [Description and how to avoid]
-- **Pitfall 3**: [Description and how to avoid]
+- **Canvas Performance**: Large trees can slow down rendering - use virtualization
+- **State Synchronization**: Keep canvas state and server state in sync
+- **AI Integration**: Handle Vertex AI rate limits and token costs
+- **Discovery Context**: Ensure features support continuous discovery practices
 
 ### **🔗 Learning Resources**
-- **React Documentation**: [Relevant React concepts]
-- **Spring Boot Documentation**: [Relevant Spring Boot concepts]
-- **Related Features**: [Links to similar implemented features]
-- **External Resources**: [Helpful tutorials, articles, or documentation]
+- **React Canvas**: HTML5 canvas with React best practices
+- **Impact Mapping**: Teresa Torres continuous discovery methodology
+- **Drizzle ORM**: Type-safe PostgreSQL operations
+- **Vertex AI**: Google Cloud AI integration patterns
 
 ### **🎯 Key Takeaways**
-- [Important concept 1 that developers should understand]
-- [Important concept 2 that developers should understand]
-- [Important concept 3 that developers should understand]
+- Impact trees are live documents that evolve with PM discovery
+- Canvas performance is critical for user experience with large trees
+- AI integration should enhance discovery workflows, not replace PM judgment
+- All features should support the continuous discovery mindset
 
 ---
 
 ## 📋 **Implementation Checklist**
 
 ### **Pre-Implementation**
-- [ ] **Requirements clarified** with stakeholders
-- [ ] **Technical approach approved** by team
-- [ ] **Dependencies identified** and available
-- [ ] **Database changes planned** and reviewed
+- [ ] **Discovery requirements clarified** with PM users
+- [ ] **Canvas architecture** approach approved by team
+- [ ] **AI integration** strategy defined for discovery insights
+- [ ] **Database schema** changes planned and reviewed
 
 ### **Implementation**
-- [ ] **Backend implementation** completed and tested
-- [ ] **Frontend implementation** completed and tested
-- [ ] **Integration testing** completed successfully
-- [ ] **Documentation updated** (API docs, README, etc.)
+- [ ] **Backend API** endpoints implemented and tested
+- [ ] **React components** implemented with canvas integration
+- [ ] **Zustand state** management implemented
+- [ ] **Drizzle schema** and migrations completed
+- [ ] **Vertex AI** integration implemented (for AI features)
 
 ### **Post-Implementation**
 - [ ] **Code review** completed and approved
-- [ ] **Testing** completed (unit, integration, E2E)
-- [ ] **Deployment** completed successfully
-- [ ] **Monitoring** and logging configured
+- [ ] **Canvas performance** testing completed
+- [ ] **Discovery workflow** testing with PM users
+- [ ] **Replit deployment** completed successfully
 
 ---
 
 ## 🔗 **Related Documents**
 
 - **Implementation Plan**: [Link to implementation plan when created]
-- **Related Features**: [Links to related feature documents]
-- **Technical Documentation**: [Links to relevant technical docs]
-- **API Documentation**: [Links to API documentation]
+- **PRD Document**: [docs/PRD.md - AI-Native Impact Tree specification]
+- **Canvas Architecture**: [Canvas rendering and interaction patterns]
+- **Discovery Methodology**: [Continuous discovery workflow documentation]
 
 ---
 
-**📝 Template Version**: 1.0  
-**🎯 Project Type**: React + Java  
+**📝 Template Version**: 2.0  
+**🎯 Project Type**: AI-Native Impact Tree (React + Node.js)  
 **📅 Created**: [Date]  
 **👤 Author**: [Author name]  
 **📊 Status**: 📋 Planned

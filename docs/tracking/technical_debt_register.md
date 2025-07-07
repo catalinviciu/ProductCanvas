@@ -1,12 +1,13 @@
+
 # 📋 Technical Debt Register
 
-> **Centralized tracking of technical debt for React + Java projects**
+> **Centralized tracking of technical debt for AI-Native Impact Tree projects**
 
 ---
 
 ## 🎯 **Overview**
 
-This document tracks all technical debt items across the React + Java application. Technical debt includes code quality issues, architectural shortcuts, outdated dependencies, and other items that need attention but don't block current functionality.
+This document tracks all technical debt items across the AI-Native Impact Tree application. Technical debt includes canvas performance issues, discovery workflow optimizations, outdated dependencies, and other items that need attention but don't block current PM functionality.
 
 ---
 
@@ -14,268 +15,302 @@ This document tracks all technical debt items across the React + Java applicatio
 
 ### **Current Status**
 - **Total Items**: [Number of items]
-- **High Priority**: [Number of high priority items]
+- **High Priority**: [Number of high priority items affecting PM workflow]
 - **Medium Priority**: [Number of medium priority items]
 - **Low Priority**: [Number of low priority items]
 
 ### **Categories**
-- **Code Quality**: [Number of items]
-- **Architecture**: [Number of items]
-- **Dependencies**: [Number of items]
-- **Performance**: [Number of items]
-- **Security**: [Number of items]
-- **Testing**: [Number of items]
-- **Documentation**: [Number of items]
+- **Canvas Performance**: [Number of items affecting tree rendering]
+- **Discovery Workflow**: [Number of items impacting PM user experience]
+- **Code Quality**: [Number of general code quality items]
+- **Dependencies**: [Number of outdated dependency items]
+- **AI Integration**: [Number of Vertex AI optimization items]
+- **Database Performance**: [Number of PostgreSQL/Drizzle optimization items]
+- **Testing**: [Number of testing coverage items]
+- **Documentation**: [Number of documentation items]
 
 ---
 
 ## 🔥 **High Priority Items**
 
-### **TD-001: Database Connection Pool Configuration**
-- **Category**: Performance
-- **Component**: Backend (Java)
-- **Description**: Database connection pool is using default settings which may not be optimal for production load
-- **Impact**: Potential performance issues under high load
-- **Effort**: 2-4 hours
-- **Created**: [Date]
-- **Status**: 🔍 Open
-- **Assigned**: [Developer name]
-
-### **TD-002: React Component Prop Drilling**
-- **Category**: Code Quality
-- **Component**: Frontend (React)
-- **Description**: Several components have deep prop drilling that should be refactored to use Context API or state management
-- **Impact**: Code maintainability and readability
+### **TD-001: Canvas Performance with Large Trees**
+- **Category**: Canvas Performance
+- **Component**: Frontend (React Canvas)
+- **Description**: Canvas rendering slows down significantly with trees containing 200+ nodes, affecting PM user experience
+- **Impact**: PMs with complex discovery trees experience lag and poor interactions
 - **Effort**: 1-2 days
 - **Created**: [Date]
 - **Status**: 🔍 Open
 - **Assigned**: [Developer name]
+- **PM Impact**: Critical for PMs with mature, complex impact trees
 
-### **TD-003: API Error Handling Inconsistency**
-- **Category**: Code Quality
-- **Component**: Backend (Java)
-- **Description**: Error handling is inconsistent across different controllers, some return different error formats
-- **Impact**: Frontend error handling complexity, poor user experience
-- **Effort**: 4-6 hours
+### **TD-002: Tree State Synchronization Conflicts**
+- **Category**: Discovery Workflow
+- **Component**: Frontend/Backend Integration
+- **Description**: Occasional conflicts between canvas state and server state when PMs make rapid changes
+- **Impact**: Tree changes sometimes lost, disrupting discovery workflow
+- **Effort**: 1-2 days
 - **Created**: [Date]
 - **Status**: 🔍 Open
 - **Assigned**: [Developer name]
+- **PM Impact**: High - can disrupt continuous discovery process
+
+### **TD-003: AI Cost Management for Vertex AI**
+- **Category**: AI Integration
+- **Component**: Backend (Vertex AI Service)
+- **Description**: No usage tracking or cost controls for Vertex AI discovery insights feature
+- **Impact**: Potential unexpected costs, may need to limit AI features
+- **Effort**: 1 day
+- **Created**: [Date]
+- **Status**: 🔍 Open
+- **Assigned**: [Developer name]
+- **PM Impact**: Could affect availability of AI discovery insights
 
 ---
 
 ## ⚠️ **Medium Priority Items**
 
-### **TD-004: Outdated Dependencies**
-- **Category**: Dependencies
-- **Component**: Both Frontend & Backend
-- **Description**: Several dependencies are 2+ versions behind latest stable releases
-- **Impact**: Security vulnerabilities, missing features
-- **Effort**: 1-2 days (including testing)
-- **Created**: [Date]
-- **Status**: 🔍 Open
-- **Assigned**: [Developer name]
-
-### **TD-005: Missing Integration Tests**
-- **Category**: Testing
-- **Component**: Backend (Java)
-- **Description**: Several API endpoints lack integration tests
-- **Impact**: Reduced confidence in deployments, potential bugs
+### **TD-004: Mobile Canvas Experience**
+- **Category**: Discovery Workflow
+- **Component**: Frontend (React Canvas)
+- **Description**: Canvas interactions are not optimized for mobile devices, limiting PM access
+- **Impact**: PMs cannot effectively use the tool on mobile devices
 - **Effort**: 2-3 days
 - **Created**: [Date]
 - **Status**: 🔍 Open
 - **Assigned**: [Developer name]
+- **PM Impact**: Medium - limits flexibility for PM discovery activities
 
-### **TD-006: CSS Code Duplication**
-- **Category**: Code Quality
-- **Component**: Frontend (React)
-- **Description**: Significant CSS duplication across components, should be refactored into shared styles
-- **Impact**: Maintenance overhead, inconsistent styling
+### **TD-005: Discovery Artifact Search**
+- **Category**: Discovery Workflow
+- **Component**: Frontend/Backend
+- **Description**: No search functionality for research notes, assumptions, and discovery artifacts
+- **Impact**: PMs struggle to find past discovery insights in large trees
+- **Effort**: 2-3 days
+- **Created**: [Date]
+- **Status**: 🔍 Open
+- **Assigned**: [Developer name]
+- **PM Impact**: Medium - affects discovery workflow efficiency
+
+### **TD-006: Tree Export and Import**
+- **Category**: Discovery Workflow
+- **Component**: Frontend/Backend
+- **Description**: No ability to export trees for sharing or import templates
+- **Impact**: PMs cannot share trees with stakeholders or use templates
+- **Effort**: 2-3 days
+- **Created**: [Date]
+- **Status**: 🔍 Open
+- **Assigned**: [Developer name]
+- **PM Impact**: Medium - limits collaboration and template usage
+
+### **TD-007: Database Query Optimization**
+- **Category**: Database Performance
+- **Component**: Backend (Drizzle ORM)
+- **Description**: Some tree queries are not optimized for large datasets with many trees
+- **Impact**: Slower loading times for PMs with many trees
 - **Effort**: 1-2 days
 - **Created**: [Date]
 - **Status**: 🔍 Open
 - **Assigned**: [Developer name]
+- **PM Impact**: Medium - affects user experience for active PMs
 
-### **TD-007: Hardcoded Configuration Values**
-- **Category**: Architecture
-- **Component**: Backend (Java)
-- **Description**: Some configuration values are hardcoded instead of using application properties
-- **Impact**: Deployment flexibility, environment-specific issues
-- **Effort**: 4-6 hours
+### **TD-008: Canvas Undo/Redo System**
+- **Category**: Discovery Workflow
+- **Component**: Frontend (React Canvas)
+- **Description**: No undo/redo functionality for tree operations
+- **Impact**: PMs cannot easily revert changes during discovery sessions
+- **Effort**: 2-3 days
 - **Created**: [Date]
 - **Status**: 🔍 Open
 - **Assigned**: [Developer name]
+- **PM Impact**: Medium - affects discovery workflow safety
 
 ---
 
 ## 📝 **Low Priority Items**
 
-### **TD-008: Code Comments and Documentation**
-- **Category**: Documentation
-- **Component**: Both Frontend & Backend
-- **Description**: Some complex business logic lacks adequate comments and documentation
-- **Impact**: Developer onboarding, code maintainability
+### **TD-009: Canvas Grid and Alignment**
+- **Category**: Canvas Performance
+- **Component**: Frontend (React Canvas)
+- **Description**: No grid system or automatic alignment for better tree organization
+- **Impact**: Trees can become visually disorganized
+- **Effort**: 1-2 days
+- **Created**: [Date]
+- **Status**: 🔍 Open
+- **Assigned**: [Developer name]
+- **PM Impact**: Low - aesthetic improvement for tree organization
+
+### **TD-010: Discovery Analytics Dashboard**
+- **Category**: Discovery Workflow
+- **Component**: Frontend/Backend
+- **Description**: No analytics or insights about PM discovery patterns and tree evolution
+- **Impact**: PMs don't have visibility into their discovery process effectiveness
+- **Effort**: 3-4 days
+- **Created**: [Date]
+- **Status**: 🔍 Open
+- **Assigned**: [Developer name]
+- **PM Impact**: Low - nice-to-have insights feature
+
+### **TD-011: Tree Version History**
+- **Category**: Discovery Workflow
+- **Component**: Backend/Database
+- **Description**: No versioning system to track how trees evolve over time
+- **Impact**: PMs cannot see the evolution of their strategy over discovery cycles
 - **Effort**: 2-3 days
 - **Created**: [Date]
 - **Status**: 🔍 Open
 - **Assigned**: [Developer name]
+- **PM Impact**: Low - valuable for retrospective analysis
 
-### **TD-009: Unused Code Cleanup**
+### **TD-012: Code Comments for Canvas Logic**
 - **Category**: Code Quality
-- **Component**: Both Frontend & Backend
-- **Description**: Several unused methods, imports, and components should be removed
-- **Impact**: Bundle size, code clarity
+- **Component**: Frontend (Canvas Components)
+- **Description**: Complex canvas rendering and interaction logic lacks adequate comments
+- **Impact**: Developer onboarding difficulty, maintenance complexity
 - **Effort**: 1 day
 - **Created**: [Date]
 - **Status**: 🔍 Open
 - **Assigned**: [Developer name]
-
-### **TD-010: Database Index Optimization**
-- **Category**: Performance
-- **Component**: Database
-- **Description**: Some frequently queried columns lack proper indexes
-- **Impact**: Query performance
-- **Effort**: 4-6 hours
-- **Created**: [Date]
-- **Status**: 🔍 Open
-- **Assigned**: [Developer name]
+- **PM Impact**: None - internal development improvement
 
 ---
 
 ## ✅ **Completed Items**
 
-### **TD-011: TypeScript Strict Mode** ✅
+### **TD-013: TypeScript Strict Mode for Tree Components** ✅
 - **Category**: Code Quality
-- **Component**: Frontend (React)
-- **Description**: Enable TypeScript strict mode for better type safety
-- **Impact**: Type safety, fewer runtime errors
+- **Component**: Frontend (React Components)
+- **Description**: Enable TypeScript strict mode for better type safety in tree operations
+- **Impact**: Better type safety, fewer runtime errors in canvas operations
 - **Effort**: 1-2 days
 - **Created**: [Date]
 - **Completed**: [Date]
 - **Completed By**: [Developer name]
+- **PM Impact**: Improved reliability of discovery workflow
 
-### **TD-012: API Response Caching** ✅
-- **Category**: Performance
-- **Component**: Backend (Java)
-- **Description**: Implement caching for frequently accessed API responses
-- **Impact**: API response times, server load
+### **TD-014: Tree State Persistence Optimization** ✅
+- **Category**: Database Performance
+- **Component**: Backend (Drizzle ORM)
+- **Description**: Optimize JSONB storage and retrieval for tree state data
+- **Impact**: Faster tree loading and saving for PM users
 - **Effort**: 1 day
 - **Created**: [Date]
 - **Completed**: [Date]
 - **Completed By**: [Developer name]
+- **PM Impact**: Better performance for discovery workflow
 
 ---
 
 ## 📋 **Technical Debt Item Template**
 
 ### **TD-XXX: [Item Title]**
-- **Category**: [Code Quality/Architecture/Dependencies/Performance/Security/Testing/Documentation]
-- **Component**: [Frontend/Backend/Database/Both]
-- **Description**: [Detailed description of the technical debt]
-- **Impact**: [Impact on system/development/users]
+- **Category**: [Canvas Performance/Discovery Workflow/Code Quality/Dependencies/AI Integration/Database Performance/Testing/Documentation]
+- **Component**: [Frontend/Backend/Database/AI Integration]
+- **Description**: [Detailed description of the technical debt and impact on PM workflow]
+- **Impact**: [Impact on PM users, discovery workflow, or system performance]
 - **Effort**: [Estimated effort to resolve]
 - **Created**: [Date created]
 - **Status**: [🔍 Open/🔄 In Progress/✅ Completed/❌ Cancelled]
 - **Assigned**: [Developer name]
-- **Related Issues**: [Links to related issues/features]
+- **PM Impact**: [How this affects Product Manager discovery workflow]
+- **Related Issues**: [Links to related discovery features or PM feedback]
 
 ---
 
 ## 🎯 **Prioritization Criteria**
 
 ### **High Priority**
-- **Security vulnerabilities**
-- **Performance issues affecting users**
-- **Blocking future development**
-- **High maintenance overhead**
+- **PM Workflow Blockers**: Issues that significantly impact discovery activities
+- **Canvas Performance**: Problems affecting tree interaction and visualization
+- **Data Loss Risk**: Issues that could cause PMs to lose discovery work
+- **AI Service Costs**: Cost management for Vertex AI features
 
 ### **Medium Priority**
-- **Code quality issues**
-- **Moderate performance impact**
-- **Developer productivity impact**
-- **Outdated dependencies**
+- **Discovery Enhancement**: Features that would improve PM workflow efficiency
+- **Performance Optimization**: Improvements to loading times and responsiveness
+- **Collaboration Features**: Capabilities that enable PM team collaboration
+- **Code Quality**: Issues affecting development velocity
 
 ### **Low Priority**
-- **Minor code improvements**
-- **Documentation gaps**
-- **Nice-to-have optimizations**
-- **Cosmetic issues**
+- **Nice-to-have Features**: Enhancements that add value but aren't essential
+- **Analytics and Insights**: Discovery process analytics and reporting
+- **Documentation**: Development documentation improvements
+- **Code Comments**: Internal code documentation
 
 ---
 
 ## 📊 **Metrics and Tracking**
 
 ### **Monthly Technical Debt Review**
-- **Items Added**: [Number of new items this month]
-- **Items Resolved**: [Number of items completed this month]
-- **Net Change**: [Net increase/decrease in technical debt]
-- **Average Resolution Time**: [Average time to resolve items]
+- **Items Added**: [Number focused on PM workflow and discovery features]
+- **Items Resolved**: [Number completed this month]
+- **PM Impact Items**: [High-impact items affecting discovery workflow]
+- **Canvas Performance**: [Performance-related debt items resolved]
 
-### **Technical Debt Trends**
-- **Total Items Over Time**: [Track growth/reduction of technical debt]
-- **Resolution Rate**: [Percentage of items resolved vs. added]
-- **Category Distribution**: [Which categories have most items]
+### **Discovery Workflow Impact**
+- **PM User Feedback**: [Items identified through PM user feedback]
+- **Canvas Performance Issues**: [Tree rendering and interaction problems]
+- **AI Integration Items**: [Vertex AI optimization and cost management]
 
 ---
 
 ## 🔄 **Review Process**
 
 ### **Weekly Reviews**
-- **Team Review**: Review high priority items in weekly team meetings
-- **Progress Updates**: Update status of in-progress items
-- **New Items**: Add new technical debt items discovered during development
+- **PM Feedback Integration**: Review user feedback for workflow-impacting issues
+- **Canvas Performance**: Monitor performance metrics and user experience
+- **Discovery Feature Priorities**: Align technical debt with PM user needs
 
 ### **Monthly Planning**
-- **Prioritization**: Re-prioritize items based on current needs
-- **Sprint Planning**: Include technical debt items in sprint planning
-- **Metrics Review**: Review technical debt metrics and trends
+- **PM User Impact**: Prioritize items based on discovery workflow impact
+- **Sprint Planning**: Include PM-critical technical debt in sprint planning
+- **Performance Monitoring**: Review canvas and API performance metrics
 
 ### **Quarterly Assessment**
-- **Architecture Review**: Assess architectural debt items
-- **Dependency Review**: Review and update outdated dependencies
-- **Process Improvement**: Identify ways to reduce technical debt creation
+- **Discovery Workflow Evolution**: Assess how technical debt affects PM practices
+- **AI Integration Strategy**: Review Vertex AI costs and optimization opportunities
+- **PM User Research**: Conduct research to identify new technical debt areas
 
 ---
 
 ## 🛠️ **Resolution Guidelines**
 
 ### **Before Starting Work**
-- **Verify Current Status**: Ensure item is still relevant
-- **Estimate Effort**: Confirm effort estimate is accurate
-- **Plan Approach**: Document approach for complex items
-- **Coordinate with Team**: Ensure no conflicts with ongoing work
+- **PM Impact Assessment**: Understand how changes affect discovery workflow
+- **Canvas Performance Testing**: Plan for testing with realistic tree sizes
+- **Discovery Workflow Validation**: Ensure fixes don't disrupt PM practices
 
 ### **During Implementation**
-- **Follow Standards**: Adhere to coding standards and best practices
-- **Write Tests**: Include appropriate tests for changes
-- **Document Changes**: Update documentation as needed
-- **Code Review**: Get code review before merging
+- **PM-Centric Design**: Focus on supporting continuous discovery practices
+- **Performance Monitoring**: Track canvas performance during development
+- **Tree Structure Integrity**: Ensure changes don't break existing trees
 
 ### **After Completion**
-- **Update Status**: Mark item as completed
-- **Document Resolution**: Document what was done
-- **Verify Impact**: Confirm the technical debt has been resolved
-- **Share Learnings**: Share any lessons learned with the team
+- **PM User Testing**: Validate fixes with practicing Product Managers
+- **Discovery Workflow Testing**: Confirm normal discovery activities work
+- **Performance Validation**: Verify canvas performance improvements
+- **Documentation Updates**: Update PM-facing documentation as needed
 
 ---
 
 ## 📚 **Resources**
 
 ### **Tools for Technical Debt Management**
-- **SonarQube**: Code quality analysis
-- **Dependency Check**: Security vulnerability scanning
-- **Bundle Analyzer**: Frontend bundle size analysis
-- **Performance Monitoring**: Application performance monitoring
+- **Canvas Performance**: Browser dev tools for rendering analysis
+- **Database Monitoring**: PostgreSQL performance monitoring for tree queries
+- **AI Cost Tracking**: Vertex AI usage and cost monitoring
+- **PM User Feedback**: User research tools for discovery workflow insights
 
-### **Best Practices**
-- **Regular Reviews**: Schedule regular technical debt reviews
-- **Prevention**: Focus on preventing technical debt creation
-- **Balance**: Balance feature development with technical debt resolution
-- **Documentation**: Keep technical debt well documented
+### **Impact Tree Specific Resources**
+- **Discovery Methodology**: Teresa Torres continuous discovery practices
+- **Impact Mapping**: Gojko Adzic impact mapping techniques
+- **PM Community**: Product management communities for workflow insights
+- **Canvas Performance**: HTML5 canvas optimization techniques
 
 ---
 
-**📝 Register Version**: 1.0  
-**🎯 Project Type**: React + Java  
+**📝 Register Version**: 2.0  
+**🎯 Project Type**: AI-Native Impact Tree (React + Node.js)  
 **📅 Last Updated**: [Date]  
 **👤 Maintainer**: [Maintainer name]  
-**📊 Status**: Active Tracking
+**📊 Status**: Active Tracking for PM Discovery Workflow
