@@ -38,6 +38,8 @@ Transform the current node edit modal into a comprehensive side drawer that prov
 
 #### **2. Enhanced Description Editing**
 - **Rich Text Editor**: Markdown-supported text area with formatting toolbar
+- **Dynamic Placeholders**: Context-aware placeholder text based on node type
+- **Hypothesis Integration**: For assumption tests, description field serves as hypothesis statement
 - **Formatting Options**:
   - Bold, italic, underline text formatting
   - Bullet points and numbered lists
@@ -49,10 +51,10 @@ Transform the current node edit modal into a comprehensive side drawer that prov
 
 #### **3. Node-Type-Specific Fields**
 - **Dynamic Field Rendering**: Fields change based on selected node type
-- **Outcome Nodes**: Success metrics, timeline, stakeholder fields
-- **Opportunity Nodes**: Market size, user segment, validation criteria
-- **Solution Nodes**: Implementation approach, resources needed, dependencies
-- **Assumption Test Nodes**: Hypothesis, test methodology, success criteria
+- **Outcome Nodes**: Outcome metric, outcome timeline
+- **Opportunity Nodes**: User segment, impact, confidence level
+- **Solution Nodes**: Implementation approach, dependencies, technical complexity
+- **Assumption Test Nodes**: Uses description as hypothesis, test methodology, success criteria
 - **Research Nodes**: Research questions, methodology, findings section
 
 #### **4. Improved User Experience**
@@ -106,28 +108,24 @@ interface NodeEditDrawerState {
 ### **Node-Type-Specific Field Definitions**
 
 #### **Outcome Node Fields**
-- **Success Metrics**: Text area for measurable outcomes
-- **Timeline**: Date picker for target achievement
-- **Stakeholders**: Multi-select for responsible parties
-- **Dependencies**: Link to related nodes
+- **Outcome Metric**: Text area for measurable outcomes
+- **Outcome Timeline**: Date picker for target achievement
 
 #### **Opportunity Node Fields**
-- **Market Size**: Numeric input with unit selector
-- **User Segment**: Dropdown with custom options
-- **Validation Criteria**: Checklist of validation methods
-- **Priority Score**: Numeric rating system
+- **User Segment**: Target user group identification
+- **Impact**: Text area describing potential impact
+- **Confidence**: Low/Medium/High confidence level
 
 #### **Solution Node Fields**
 - **Implementation Approach**: Rich text for technical details
-- **Resource Requirements**: Team size, budget, timeline
 - **Dependencies**: Link to assumption tests and opportunities
-- **Technical Complexity**: Rating scale
+- **Technical Complexity**: Low/Medium/High rating scale
 
 #### **Assumption Test Node Fields**
-- **Hypothesis Statement**: Clear hypothesis formulation
+- **Hypothesis Statement**: Uses the description field for hypothesis
 - **Test Methodology**: Dropdown with common test types
 - **Success Criteria**: Specific measurable outcomes
-- **Risk Level**: High/Medium/Low assessment
+- **Risk Level**: Low/Medium/High assessment
 
 ---
 

@@ -112,6 +112,7 @@ Environment variables required:
 - January 07, 2025. Implemented node-type-specific fields for contextual information entry
 - January 07, 2025. Added auto-save functionality with local storage drafts
 - January 07, 2025. Implemented keyboard shortcuts (Ctrl+S save, Esc cancel) for editing workflow
+- January 07, 2025. Updated node-specific fields per user request: Outcome (metric, timeline), Opportunity (user segment, impact, confidence), Solution (removed resource requirements), Assumption Test (description as hypothesis)
 
 ## User Preferences
 

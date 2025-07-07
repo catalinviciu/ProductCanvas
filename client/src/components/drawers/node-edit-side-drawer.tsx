@@ -13,6 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { getNodePlaceholder } from "@/lib/node-placeholders";
 
 interface NodeEditSideDrawerProps {
   node: TreeNode | null;
@@ -27,19 +28,15 @@ interface NodeFormData {
   title: string;
   description: string;
   testCategory?: TestCategory;
-  // Node-specific fields
-  successMetrics?: string;
-  timeline?: string;
-  stakeholders?: string;
-  marketSize?: string;
+  // Node-specific fields - Updated per requirements
+  outcomeMetric?: string;
+  outcomeTimeline?: string;
   userSegment?: string;
-  validationCriteria?: string;
-  priorityScore?: number;
+  impact?: string;
+  confidence?: string;
   implementationApproach?: string;
-  resourceRequirements?: string;
   dependencies?: string;
   technicalComplexity?: 'low' | 'medium' | 'high';
-  hypothesis?: string;
   testMethodology?: string;
   successCriteria?: string;
   riskLevel?: 'low' | 'medium' | 'high';
@@ -59,13 +56,13 @@ const NODE_TYPE_ICONS = {
 };
 
 const NODE_TYPE_COLORS = {
-  objective: "bg-purple-100 text-purple-800 border-purple-200",
-  outcome: "bg-blue-100 text-blue-800 border-blue-200",
-  opportunity: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  solution: "bg-green-100 text-green-800 border-green-200",
-  assumption: "bg-red-100 text-red-800 border-red-200",
-  metric: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  research: "bg-orange-100 text-orange-800 border-orange-200",
+  objective: "bg-blue-100 text-blue-800 border-blue-200", // Primary blue
+  outcome: "bg-indigo-100 text-indigo-800 border-indigo-200", // Primary indigo
+  opportunity: "bg-purple-100 text-purple-800 border-purple-200", // Secondary purple
+  solution: "bg-emerald-100 text-emerald-800 border-emerald-200", // Accent emerald
+  assumption: "bg-orange-100 text-orange-800 border-orange-200", // Orange test
+  metric: "bg-yellow-100 text-yellow-800 border-yellow-200", // KPI color
+  research: "bg-teal-100 text-teal-800 border-teal-200", // Research color
 };
 
 export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: NodeEditSideDrawerProps) {
@@ -88,18 +85,14 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
         description: node.description,
         testCategory: node.testCategory || 'viability',
         // Initialize node-specific fields (these would be stored in node.metadata in real implementation)
-        successMetrics: '',
-        timeline: '',
-        stakeholders: '',
-        marketSize: '',
+        outcomeMetric: '',
+        outcomeTimeline: '',
         userSegment: '',
-        validationCriteria: '',
-        priorityScore: 5,
+        impact: '',
+        confidence: '',
         implementationApproach: '',
-        resourceRequirements: '',
         dependencies: '',
         technicalComplexity: 'medium',
-        hypothesis: '',
         testMethodology: '',
         successCriteria: '',
         riskLevel: 'medium',
@@ -298,6 +291,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
                     preview="edit"
                     hideToolbar={false}
                     data-color-mode="light"
+                    placeholder={formData.type === 'assumption' ? 'Enter your hypothesis statement...' : getNodePlaceholder(formData.type)}
                   />
                 </div>
                 <div className="text-xs text-gray-500 flex justify-between">
@@ -402,31 +396,22 @@ function NodeSpecificFields({
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="success-metrics">Success Metrics</Label>
+              <Label htmlFor="outcome-metric">Outcome Metric</Label>
               <Textarea
-                id="success-metrics"
-                value={formData.successMetrics || ''}
-                onChange={(e) => onFieldChange('successMetrics', e.target.value)}
-                placeholder="How will you measure success?"
+                id="outcome-metric"
+                value={formData.outcomeMetric || ''}
+                onChange={(e) => onFieldChange('outcomeMetric', e.target.value)}
+                placeholder="How will you measure this outcome?"
                 rows={3}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="timeline">Timeline</Label>
+              <Label htmlFor="outcome-timeline">Outcome Timeline</Label>
               <Input
-                id="timeline"
-                value={formData.timeline || ''}
-                onChange={(e) => onFieldChange('timeline', e.target.value)}
+                id="outcome-timeline"
+                value={formData.outcomeTimeline || ''}
+                onChange={(e) => onFieldChange('outcomeTimeline', e.target.value)}
                 placeholder="When should this outcome be achieved?"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="stakeholders">Stakeholders</Label>
-              <Input
-                id="stakeholders"
-                value={formData.stakeholders || ''}
-                onChange={(e) => onFieldChange('stakeholders', e.target.value)}
-                placeholder="Who is responsible for this outcome?"
               />
             </div>
           </div>
@@ -435,15 +420,6 @@ function NodeSpecificFields({
       case 'opportunity':
         return (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="market-size">Market Size</Label>
-              <Input
-                id="market-size"
-                value={formData.marketSize || ''}
-                onChange={(e) => onFieldChange('marketSize', e.target.value)}
-                placeholder="What's the size of this opportunity?"
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="user-segment">User Segment</Label>
               <Input
@@ -454,28 +430,28 @@ function NodeSpecificFields({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="validation-criteria">Validation Criteria</Label>
+              <Label htmlFor="impact">Impact</Label>
               <Textarea
-                id="validation-criteria"
-                value={formData.validationCriteria || ''}
-                onChange={(e) => onFieldChange('validationCriteria', e.target.value)}
-                placeholder="How will you validate this opportunity?"
+                id="impact"
+                value={formData.impact || ''}
+                onChange={(e) => onFieldChange('impact', e.target.value)}
+                placeholder="What impact will addressing this opportunity have?"
                 rows={3}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="priority-score">Priority Score (1-10)</Label>
+              <Label htmlFor="confidence">Confidence</Label>
               <Select
-                value={formData.priorityScore?.toString() || '5'}
-                onValueChange={(value) => onFieldChange('priorityScore', parseInt(value))}
+                value={formData.confidence || ''}
+                onValueChange={(value) => onFieldChange('confidence', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select confidence level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(score => (
-                    <SelectItem key={score} value={score.toString()}>{score}</SelectItem>
-                  ))}
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -493,16 +469,6 @@ function NodeSpecificFields({
                 onChange={(e) => onFieldChange('implementationApproach', e.target.value)}
                 placeholder="How will this solution be implemented?"
                 rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="resource-requirements">Resource Requirements</Label>
-              <Textarea
-                id="resource-requirements"
-                value={formData.resourceRequirements || ''}
-                onChange={(e) => onFieldChange('resourceRequirements', e.target.value)}
-                placeholder="What resources are needed?"
-                rows={2}
               />
             </div>
             <div className="space-y-2">
@@ -537,14 +503,10 @@ function NodeSpecificFields({
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="hypothesis">Hypothesis Statement</Label>
-              <Textarea
-                id="hypothesis"
-                value={formData.hypothesis || ''}
-                onChange={(e) => onFieldChange('hypothesis', e.target.value)}
-                placeholder="What is your hypothesis?"
-                rows={3}
-              />
+              <Label>Hypothesis Statement</Label>
+              <p className="text-sm text-gray-600">
+                Use the description field above to enter your hypothesis statement.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="test-methodology">Test Methodology</Label>
