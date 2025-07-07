@@ -1,350 +1,424 @@
+
 # 🏗️ System Architecture Overview
 
-> **High-level architectural patterns and design principles for React + Java applications**
-> **Audience**: Architects, Senior Developers, Stakeholders, Management
-> **Purpose**: Strategic understanding, architectural reviews, onboarding executives
+> **High-level architectural patterns and design principles for AI-Native Impact Tree Canvas**
+> **Audience**: Product Managers, Developers, Stakeholders, Management
+> **Purpose**: Strategic understanding, architectural reviews, onboarding team members
 
 ---
 
 ## 🎯 **Executive Summary**
 
-This document provides a high-level overview of the React + Java application architecture, focusing on architectural patterns, design principles, and strategic technical decisions. The architecture follows modern full-stack development practices with clear separation of concerns, scalable design patterns, and enterprise-grade reliability.
+This document provides a high-level overview of the AI-Native Impact Tree Canvas architecture, focusing on architectural patterns, design principles, and strategic technical decisions. The architecture follows modern full-stack development practices optimized for interactive canvas applications, hierarchical data structures, and continuous discovery workflows for Product Managers.
 
 ---
 
 ## 🏛️ **Architectural Principles**
 
 ### **Core Design Principles**
-1. **Separation of Concerns**: Clear boundaries between presentation, business logic, and data layers
-2. **Single Responsibility**: Each component has one well-defined purpose
-3. **Dependency Inversion**: High-level modules don't depend on low-level modules
-4. **API-First Design**: APIs designed before frontend implementation
-5. **Stateless Services**: Services are stateless and horizontally scalable
-6. **Database-Centric**: Data integrity and consistency are paramount
+1. **Discovery-First Architecture**: All components support continuous discovery and iterative product management workflows
+2. **Live Document Philosophy**: Real-time updates and evolving tree structures as core architectural assumptions
+3. **Canvas Performance**: Optimized for large, complex tree structures with smooth interactions
+4. **Type-Safe Development**: End-to-end TypeScript for complex hierarchical data modeling
+5. **PM-Centric Design**: User experience optimized for Product Manager daily workflows
+6. **Scalable Tree Operations**: Efficient handling of deep hierarchies and large node counts
 
 ### **Quality Attributes**
-- **Scalability**: Horizontal scaling capabilities
-- **Maintainability**: Clean, readable, and well-documented code
-- **Testability**: Comprehensive testing at all levels
-- **Security**: Security-first approach with defense in depth
-- **Performance**: Optimized for speed and efficiency
-- **Reliability**: High availability and fault tolerance
+- **Interactivity**: Smooth canvas operations and real-time tree manipulation
+- **Performance**: Efficient rendering of complex tree structures (100+ nodes)
+- **Usability**: Intuitive for Product Managers practicing continuous discovery
+- **Flexibility**: Support for evolving tree structures and discovery methodologies
+- **Reliability**: Consistent state management between canvas and database
+- **Extensibility**: Ready for AI integration and advanced discovery features
 
 ---
 
 ## 🏗️ **High-Level Architecture**
 
-### **Three-Tier Architecture**
+### **Canvas-Centric Three-Tier Architecture**
 ```mermaid
 graph TB
     subgraph "Presentation Tier"
-        A[React Frontend]
-        B[TypeScript]
-        C[State Management]
+        A[React Canvas Components]
+        B[TypeScript Tree State]
+        C[Zustand State Management]
+        D[Framer Motion Animations]
     end
     
     subgraph "Application Tier"
-        D[Spring Boot API]
-        E[Business Services]
-        F[Security Layer]
+        E[Express.js REST API]
+        F[Tree Operations Service]
+        G[Canvas State Sync]
+        H[Session-based Auth]
     end
     
     subgraph "Data Tier"
-        G[PostgreSQL Database]
-        H[JPA/Hibernate]
-        I[Connection Pool]
+        I[PostgreSQL Database]
+        J[Drizzle ORM]
+        K[Hierarchical Queries]
+        L[JSONB Tree Storage]
     end
     
-    A --> D
-    B --> D
-    C --> D
+    A --> E
+    B --> F
+    C --> G
     D --> E
     E --> F
     F --> H
-    H --> G
-    I --> G
+    H --> J
+    J --> I
+    K --> I
+    L --> I
 ```
 
 ### **Component Overview**
 
-#### **Frontend Layer (React)**
-- **React Components**: Modular, reusable UI components
-- **TypeScript**: Type-safe JavaScript for better development experience
-- **State Management**: Centralized state management (Redux/Context API)
-- **API Services**: Abstracted API communication layer
-- **Routing**: Client-side routing for single-page application
+#### **Frontend Layer (React + Canvas)**
+- **Canvas Components**: Interactive tree nodes with drag-drop capabilities
+- **Tree State Management**: Zustand for complex hierarchical state operations
+- **SVG Connections**: Dynamic connection rendering between tree nodes
+- **TypeScript Models**: Type-safe tree node relationships and canvas operations
+- **Performance Optimization**: React.memo and virtualization for large trees
 
-#### **Backend Layer (Java/Spring Boot)**
-- **REST Controllers**: HTTP request handling and response formatting
-- **Service Layer**: Business logic implementation
-- **Repository Layer**: Data access abstraction
-- **Security**: Authentication and authorization
-- **Configuration**: Environment-specific configuration management
+#### **Backend Layer (Node.js/Express)**
+- **REST API**: Impact tree CRUD operations and canvas state persistence
+- **Tree Operations**: Hierarchical data manipulation and validation
+- **Session Management**: Passport.js integration for user authentication
+- **Real-time Sync**: Canvas state synchronization between client and server
+- **Validation Layer**: Zod schemas for tree structure validation
 
-#### **Data Layer**
-- **Relational Database**: PostgreSQL for ACID compliance
-- **ORM**: JPA/Hibernate for object-relational mapping
-- **Connection Pooling**: Efficient database connection management
-- **Migrations**: Version-controlled schema changes
+#### **Data Layer (PostgreSQL + Drizzle)**
+- **Hierarchical Storage**: Parent-child relationships with recursive queries
+- **JSONB Support**: Flexible node metadata and canvas state storage
+- **Type-safe ORM**: Drizzle for compile-time query validation
+- **Performance Indexing**: Optimized for tree traversal and large datasets
 
 ---
 
 ## 🔄 **Data Flow Architecture**
 
-### **Request-Response Flow**
+### **Canvas Interaction Flow**
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant F as React Frontend
-    participant A as API Gateway
-    participant S as Spring Boot Service
+    participant PM as Product Manager
+    participant C as Canvas Component
+    participant S as Zustand Store
+    participant A as API Service
     participant D as Database
 
-    U->>F: User Interaction
-    F->>A: HTTP Request (JSON)
-    A->>S: Route to Controller
-    S->>S: Business Logic Processing
-    S->>D: Database Query (JPA)
-    D-->>S: Query Results
-    S-->>A: Response DTO
-    A-->>F: HTTP Response (JSON)
-    F-->>U: UI Update
+    PM->>C: Drag Node / Edit Content
+    C->>S: Update Local State
+    S-->>C: Re-render Canvas
+    C->>A: Persist Changes (HTTP)
+    A->>D: Update Tree Structure
+    D-->>A: Confirm Changes
+    A-->>S: Sync Server State
+    S-->>C: Update UI if Needed
 ```
 
-### **Data Processing Patterns**
-- **Request Validation**: Input validation at API boundary
-- **DTO Mapping**: Separate DTOs for API contracts
-- **Business Logic**: Centralized in service layer
-- **Data Access**: Repository pattern for data operations
-- **Response Formatting**: Consistent API response structure
+### **Tree Structure Processing**
+- **Node Creation**: Hierarchical validation and parent-child relationship setup
+- **Canvas State**: Real-time synchronization of zoom, pan, and node positions
+- **Tree Traversal**: Efficient recursive queries for deep tree structures
+- **State Consistency**: Optimistic updates with server reconciliation
+- **Performance Optimization**: Debounced saves and batched operations
+
+---
+
+## 🎨 **Canvas Architecture**
+
+### **Interactive Canvas System**
+```mermaid
+graph TD
+    A[Canvas Container] --> B[Node Components]
+    A --> C[SVG Connections]
+    A --> D[Zoom/Pan Controls]
+    
+    B --> E[Drag & Drop System]
+    B --> F[Context Menus]
+    B --> G[Edit Modals]
+    
+    C --> H[Dynamic Path Calculation]
+    C --> I[Connection Validation]
+    
+    D --> J[Canvas State Management]
+    D --> K[Viewport Optimization]
+```
+
+### **Canvas Performance Features**
+- **Virtualization**: Render only visible nodes for large trees
+- **Efficient Rendering**: SVG-based connections with optimized path calculations
+- **State Batching**: Grouped updates for smooth interactions
+- **Memory Management**: Cleanup of unused components and event listeners
+- **Responsive Design**: Adaptive layouts for different screen sizes
 
 ---
 
 ## 🔒 **Security Architecture**
 
-### **Security Layers**
+### **Session-Based Security**
 ```mermaid
 graph TD
-    A[HTTPS/TLS] --> B[CORS Policy]
-    B --> C[Authentication]
-    C --> D[Authorization]
-    D --> E[Input Validation]
-    E --> F[SQL Injection Prevention]
-    F --> G[XSS Protection]
-    G --> H[Data Encryption]
+    A[HTTPS/TLS] --> B[Session Authentication]
+    B --> C[Tree Access Control]
+    C --> D[Input Validation]
+    D --> E[SQL Injection Prevention]
+    E --> F[XSS Protection]
+    F --> G[CORS Configuration]
 ```
 
 ### **Security Components**
-- **Transport Security**: HTTPS/TLS encryption
-- **Authentication**: JWT-based stateless authentication
-- **Authorization**: Role-based access control (RBAC)
-- **Input Validation**: Server-side validation for all inputs
-- **SQL Injection Prevention**: Parameterized queries
-- **XSS Protection**: Input sanitization and CSP headers
-- **CORS**: Configured cross-origin resource sharing
+- **Transport Security**: HTTPS encryption for all communications
+- **Session Management**: Secure session-based authentication with Passport.js
+- **Tree Permissions**: User-level access control for impact trees
+- **Input Sanitization**: Comprehensive validation for tree node content
+- **API Security**: Rate limiting and request validation
+- **Database Security**: Parameterized queries and ORM protection
 
 ---
 
 ## 📊 **Scalability Architecture**
 
-### **Horizontal Scaling Strategy**
+### **Performance Scaling Strategy**
 ```mermaid
 graph TB
-    subgraph "Load Balancer"
-        LB[Load Balancer]
+    subgraph "Frontend Scaling"
+        A1[Component Virtualization]
+        A2[State Optimization]
+        A3[Canvas Performance]
     end
     
-    subgraph "Application Instances"
-        A1[App Instance 1]
-        A2[App Instance 2]
-        A3[App Instance N]
+    subgraph "Backend Scaling"
+        B1[Stateless API Design]
+        B2[Connection Pooling]
+        B3[Query Optimization]
     end
     
-    subgraph "Database Cluster"
-        DB1[Primary DB]
-        DB2[Read Replica 1]
-        DB3[Read Replica 2]
+    subgraph "Database Scaling"
+        C1[Hierarchical Indexing]
+        C2[JSONB Optimization]
+        C3[Read Replicas Ready]
     end
     
-    LB --> A1
-    LB --> A2
-    LB --> A3
-    
-    A1 --> DB1
-    A2 --> DB1
-    A3 --> DB1
-    
-    A1 --> DB2
-    A2 --> DB2
-    A3 --> DB3
+    A1 --> B1
+    A2 --> B2
+    A3 --> B3
+    B1 --> C1
+    B2 --> C2
+    B3 --> C3
 ```
 
 ### **Scalability Features**
-- **Stateless Services**: No server-side session state
-- **Database Read Replicas**: Distribute read operations
-- **Connection Pooling**: Efficient database connection usage
-- **Caching Strategy**: Application-level and database-level caching
-- **CDN Integration**: Static asset delivery optimization
+- **Canvas Virtualization**: Handle trees with 1000+ nodes efficiently
+- **Stateless Services**: Horizontal scaling readiness for API layer
+- **Database Optimization**: Efficient hierarchical queries and indexing
+- **Caching Strategy**: Client-side caching for frequent tree operations
+- **Progressive Loading**: Load tree sections on-demand for large structures
+
+---
+
+## 🤖 **AI Integration Architecture**
+
+### **Vertex AI Integration Strategy**
+```mermaid
+graph TB
+    subgraph "AI Services"
+        A[Vertex AI Generative AI]
+        B[Content Generation]
+        C[Discovery Insights]
+        D[Pattern Recognition]
+    end
+    
+    subgraph "Application Layer"
+        E[AI Service Abstraction]
+        F[Prompt Management]
+        G[Context Assembly]
+        H[Response Processing]
+    end
+    
+    subgraph "Tree Context"
+        I[Tree Structure Analysis]
+        J[Node Relationship Mapping]
+        K[Discovery History]
+        L[PM Workflow Context]
+    end
+    
+    A --> E
+    B --> F
+    C --> G
+    D --> H
+    E --> I
+    F --> J
+    G --> K
+    H --> L
+```
+
+### **AI Enhancement Features**
+- **Discovery Suggestions**: AI-powered opportunity and solution recommendations
+- **Content Generation**: Automated node descriptions and research questions
+- **Pattern Recognition**: Identify common structures across trees
+- **Learning Amplification**: Synthesize insights from discovery activities
 
 ---
 
 ## 🛠️ **Development Architecture**
 
-### **Development Workflow**
+### **TypeScript-First Development**
 ```mermaid
 graph LR
-    A[Feature Request] --> B[API Design]
-    B --> C[Database Schema]
-    C --> D[Backend Implementation]
-    D --> E[Frontend Implementation]
-    E --> F[Integration Testing]
-    F --> G[Deployment]
+    A[Tree Schema Design] --> B[Type Generation]
+    B --> C[API Contract Definition]
+    C --> D[Frontend Implementation]
+    D --> E[Canvas Integration]
+    E --> F[Testing & Validation]
 ```
 
-### **Code Organization**
-- **Modular Structure**: Clear separation of concerns
-- **Dependency Injection**: Loose coupling between components
-- **Configuration Management**: Environment-specific configurations
-- **Error Handling**: Centralized error handling and logging
-- **Testing Strategy**: Unit, integration, and end-to-end testing
+### **Development Workflow Features**
+- **Type Safety**: End-to-end TypeScript for complex tree operations
+- **Schema-Driven**: Zod schemas for runtime and compile-time validation
+- **Component-Based**: Modular React components for tree elements
+- **State Management**: Zustand for predictable tree state operations
+- **Performance Monitoring**: Built-in metrics for canvas performance
 
 ---
 
 ## 🚀 **Deployment Architecture**
 
-### **Environment Strategy**
+### **Replit-Optimized Deployment**
 ```mermaid
 graph TB
     subgraph "Development"
         D1[Local Development]
-        D2[Feature Branches]
-    end
-    
-    subgraph "Staging"
-        S1[Integration Testing]
-        S2[User Acceptance Testing]
+        D2[Vite Hot Reload]
+        D3[TypeScript Compilation]
     end
     
     subgraph "Production"
-        P1[Blue-Green Deployment]
-        P2[Health Monitoring]
+        P1[Replit Autoscale]
+        P2[PostgreSQL Database]
+        P3[Session Storage]
+        P4[Static Asset Serving]
     end
     
-    D1 --> S1
-    D2 --> S1
-    S1 --> S2
-    S2 --> P1
+    D1 --> P1
+    D2 --> P1
+    D3 --> P1
     P1 --> P2
+    P1 --> P3
+    P1 --> P4
 ```
 
 ### **Deployment Features**
-- **Containerization**: Docker containers for consistent environments
-- **CI/CD Pipeline**: Automated build, test, and deployment
-- **Environment Parity**: Consistent environments across stages
-- **Health Checks**: Application and infrastructure health monitoring
-- **Rollback Strategy**: Quick rollback capabilities for issues
+- **Replit Native**: Optimized for Replit's deployment infrastructure
+- **Zero-Config**: Automatic dependency detection and installation
+- **Database Integration**: Built-in PostgreSQL with connection pooling
+- **Session Persistence**: Reliable session storage for user authentication
+- **Asset Optimization**: Vite-based build optimization for production
 
 ---
 
 ## 📈 **Performance Architecture**
 
-### **Performance Optimization Strategy**
-- **Frontend Optimization**:
-  - Code splitting and lazy loading
-  - Bundle optimization and compression
-  - Image optimization and CDN usage
-  - Browser caching strategies
+### **Canvas Performance Optimization**
+- **Rendering Efficiency**:
+  - SVG-based node connections for smooth scaling
+  - React.memo for preventing unnecessary re-renders
+  - Efficient event handling for drag operations
+  - Optimized zoom and pan calculations
 
-- **Backend Optimization**:
-  - Database query optimization
-  - Connection pooling and caching
-  - Asynchronous processing where appropriate
-  - Response compression
+- **Memory Management**:
+  - Component cleanup for removed nodes
+  - Efficient state updates with Zustand
+  - Debounced API calls for tree modifications
+  - Image and asset optimization
 
-- **Database Optimization**:
-  - Proper indexing strategy
-  - Query optimization
-  - Connection pooling
-  - Read replica usage
+- **Database Performance**:
+  - Hierarchical query optimization with CTEs
+  - JSONB indexing for fast tree operations
+  - Connection pooling for concurrent users
+  - Efficient tree structure serialization
 
 ---
 
 ## 🔍 **Monitoring and Observability**
 
-### **Monitoring Stack**
+### **PM-Focused Monitoring**
 ```mermaid
 graph TB
-    A[Application Metrics] --> D[Dashboard]
-    B[Infrastructure Metrics] --> D
-    C[Business Metrics] --> D
+    A[Canvas Performance Metrics] --> D[PM Dashboard]
+    B[Tree Usage Analytics] --> D
+    C[Discovery Activity Tracking] --> D
     
-    E[Logs] --> F[Log Aggregation]
-    G[Traces] --> H[Distributed Tracing]
-    I[Alerts] --> J[Notification System]
+    E[Application Logs] --> F[Error Tracking]
+    G[User Interaction Traces] --> H[UX Optimization]
+    I[Database Performance] --> J[Scaling Decisions]
 ```
 
 ### **Observability Components**
-- **Application Monitoring**: Performance metrics and health checks
-- **Infrastructure Monitoring**: Server and database metrics
-- **Log Aggregation**: Centralized logging and analysis
-- **Distributed Tracing**: Request flow tracking
-- **Alerting**: Proactive issue notification
+- **Canvas Metrics**: Node rendering performance and interaction responsiveness
+- **Usage Analytics**: Tree complexity, PM workflow patterns, feature adoption
+- **Error Tracking**: Canvas errors, API failures, state inconsistencies
+- **Performance Monitoring**: Database query performance, API response times
+- **User Experience**: PM workflow efficiency and tool adoption metrics
 
 ---
 
 ## 🔮 **Future Architecture Considerations**
 
-### **Scalability Roadmap**
-- **Microservices Migration**: Potential future microservices architecture
-- **Event-Driven Architecture**: Asynchronous event processing
-- **API Gateway**: Centralized API management
-- **Service Mesh**: Advanced service-to-service communication
+### **Discovery Enhancement Roadmap**
+- **Real-time Collaboration**: Socket.io integration for team tree editing
+- **Advanced AI Integration**: Enhanced discovery insights and automated research
+- **Mobile Optimization**: Touch-optimized canvas for mobile PM workflows
+- **Integration APIs**: Connect with PM tools (Miro, Figma, research platforms)
 
-### **Technology Evolution**
-- **Cloud-Native**: Migration to cloud-native technologies
-- **Serverless**: Serverless function adoption for specific use cases
-- **GraphQL**: Potential GraphQL adoption for flexible APIs
-- **Real-Time Features**: WebSocket integration for real-time updates
+### **Technical Evolution**
+- **Microservices**: Potential service separation for AI and core tree operations
+- **GraphQL**: Flexible API queries for complex tree relationships
+- **Offline Support**: Service worker integration for offline tree editing
+- **Advanced Analytics**: ML-powered insights on PM discovery patterns
 
 ---
 
 ## 📋 **Architecture Decision Records (ADRs)**
 
 ### **Key Architectural Decisions**
-1. **ADR-001**: Chosen React over Angular for frontend framework
-2. **ADR-002**: Selected Spring Boot for backend framework
-3. **ADR-003**: PostgreSQL chosen over NoSQL for data consistency
-4. **ADR-004**: JWT authentication over session-based authentication
-5. **ADR-005**: REST API over GraphQL for simplicity
+1. **ADR-001**: React + Canvas over traditional form-based interfaces
+2. **ADR-002**: Node.js/Express over Spring Boot for JavaScript ecosystem consistency
+3. **ADR-003**: PostgreSQL + JSONB over pure NoSQL for ACID compliance with flexibility
+4. **ADR-004**: Zustand over Redux for simpler tree state management
+5. **ADR-005**: Vertex AI over OpenAI for enterprise-grade AI integration
+6. **ADR-006**: Session-based auth over JWT for simpler security model
 
 ### **Decision Criteria**
-- **Team Expertise**: Leverage existing team knowledge
-- **Community Support**: Strong community and ecosystem
-- **Long-term Viability**: Technology longevity and support
-- **Performance Requirements**: Meet performance objectives
-- **Scalability Needs**: Support future growth requirements
+- **PM User Experience**: Optimize for Product Manager daily workflows
+- **Canvas Performance**: Support complex, interactive tree structures
+- **Type Safety**: Reduce bugs in complex hierarchical data operations
+- **Development Velocity**: Enable rapid iteration for discovery-driven development
+- **Scalability**: Support growth from individual PMs to product teams
 
 ---
 
 ## 🎯 **Success Metrics**
 
 ### **Technical Metrics**
-- **Performance**: API response times < 200ms (95th percentile)
-- **Availability**: 99.9% uptime target
-- **Scalability**: Support 10x current user load
-- **Security**: Zero critical security vulnerabilities
-- **Code Quality**: >80% test coverage, <5% technical debt
+- **Canvas Performance**: <100ms interaction response time for trees up to 500 nodes
+- **Tree Operations**: <200ms API response for tree CRUD operations
+- **Availability**: 99.5% uptime target for discovery-critical workflows
+- **Scalability**: Support 100 concurrent PMs with complex trees
+- **Data Integrity**: Zero tree corruption incidents
 
-### **Business Metrics**
-- **Development Velocity**: Feature delivery speed
-- **Maintenance Cost**: Operational overhead
-- **User Experience**: Page load times and responsiveness
-- **Reliability**: Error rates and system stability
+### **Product Manager Experience Metrics**
+- **Tree Complexity**: Average 50+ nodes per active tree
+- **Discovery Integration**: 80% of trees connected to research activities
+- **Workflow Efficiency**: 50% reduction in strategy documentation time
+- **Tool Adoption**: Daily active usage by practicing Product Managers
+- **Continuous Discovery**: Evidence of iterative tree evolution patterns
 
 ---
 
 **📝 Architecture Version**: 1.0  
-**🎯 Project Type**: React + Java  
-**📅 Last Updated**: June 2025  
-**👤 Architect**: [Architect name]  
-**📊 Status**: ✅ Production Architecture
+**🎯 Project Type**: AI-Native Impact Tree Canvas  
+**📅 Last Updated**: January 2025  
+**👤 Product Manager**: Impact Tree Development Team  
+**📊 Status**: ✅ Foundation Architecture - Discovery Playground Phase
+
