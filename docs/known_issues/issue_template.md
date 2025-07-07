@@ -1,7 +1,6 @@
-
 # 🐛 Issue Report Template
 
-> **Use this template to document bugs, technical debt, and issues for AI-Native Impact Tree projects**
+> **Use this template to document bugs, technical debt, and issues for React + Java projects**
 
 ---
 
@@ -11,31 +10,29 @@
 [Clear, descriptive title for the issue]
 
 ### **Issue Type**
-- [ ] **🐛 Bug** (Something is broken in the impact tree)
-- [ ] **⚛️ Frontend Issue** (React canvas/component problem)
-- [ ] **🟢 Backend Issue** (Node.js/Express API problem)
-- [ ] **🗄️ Database Issue** (PostgreSQL/Drizzle ORM problem)
-- [ ] **🔗 Integration Issue** (Frontend-Backend/Canvas sync)
-- [ ] **🔒 Security Vulnerability** (Authentication/data security)
-- [ ] **⚡ Performance Issue** (Canvas rendering/tree loading)
-- [ ] **📦 Build/Deployment Issue** (Vite/Replit deployment)
+- [ ] **🐛 Bug** (Something is broken)
+- [ ] **⚛️ Frontend Issue** (React component/UI problem)
+- [ ] **☕ Backend Issue** (Java service/API problem)
+- [ ] **🗄️ Database Issue** (Data/schema problem)
+- [ ] **🔗 Integration Issue** (Frontend-Backend communication)
+- [ ] **🔒 Security Vulnerability** (Security concern)
+- [ ] **⚡ Performance Issue** (Slow/inefficient code)
+- [ ] **📦 Build/Deployment Issue** (CI/CD problem)
 - [ ] **🧪 Testing Issue** (Test failures/coverage)
 - [ ] **📚 Technical Debt** (Code quality/maintainability)
-- [ ] **🔧 Configuration Issue** (Environment/Replit settings)
-- [ ] **🤖 AI Integration Issue** (Vertex AI problems)
-- [ ] **🎨 Canvas Issue** (Tree rendering/interaction problems)
+- [ ] **🔧 Configuration Issue** (Environment/settings)
 
 ### **Priority**
-- [ ] **🔥 P0 - Critical** (Canvas unusable, data loss, discovery workflow blocked)
-- [ ] **⭐ P1 - High** (Major tree functionality broken, affects PM users)
+- [ ] **🔥 P0 - Critical** (System down, security breach, data loss)
+- [ ] **⭐ P1 - High** (Major functionality broken, affects many users)
 - [ ] **📋 P2 - Medium** (Minor functionality issue, workaround exists)
 - [ ] **📝 P3 - Low** (Cosmetic issue, nice-to-fix)
 
 ### **Severity**
-- [ ] **🚨 Blocker** (Prevents Replit deployment/development)
-- [ ] **🔴 Critical** (Major discovery feature unusable)
-- [ ] **🟡 Major** (Important tree feature partially broken)
-- [ ] **🟢 Minor** (Small issue, minimal PM impact)
+- [ ] **🚨 Blocker** (Prevents release/deployment)
+- [ ] **🔴 Critical** (Major feature unusable)
+- [ ] **🟡 Major** (Important feature partially broken)
+- [ ] **🟢 Minor** (Small issue, minimal impact)
 
 ---
 
@@ -45,25 +42,25 @@
 [Brief description of the issue in 1-2 sentences]
 
 ### **Expected Behavior**
-[What should happen in the PM's discovery workflow?]
+[What should happen?]
 
 ### **Actual Behavior**
-[What actually happens when using the impact tree?]
+[What actually happens?]
 
 ### **Impact**
-[How does this affect Product Managers using the tool for discovery?]
+[Who/what is affected by this issue?]
 
 ---
 
 ## 🔍 **Reproduction Steps**
 
 ### **Prerequisites**
-[Any setup or tree configuration needed to reproduce the issue]
+[Any setup or conditions needed to reproduce the issue]
 
 ### **Steps to Reproduce**
-1. [First step - e.g., "Open impact tree canvas"]
-2. [Second step - e.g., "Create outcome node"]
-3. [Third step - e.g., "Add opportunity child node"]
+1. [First step]
+2. [Second step]
+3. [Third step]
 4. [Continue as needed]
 
 ### **Reproduction Rate**
@@ -80,19 +77,18 @@
 - **React Version**: [e.g., 18.2.0]
 - **Node.js Version**: [e.g., 18.17.0]
 - **Browser**: [e.g., Chrome 115.0.5790.110]
-- **Canvas Features Used**: [Tree rendering, drag-drop, zoom/pan]
 - **Operating System**: [e.g., Windows 11, macOS 13.4]
 
 ### **Backend Environment**
-- **Node.js Version**: [e.g., 18.17.0]
-- **Express Version**: [e.g., 4.18.2]
-- **Database**: [PostgreSQL version on Replit]
-- **Drizzle ORM Version**: [e.g., 0.28.6]
+- **Java Version**: [e.g., OpenJDK 17.0.7]
+- **Spring Boot Version**: [e.g., 3.1.2]
+- **Database**: [e.g., PostgreSQL 15.3]
+- **Application Server**: [e.g., Embedded Tomcat]
 
 ### **Deployment Environment**
-- **Environment**: [Replit Development/Production]
-- **Replit Features**: [Autoscale, database, secrets]
-- **AI Integration**: [Vertex AI status if applicable]
+- **Environment**: [Development/Staging/Production]
+- **Container**: [Docker version if applicable]
+- **Cloud Platform**: [AWS/Azure/GCP if applicable]
 
 ---
 
@@ -100,14 +96,14 @@
 
 ### **Frontend Errors**
 ```javascript
-// Browser console errors (if any)
-[Paste React/Canvas errors here]
+// Console errors (if any)
+[Paste browser console errors here]
 ```
 
 ### **Backend Errors**
-```javascript
+```java
 // Server logs/stack traces (if any)
-[Paste Express/Node.js errors here]
+[Paste server logs or stack traces here]
 ```
 
 ### **Network Errors**
@@ -116,133 +112,115 @@
 [Paste network errors from browser dev tools]
 ```
 
-### **Canvas Errors**
-```javascript
-// Canvas rendering errors (if any)
-[Paste HTML5 canvas or SVG rendering errors]
-```
-
 ---
 
 ## 📸 **Evidence**
 
 ### **Screenshots**
-[Attach screenshots showing the tree/canvas issue]
+[Attach screenshots showing the issue]
 
 ### **Screen Recordings**
-[Link to screen recordings of canvas interactions if helpful]
-
-### **Tree Data**
-[Export of tree structure if relevant to the issue]
+[Link to screen recordings if helpful]
 
 ### **Log Files**
-[Attach relevant Replit logs or paste log excerpts]
+[Attach relevant log files or paste log excerpts]
 
 ---
 
 ## 🔧 **Analysis & Investigation**
 
 ### **Root Cause Analysis**
-[What is causing this issue in the impact tree system? Leave blank if unknown]
+[What is causing this issue? Leave blank if unknown]
 
 ### **Affected Components**
-- [ ] **React Components**: [Tree nodes, canvas, modals]
-- [ ] **Node.js Services**: [Express routes, tree management]
-- [ ] **Database Tables**: [impact_trees, canvas_state]
-- [ ] **API Endpoints**: [/api/impact-trees endpoints]
-- [ ] **Canvas System**: [SVG rendering, interactions]
-- [ ] **AI Integration**: [Vertex AI services]
-- [ ] **State Management**: [Zustand, TanStack Query]
+- [ ] **React Components**: [List specific components]
+- [ ] **Java Services**: [List specific services]
+- [ ] **Database Tables**: [List affected tables]
+- [ ] **API Endpoints**: [List affected endpoints]
+- [ ] **External Dependencies**: [List third-party services]
 
 ### **Related Issues**
-[Links to related canvas/tree issues or similar problems]
+[Links to related issues or similar problems]
 
 ---
 
 ## 💡 **Proposed Solution**
 
 ### **Solution Approach**
-[High-level approach to fix the issue in the impact tree context]
+[High-level approach to fix the issue]
 
 ### **Implementation Steps**
-1. [Step 1 of the fix - e.g., "Update canvas rendering logic"]
-2. [Step 2 of the fix - e.g., "Fix tree state synchronization"]
-3. [Step 3 of the fix - e.g., "Add error handling for node operations"]
+1. [Step 1 of the fix]
+2. [Step 2 of the fix]
+3. [Step 3 of the fix]
 
 ### **Alternative Solutions**
-[Other possible approaches considering canvas performance and PM workflow]
+[Other possible approaches to consider]
 
 ---
 
 ## 🧪 **Testing Strategy**
 
 ### **Test Cases**
-- [ ] **Verify fix works** for reported tree scenario
-- [ ] **Canvas performance** testing with large trees
-- [ ] **Discovery workflow** testing for PM users
-- [ ] **Cross-browser** testing for canvas compatibility
+- [ ] **Verify fix works** for reported scenario
+- [ ] **Regression testing** to ensure no new issues
+- [ ] **Edge case testing** for similar scenarios
+- [ ] **Performance testing** if performance-related
 
 ### **Test Environment**
-[Replit development environment testing approach]
+[Where should this be tested?]
 
 ---
 
 ## 📋 **Acceptance Criteria**
 
 ### **Definition of Done**
-- [ ] **Issue is resolved** and tree functionality works correctly
-- [ ] **No canvas performance regression** 
-- [ ] **PM discovery workflow** not disrupted
-- [ ] **Tests pass** (component, API, canvas integration)
+- [ ] **Issue is resolved** and no longer reproducible
+- [ ] **No regression** in existing functionality
+- [ ] **Tests pass** (unit, integration, E2E as applicable)
 - [ ] **Code review** completed and approved
-- [ ] **Replit deployment** successful
+- [ ] **Documentation updated** if necessary
 
 ---
 
 ## 🎓 **Developer Learning Guide**
 
 ### **📚 Issue Context**
-[Explain the issue and its impact in terms of PM discovery workflow and canvas architecture]
-
-This issue affects the AI-Native Impact Tree's ability to support Product Managers in their continuous discovery practice. The impact tree serves as a live document that evolves with PM learning, so any disruption to the canvas or tree functionality directly impacts the discovery workflow.
+[Explain the issue and its impact in beginner-friendly terms]
 
 ### **🔍 Debugging Process**
 ```mermaid
 graph TD
-    A[Issue Reported] --> B[Reproduce on Canvas]
-    B --> C[Check Browser Console]
-    C --> D[Analyze Tree State]
-    D --> E[Check API Logs]
-    E --> F[Identify Root Cause]
-    F --> G[Design Solution]
-    G --> H[Test Canvas Fix]
-    H --> I[Deploy to Replit]
+    A[Issue Reported] --> B[Reproduce Issue]
+    B --> C[Analyze Logs/Errors]
+    C --> D[Identify Root Cause]
+    D --> E[Design Solution]
+    E --> F[Implement Fix]
+    F --> G[Test Solution]
+    G --> H[Deploy Fix]
 ```
 
 ### **🛠️ Debugging Steps**
-1. **Reproduce the Issue**: Load the specific tree and follow PM workflow steps
-2. **Canvas Inspection**: Check HTML5 canvas rendering and SVG elements
-3. **State Analysis**: Examine Zustand tree state and TanStack Query cache
-4. **API Investigation**: Review Express endpoint logs and database queries
-5. **Root Cause**: Identify whether issue is frontend, backend, or integration
+1. **Reproduce the Issue**: [How to systematically reproduce the problem]
+2. **Gather Information**: [What logs, errors, and data to collect]
+3. **Analyze Root Cause**: [How to identify the underlying problem]
+4. **Design Solution**: [How to approach fixing the issue]
 
 ### **⚠️ Common Debugging Pitfalls**
-- **Canvas State**: Remember canvas state is separate from tree data
-- **Async Operations**: Canvas updates and API calls may be out of sync
-- **Performance**: Large trees can mask underlying issues
-- **PM Context**: Always consider impact on discovery workflow
+- **Pitfall 1**: [Common mistake and how to avoid it]
+- **Pitfall 2**: [Common mistake and how to avoid it]
+- **Pitfall 3**: [Common mistake and how to avoid it]
 
 ### **🔗 Learning Resources**
-- **React Canvas Debugging**: Browser dev tools for canvas inspection
-- **Drizzle Debugging**: PostgreSQL query analysis and optimization
-- **Express Debugging**: Node.js logging and error handling
-- **Impact Tree Architecture**: Understanding tree state and canvas integration
+- **React Debugging**: [Relevant React debugging techniques]
+- **Java Debugging**: [Relevant Java debugging techniques]
+- **Related Documentation**: [Links to relevant technical documentation]
+- **External Resources**: [Helpful debugging guides and tools]
 
 ### **🎯 Prevention Strategies**
-- Comprehensive canvas testing with various tree sizes
-- State synchronization validation between frontend and backend
-- Performance monitoring for tree operations
-- PM user testing to catch workflow disruptions
+- [How to prevent similar issues in the future]
+- [Code patterns or practices that help avoid this type of issue]
+- [Testing strategies that would catch this type of issue]
 
 ---
 
@@ -252,26 +230,26 @@ graph TD
 - **Reported Date**: [Date issue was first reported]
 - **Assigned Date**: [Date issue was assigned for fixing]
 - **Resolution Date**: [Date issue was resolved]
-- **PM Impact**: [Number of PM users affected]
+- **Time to Resolution**: [Total time from report to resolution]
 
 ### **Impact Metrics**
-- **Discovery Workflow Impact**: [How this affects PM discovery activities]
-- **Canvas Performance Impact**: [Effect on tree rendering performance]
-- **Business Impact**: [Impact on product-market fit discovery]
+- **Users Affected**: [Number or percentage of users affected]
+- **Frequency**: [How often the issue occurs]
+- **Business Impact**: [Revenue/productivity impact if applicable]
 
 ---
 
 ## 🔗 **Related Documents**
 
 - **Implementation Plan**: [Link to fix implementation plan when created]
-- **Related Issues**: [Links to similar canvas or tree issues]
-- **PRD Documentation**: [docs/PRD.md - Product requirements]
-- **Canvas Architecture**: [Technical documentation for canvas system]
+- **Related Issues**: [Links to similar or related issues]
+- **Feature Documentation**: [Links to related feature documentation]
+- **Technical Documentation**: [Links to relevant technical docs]
 
 ---
 
-**📝 Template Version**: 2.0  
-**🎯 Project Type**: AI-Native Impact Tree (React + Node.js)  
+**📝 Template Version**: 1.0  
+**🎯 Project Type**: React + Java  
 **📅 Created**: [Date]  
 **👤 Reporter**: [Reporter name]  
 **👤 Assignee**: [Assignee name]  

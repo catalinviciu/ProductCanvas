@@ -1,7 +1,6 @@
-
 # 🔧 Implementation Plan Template
 
-> **Detailed technical implementation plan for AI-Native Impact Tree features and fixes**
+> **Detailed technical implementation plan for React + Java features and fixes**
 > **Priority**: [P1/P2/P3] | **Complexity**: [Low/Medium/High] | **Effort**: [X hours]
 
 ---
@@ -9,34 +8,35 @@
 ## 📋 **Implementation Overview**
 
 ### **Objective**
-[Clear statement of what this implementation achieves for PM discovery workflow]
+[Clear statement of what this implementation achieves]
 
 ### **Current State**
-[Description of current impact tree functionality/problem]
+[Description of current situation/problem]
 
 ### **Target State**
-[Description of desired end state for PM users and discovery workflow]
+[Description of desired end state after implementation]
 
 ---
 
 ## 🎯 **Technical Requirements**
 
-### **Frontend Requirements (React + TypeScript)**
-- [ ] **Canvas Components**: [Tree nodes, connections, interactions]
-- [ ] **State Management**: [Zustand for tree state, TanStack Query for server state]
-- [ ] **API Integration**: [Impact tree endpoints, canvas state sync]
-- [ ] **UI/UX Implementation**: [PM-focused discovery interface]
+### **Frontend Requirements (React)**
+- [ ] **Component Development**: [Specific React components needed]
+- [ ] **State Management**: [Redux/Context/Local state requirements]
+- [ ] **API Integration**: [Frontend service layer changes]
+- [ ] **UI/UX Implementation**: [User interface requirements]
 
-### **Backend Requirements (Node.js + Express)**
-- [ ] **API Endpoints**: [Impact tree CRUD, canvas state persistence]
-- [ ] **Business Logic**: [Tree validation, discovery workflow support]
-- [ ] **Data Access**: [Drizzle ORM operations, PostgreSQL queries]
-- [ ] **AI Integration**: [Vertex AI for discovery insights]
+### **Backend Requirements (Java)**
+- [ ] **API Endpoints**: [REST endpoints to create/modify]
+- [ ] **Service Layer**: [Business logic implementation]
+- [ ] **Data Access**: [Repository and database operations]
+- [ ] **Security**: [Authentication/authorization changes]
 
 ### **Database Requirements**
-- [ ] **Schema Changes**: [impact_trees table, discovery-related tables]
-- [ ] **Data Migration**: [Tree structure updates, canvas state]
-- [ ] **Performance**: [Indexing for tree queries, JSONB optimization]
+- [ ] **Entity Changes**: [JPA entities to create/modify]
+- [ ] **Schema Updates**: [Database schema changes]
+- [ ] **Data Migration**: [Data migration requirements]
+- [ ] **Performance**: [Indexing and optimization needs]
 
 ---
 
@@ -44,425 +44,343 @@
 
 ### **Phase 1: Backend Foundation (X hours)**
 
-#### **Database Layer (Drizzle ORM + PostgreSQL)**
-```typescript
-// Schema definition for impact trees
-import { pgTable, text, serial, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
-
-export const impactTrees = pgTable("impact_trees", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  nodes: jsonb("nodes").notNull().default('[]'),
-  connections: jsonb("connections").notNull().default('[]'),
-  canvasState: jsonb("canvas_state").notNull().default('{"zoom": 1, "pan": {"x": 0, "y": 0}}'),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Migration for new features
-export const discoveryArtifacts = pgTable("discovery_artifacts", {
-  id: serial("id").primaryKey(),
-  treeId: integer("tree_id").references(() => impactTrees.id),
-  nodeId: text("node_id").notNull(),
-  artifactType: text("artifact_type").notNull(), // research, assumption, metric
-  content: jsonb("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+#### **Database Layer**
+```java
+// JPA Entity Implementation
+@Entity
+@Table(name = "feature_entity")
+public class FeatureEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    // Constructors, getters, setters
+}
 ```
 
-#### **Storage Layer**
-```typescript
-// Impact tree service with discovery support
-export class ImpactTreeService {
-  private db: DrizzleDB;
+#### **Repository Layer**
+```java
+// Repository Interface
+@Repository
+public interface FeatureRepository extends JpaRepository<FeatureEntity, Long> {
+    List<FeatureEntity> findByNameContaining(String name);
+    Optional<FeatureEntity> findByName(String name);
+}
+```
 
-  async createImpactTree(data: InsertImpactTree): Promise<ImpactTree> {
-    const [tree] = await this.db.insert(impactTrees).values(data).returning();
-    return tree;
-  }
-
-  async updateTreeCanvas(id: number, updates: {
-    nodes: TreeNode[];
-    connections: NodeConnection[];
-    canvasState: CanvasState;
-  }): Promise<ImpactTree | undefined> {
-    const [updated] = await this.db
-      .update(impactTrees)
-      .set({
-        nodes: updates.nodes,
-        connections: updates.connections,
-        canvasState: updates.canvasState,
-        updatedAt: new Date()
-      })
-      .where(eq(impactTrees.id, id))
-      .returning();
+#### **Service Layer**
+```java
+// Service Implementation
+@Service
+@Transactional
+public class FeatureService {
     
-    return updated;
-  }
-
-  async addDiscoveryArtifact(treeId: number, nodeId: string, artifact: DiscoveryArtifact) {
-    // Support for PM discovery workflows
-    return await this.db.insert(discoveryArtifacts).values({
-      treeId,
-      nodeId,
-      artifactType: artifact.type,
-      content: artifact.content
-    });
-  }
+    @Autowired
+    private FeatureRepository featureRepository;
+    
+    public FeatureEntity createFeature(CreateFeatureRequest request) {
+        FeatureEntity entity = new FeatureEntity();
+        entity.setName(request.getName());
+        return featureRepository.save(entity);
+    }
+    
+    public List<FeatureEntity> getAllFeatures() {
+        return featureRepository.findAll();
+    }
 }
 ```
 
 ### **Phase 2: API Layer (X hours)**
 
-#### **Express API Endpoints**
-```typescript
-// Impact tree REST API with discovery support
-import express from 'express';
-import { ImpactTreeService } from './services/impact-tree-service';
-
-const router = express.Router();
-const treeService = new ImpactTreeService();
-
-// Core impact tree operations
-router.post('/api/impact-trees', async (req, res) => {
-  try {
-    const validatedData = insertImpactTreeSchema.parse(req.body);
-    const tree = await treeService.createImpactTree(validatedData);
-    res.status(201).json(tree);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: "Invalid data", errors: error.errors });
-    }
-    res.status(500).json({ message: "Failed to create impact tree" });
-  }
-});
-
-// Canvas state persistence for PM workflow
-router.put('/api/impact-trees/:id/canvas', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const validatedData = updateCanvasSchema.parse(req.body);
+#### **Controller Implementation**
+```java
+// REST Controller
+@RestController
+@RequestMapping("/api/features")
+@CrossOrigin(origins = "http://localhost:3000")
+public class FeatureController {
     
-    const updatedTree = await treeService.updateTreeCanvas(id, validatedData);
-    if (!updatedTree) {
-      return res.status(404).json({ message: "Impact tree not found" });
-    }
-
-    res.json(updatedTree);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to update canvas state" });
-  }
-});
-
-// Discovery artifacts for continuous discovery
-router.post('/api/impact-trees/:id/artifacts', async (req, res) => {
-  try {
-    const treeId = parseInt(req.params.id);
-    const { nodeId, artifact } = req.body;
+    @Autowired
+    private FeatureService featureService;
     
-    await treeService.addDiscoveryArtifact(treeId, nodeId, artifact);
-    res.status(201).json({ message: "Discovery artifact added" });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to add discovery artifact" });
-  }
-});
+    @PostMapping
+    public ResponseEntity<FeatureResponse> createFeature(
+            @Valid @RequestBody CreateFeatureRequest request) {
+        try {
+            FeatureEntity entity = featureService.createFeature(request);
+            FeatureResponse response = mapToResponse(entity);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<FeatureResponse>> getAllFeatures() {
+        List<FeatureEntity> entities = featureService.getAllFeatures();
+        List<FeatureResponse> responses = entities.stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+}
 ```
 
-#### **Validation Schemas**
-```typescript
-// Zod schemas for impact tree validation
-export const treeNodeSchema = z.object({
-  id: z.string(),
-  type: z.enum(['objective', 'outcome', 'opportunity', 'solution', 'assumption', 'metric', 'research']),
-  title: z.string().min(1).max(255),
-  description: z.string().optional(),
-  position: z.object({
-    x: z.number(),
-    y: z.number()
-  }),
-  metadata: z.record(z.any()).optional()
-});
+#### **Request/Response DTOs**
+```java
+// Request DTO
+public class CreateFeatureRequest {
+    @NotBlank(message = "Name is required")
+    private String name;
+    
+    // Getters, setters, validation
+}
 
-export const updateCanvasSchema = z.object({
-  nodes: z.array(treeNodeSchema),
-  connections: z.array(z.object({
-    id: z.string(),
-    sourceId: z.string(),
-    targetId: z.string()
-  })),
-  canvasState: z.object({
-    zoom: z.number(),
-    pan: z.object({
-      x: z.number(),
-      y: z.number()
-    }),
-    orientation: z.enum(['vertical', 'horizontal']).optional()
-  })
-});
+// Response DTO
+public class FeatureResponse {
+    private Long id;
+    private String name;
+    private LocalDateTime createdAt;
+    
+    // Getters, setters
+}
 ```
 
 ### **Phase 3: Frontend Implementation (X hours)**
 
-#### **Canvas State Management**
-```tsx
-// Tree state management with Zustand
-import { create } from 'zustand';
-import { TreeNode, NodeConnection, CanvasState } from '../types/canvas';
+#### **API Service Layer**
+```typescript
+// Frontend API Service
+import axios from 'axios';
 
-interface TreeStore {
-  nodes: TreeNode[];
-  connections: NodeConnection[];
-  canvasState: CanvasState;
-  selectedNode: TreeNode | null;
-  
-  // Actions for PM discovery workflow
-  addNode: (node: TreeNode) => void;
-  updateNode: (id: string, updates: Partial<TreeNode>) => void;
-  deleteNode: (id: string) => void;
-  addConnection: (connection: NodeConnection) => void;
-  updateCanvasState: (state: Partial<CanvasState>) => void;
-  selectNode: (node: TreeNode | null) => void;
+const API_BASE_URL = 'http://localhost:8080/api';
+
+export interface Feature {
+  id: number;
+  name: string;
+  createdAt: string;
 }
 
-export const useTreeStore = create<TreeStore>((set, get) => ({
-  nodes: [],
-  connections: [],
-  canvasState: { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'vertical' },
-  selectedNode: null,
-  
-  addNode: (node) => set((state) => ({
-    nodes: [...state.nodes, node]
-  })),
-  
-  updateNode: (id, updates) => set((state) => ({
-    nodes: state.nodes.map(node => 
-      node.id === id ? { ...node, ...updates } : node
-    )
-  })),
-  
-  deleteNode: (id) => set((state) => ({
-    nodes: state.nodes.filter(node => node.id !== id),
-    connections: state.connections.filter(conn => 
-      conn.sourceId !== id && conn.targetId !== id
-    )
-  })),
-  
-  addConnection: (connection) => set((state) => ({
-    connections: [...state.connections, connection]
-  })),
-  
-  updateCanvasState: (newState) => set((state) => ({
-    canvasState: { ...state.canvasState, ...newState }
-  })),
-  
-  selectNode: (node) => set({ selectedNode: node })
-}));
+export interface CreateFeatureRequest {
+  name: string;
+}
+
+export class FeatureService {
+  private static readonly BASE_URL = `${API_BASE_URL}/features`;
+
+  static async createFeature(request: CreateFeatureRequest): Promise<Feature> {
+    const response = await axios.post<Feature>(this.BASE_URL, request);
+    return response.data;
+  }
+
+  static async getAllFeatures(): Promise<Feature[]> {
+    const response = await axios.get<Feature[]>(this.BASE_URL);
+    return response.data;
+  }
+}
 ```
 
-#### **Canvas Components**
+#### **React Components**
 ```tsx
-// Main impact tree canvas component
-import React, { useEffect, useRef, useCallback } from 'react';
-import { useTreeStore } from '../stores/tree-store';
-import { TreeNode } from './tree-node';
-import { NodeConnections } from './node-connections';
-import { CanvasToolbar } from './canvas-toolbar';
+// Feature List Component
+import React, { useState, useEffect } from 'react';
+import { Feature, FeatureService } from '../services/FeatureService';
 
-export const ImpactTreeCanvas: React.FC<{
-  treeId: number;
-}> = ({ treeId }) => {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const {
-    nodes,
-    connections,
-    canvasState,
-    updateCanvasState,
-    selectedNode,
-    selectNode
-  } = useTreeStore();
-
-  // Canvas pan and zoom handling
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newZoom = Math.max(0.1, Math.min(3, canvasState.zoom * delta));
-    
-    updateCanvasState({ zoom: newZoom });
-  }, [canvasState.zoom, updateCanvasState]);
-
-  // Canvas click handling for discovery workflow
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      selectNode(null); // Deselect when clicking empty canvas
-    }
-  }, [selectNode]);
+export const FeatureList: React.FC = () => {
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      canvas.addEventListener('wheel', handleWheel, { passive: false });
-      return () => canvas.removeEventListener('wheel', handleWheel);
+    loadFeatures();
+  }, []);
+
+  const loadFeatures = async () => {
+    try {
+      setLoading(true);
+      const data = await FeatureService.getAllFeatures();
+      setFeatures(data);
+    } catch (err) {
+      setError('Failed to load features');
+    } finally {
+      setLoading(false);
     }
-  }, [handleWheel]);
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-gray-50">
-      <CanvasToolbar treeId={treeId} />
-      
-      <div
-        ref={canvasRef}
-        className="h-full w-full cursor-move"
-        style={{
-          transform: `scale(${canvasState.zoom}) translate(${canvasState.pan.x}px, ${canvasState.pan.y}px)`
-        }}
-        onClick={handleCanvasClick}
-      >
-        {/* SVG connections layer */}
-        <NodeConnections
-          connections={connections}
-          nodes={nodes}
-          zoom={canvasState.zoom}
-        />
-        
-        {/* Nodes layer for PM discovery */}
-        {nodes.map(node => (
-          <TreeNode
-            key={node.id}
-            node={node}
-            isSelected={selectedNode?.id === node.id}
-            onSelect={() => selectNode(node)}
-            onUpdate={(updates) => updateNode(node.id, updates)}
-          />
-        ))}
-      </div>
+    <div className="feature-list">
+      <h2>Features</h2>
+      {features.map(feature => (
+        <div key={feature.id} className="feature-item">
+          <h3>{feature.name}</h3>
+          <p>Created: {new Date(feature.createdAt).toLocaleDateString()}</p>
+        </div>
+      ))}
     </div>
   );
 };
 ```
 
-#### **API Integration with TanStack Query**
+#### **Create Feature Component**
 ```tsx
-// API service for impact trees
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// Create Feature Component
+import React, { useState } from 'react';
+import { FeatureService, CreateFeatureRequest } from '../services/FeatureService';
 
-export const useImpactTree = (treeId: number) => {
-  return useQuery({
-    queryKey: ['impact-tree', treeId],
-    queryFn: async () => {
-      const response = await fetch(`/api/impact-trees/${treeId}`);
-      if (!response.ok) throw new Error('Failed to fetch tree');
-      return response.json();
-    }
-  });
-};
+interface CreateFeatureProps {
+  onFeatureCreated: () => void;
+}
 
-export const useUpdateTreeCanvas = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ treeId, updates }: {
-      treeId: number;
-      updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState };
-    }) => {
-      const response = await fetch(`/api/impact-trees/${treeId}/canvas`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-      if (!response.ok) throw new Error('Failed to update canvas');
-      return response.json();
-    },
-    onSuccess: (_, { treeId }) => {
-      queryClient.invalidateQueries({ queryKey: ['impact-tree', treeId] });
+export const CreateFeature: React.FC<CreateFeatureProps> = ({ onFeatureCreated }) => {
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const request: CreateFeatureRequest = { name: name.trim() };
+      await FeatureService.createFeature(request);
+      
+      setName('');
+      onFeatureCreated();
+    } catch (err) {
+      setError('Failed to create feature');
+    } finally {
+      setLoading(false);
     }
-  });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="create-feature-form">
+      <h3>Create New Feature</h3>
+      {error && <div className="error">{error}</div>}
+      <div className="form-group">
+        <label htmlFor="name">Feature Name:</label>
+        <input
+          type="text"
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          disabled={loading}
+          required
+        />
+      </div>
+      <button type="submit" disabled={loading || !name.trim()}>
+        {loading ? 'Creating...' : 'Create Feature'}
+      </button>
+    </form>
+  );
 };
 ```
 
-### **Phase 4: AI Integration (X hours) - For AI Features**
+### **Phase 4: Integration & Testing (X hours)**
 
-#### **Vertex AI Service Integration**
-```typescript
-// Vertex AI integration for discovery insights
-import { VertexAI } from '@google-cloud/vertexai';
-
-export class DiscoveryAIService {
-  private vertexAI: VertexAI;
-  
-  constructor() {
-    this.vertexAI = new VertexAI({
-      project: process.env.GOOGLE_CLOUD_PROJECT,
-      location: process.env.GOOGLE_CLOUD_LOCATION
-    });
-  }
-
-  async generateResearchQuestions(treeContext: {
-    currentNode: TreeNode;
-    siblingNodes: TreeNode[];
-    parentNodes: TreeNode[];
-  }): Promise<string[]> {
-    const prompt = this.buildResearchPrompt(treeContext);
+#### **Integration Testing**
+```java
+// Backend Integration Test
+@SpringBootTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
+class FeatureIntegrationTest {
     
-    const response = await this.vertexAI.preview.generateContent({
-      model: 'gemini-pro',
-      contents: [{ role: 'user', parts: [{ text: prompt }] }]
-    });
+    @Autowired
+    private TestRestTemplate restTemplate;
     
-    return this.parseResearchQuestions(response.response.text);
-  }
-
-  async identifyOpportunityGaps(treeData: {
-    opportunities: TreeNode[];
-    outcomes: TreeNode[];
-    assumptions: TreeNode[];
-  }): Promise<{
-    gaps: string[];
-    suggestions: string[];
-  }> {
-    const prompt = this.buildGapAnalysisPrompt(treeData);
-    
-    const response = await this.vertexAI.preview.generateContent({
-      model: 'gemini-pro',
-      contents: [{ role: 'user', parts: [{ text: prompt }] }]
-    });
-    
-    return this.parseGapAnalysis(response.response.text);
-  }
-
-  private buildResearchPrompt(context: any): string {
-    return `
-      As a Product Management AI assistant, analyze this impact tree context:
-      Current Node: ${context.currentNode.title} (${context.currentNode.type})
-      
-      Suggest 3-5 specific research questions that would help validate assumptions and discover new opportunities in this area.
-      Focus on continuous discovery practices and customer-centric research.
-    `;
-  }
+    @Test
+    void shouldCreateAndRetrieveFeature() {
+        // Create feature
+        CreateFeatureRequest request = new CreateFeatureRequest();
+        request.setName("Test Feature");
+        
+        ResponseEntity<FeatureResponse> createResponse = restTemplate.postForEntity(
+            "/api/features", request, FeatureResponse.class);
+        
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(createResponse.getBody().getName()).isEqualTo("Test Feature");
+        
+        // Retrieve features
+        ResponseEntity<FeatureResponse[]> getResponse = restTemplate.getForEntity(
+            "/api/features", FeatureResponse[].class);
+        
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponse.getBody()).hasSize(1);
+    }
 }
+```
+
+#### **Frontend Testing**
+```typescript
+// React Component Test
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { FeatureList } from '../FeatureList';
+import { FeatureService } from '../../services/FeatureService';
+
+jest.mock('../../services/FeatureService');
+
+describe('FeatureList', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('displays features when loaded successfully', async () => {
+    const mockFeatures = [
+      { id: 1, name: 'Test Feature', createdAt: '2023-01-01T00:00:00Z' }
+    ];
+    
+    (FeatureService.getAllFeatures as jest.Mock).mockResolvedValue(mockFeatures);
+
+    render(<FeatureList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Feature')).toBeInTheDocument();
+    });
+  });
+
+  test('displays error message when loading fails', async () => {
+    (FeatureService.getAllFeatures as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+    render(<FeatureList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Error: Failed to load features')).toBeInTheDocument();
+    });
+  });
+});
 ```
 
 ---
 
 ## 🧪 **Testing Strategy**
 
-### **Frontend Testing**
-- [ ] **Component Tests**: React Testing Library for canvas components and tree nodes
-- [ ] **Canvas Testing**: HTML5 canvas interaction and rendering tests
-- [ ] **State Management**: Zustand store testing for tree operations
-- [ ] **API Integration**: TanStack Query integration testing
-
 ### **Backend Testing**
-- [ ] **Unit Tests**: Express endpoint testing with Jest
-- [ ] **Database Tests**: Drizzle ORM operations and PostgreSQL integration
-- [ ] **API Tests**: Impact tree CRUD operations and canvas state persistence
-- [ ] **AI Integration**: Vertex AI service testing (for AI features)
+- [ ] **Unit Tests**: Service and repository layer testing
+- [ ] **Integration Tests**: API endpoint testing
+- [ ] **Database Tests**: Entity and repository testing
+- [ ] **Security Tests**: Authentication/authorization testing
 
-### **Integration Testing**
-- [ ] **Canvas-API Sync**: Tree state synchronization between frontend and backend
-- [ ] **Discovery Workflow**: End-to-end PM discovery workflow testing
-- [ ] **Performance**: Large tree handling and canvas optimization
-- [ ] **Replit Deployment**: Production deployment testing
+### **Frontend Testing**
+- [ ] **Unit Tests**: Component testing with Jest/React Testing Library
+- [ ] **Integration Tests**: API service testing
+- [ ] **E2E Tests**: User workflow testing
+- [ ] **Visual Tests**: UI regression testing
 
 ---
 
@@ -470,111 +388,86 @@ export class DiscoveryAIService {
 
 ### **Pre-Deployment**
 - [ ] **Code review** completed and approved
-- [ ] **Canvas performance** testing with large trees
-- [ ] **Database migrations** prepared and tested
-- [ ] **Replit environment** variables configured
+- [ ] **All tests passing** (unit, integration, E2E)
+- [ ] **Database migrations** prepared (if needed)
+- [ ] **Environment variables** configured
 
 ### **Deployment**
-- [ ] **Backend deployment** to Replit completed
+- [ ] **Backend deployment** completed
 - [ ] **Frontend build** and deployment completed
-- [ ] **Database schema** changes applied
-- [ ] **Replit health checks** passing
+- [ ] **Database changes** applied
+- [ ] **Health checks** passing
 
 ### **Post-Deployment**
-- [ ] **Discovery workflow** testing with PM users
-- [ ] **Canvas performance** monitoring active
-- [ ] **Tree persistence** validation
-- [ ] **PM user feedback** collected
+- [ ] **Smoke testing** completed
+- [ ] **Monitoring** configured and working
+- [ ] **Documentation** updated
+- [ ] **Stakeholders** notified
 
 ---
 
 ## 🎓 **Developer Learning Guide**
 
 ### **📚 Implementation Concepts**
-This implementation supports the AI-Native Impact Tree's core mission: helping Product Managers practice continuous discovery through visual tree structures that evolve with learning.
-
-The impact tree serves as a live document connecting OKR methodology (Objectives & Outcomes) with impact mapping (Opportunities & Solutions) and user story mapping techniques. Every implementation decision should support the PM's discovery workflow and maintain the tree's role as an evolving strategic document.
+[Explain complex implementation logic in accessible terms]
 
 ### **🏗️ Architecture Flow**
 ```mermaid
 sequenceDiagram
-    participant PM as PM User
-    participant Canvas as React Canvas
-    participant Store as Zustand Store
-    participant API as Express API
-    participant DB as PostgreSQL
-    participant AI as Vertex AI
+    participant U as User
+    participant F as React Frontend
+    participant A as API Gateway
+    participant S as Java Service
+    participant D as Database
 
-    PM->>Canvas: Interacts with Tree Node
-    Canvas->>Store: Update Tree State
-    Store->>API: Sync Canvas State
-    API->>DB: Persist Tree Data
-    DB-->>API: Confirm Storage
-    API-->>Store: Update Confirmation
-    Store-->>Canvas: Re-render Tree
-    Canvas-->>PM: Updated Discovery View
-    
-    Note over AI: For AI Features
-    PM->>Canvas: Request Discovery Insights
-    Canvas->>API: AI Insights Request
-    API->>AI: Generate Suggestions
-    AI-->>API: Discovery Insights
-    API-->>Canvas: Insights Response
-    Canvas-->>PM: Display AI Suggestions
+    U->>F: User Action
+    F->>A: HTTP Request
+    A->>S: Service Call
+    S->>D: Database Query
+    D-->>S: Data Response
+    S-->>A: Service Response
+    A-->>F: HTTP Response
+    F-->>U: UI Update
 ```
 
 ### **🔄 Step-by-Step Breakdown**
-1. **Canvas Interaction**: PM clicks/drags tree nodes on HTML5 canvas
-2. **State Management**: Zustand updates tree state and triggers React re-renders
-3. **API Synchronization**: TanStack Query syncs changes to Express backend
-4. **Data Persistence**: Drizzle ORM saves tree structure to PostgreSQL
-5. **AI Enhancement**: Vertex AI provides discovery insights based on tree context
-6. **Discovery Loop**: PM receives suggestions and continues discovery workflow
+1. **Database Layer**: [Explain entity and repository setup]
+2. **Service Layer**: [Explain business logic implementation]
+3. **API Layer**: [Explain REST endpoint design]
+4. **Frontend Integration**: [Explain React component and service integration]
 
 ### **⚠️ Implementation Pitfalls**
-- **Canvas Performance**: Large trees (100+ nodes) can slow rendering - implement virtualization
-- **State Synchronization**: Canvas state and server state must stay synchronized
-- **Discovery Context**: All features must support continuous discovery mindset
-- **PM Workflow**: Don't disrupt the natural flow of discovery activities
-- **AI Integration**: Handle rate limits and ensure insights enhance rather than replace PM judgment
-- **Tree Evolution**: Support the live document nature - trees change frequently
+- **Database Issues**: [Common JPA/Hibernate pitfalls and solutions]
+- **API Design Issues**: [Common REST API mistakes and best practices]
+- **Frontend Issues**: [Common React integration problems and solutions]
+- **Security Issues**: [Common security mistakes and prevention]
 
 ### **🔗 Learning Resources**
-- **Continuous Discovery**: Teresa Torres methodology and practices
-- **React Canvas**: HTML5 canvas with React performance patterns
-- **Drizzle ORM**: Type-safe PostgreSQL operations and migrations
-- **Vertex AI**: Google Cloud AI integration and prompt engineering
-- **Impact Mapping**: Gojko Adzic's impact mapping techniques
-- **OKR Framework**: Objectives and Key Results implementation
-
-### **🎯 Key Takeaways**
-- Impact trees are live documents that evolve with PM discovery
-- Canvas performance is critical for large, complex trees
-- State management must handle both immediate UI updates and persistent storage
-- AI integration should enhance discovery workflows, not replace PM thinking
-- All features should support the continuous discovery cycle
-- The tool should feel like a natural extension of the PM's thinking process
+- **Spring Boot Documentation**: [Relevant Spring Boot concepts]
+- **React Documentation**: [Relevant React concepts]
+- **JPA/Hibernate Guide**: [Database integration best practices]
+- **REST API Design**: [API design principles and patterns]
 
 ---
 
 ## 📊 **Success Metrics**
 
 ### **Technical Metrics**
-- [ ] **Canvas Performance**: 60fps with 100+ nodes
-- [ ] **API Response Times**: <200ms for tree operations
-- [ ] **Database Queries**: Optimized for tree structure operations
-- [ ] **Test Coverage**: >85% for critical discovery features
+- [ ] **All tests passing** (>95% success rate)
+- [ ] **Performance targets met** (response time <500ms)
+- [ ] **Code coverage** (>80% for critical paths)
+- [ ] **Security scan** (no critical vulnerabilities)
 
 ### **Business Metrics**
-- [ ] **PM Adoption**: Active weekly usage by discovery-practicing PMs
-- [ ] **Tree Evolution**: Measurable tree changes indicating discovery activity
-- [ ] **Discovery Insights**: AI suggestions leading to actionable research
-- [ ] **Workflow Integration**: Smooth integration with existing PM tools
+- [ ] **Feature functionality** works as specified
+- [ ] **User acceptance** criteria met
+- [ ] **No regression** in existing features
+- [ ] **Documentation** complete and accurate
 
 ---
 
-**📝 Template Version**: 2.0  
-**🎯 Project Type**: AI-Native Impact Tree (React + Node.js)  
+**📝 Template Version**: 1.0  
+**🎯 Project Type**: React + Java  
 **📅 Created**: [Date]  
 **👤 Author**: [Author name]  
 **📊 Status**: 📋 Planning
