@@ -1,295 +1,318 @@
-
 # Product Requirements Document (PRD)
 ## AI-Native Impact Tree for Product Strategy & Execution
 
 ### Executive Summary
 
-The AI-Native Impact Tree is a strategic product management tool designed specifically for Product Managers to organize, visualize, and execute their product strategy through an intelligent tree-based framework. The tool combines the proven OKR methodology with impact mapping, enhanced by AI-powered insights and suggestions.
+The AI-Native Impact Tree is a dynamic, continuously evolving product management tool designed for Product Managers who practice continuous discovery. Built as a live document that grows with learning, the tool combines OKR methodology with impact mapping and user story mapping techniques, enhanced by AI-powered insights to help PMs discover their path to product-market fit.
 
 ### Problem Statement
 
-Product Managers struggle with:
-- Connecting high-level strategic objectives to tactical execution
-- Visualizing the relationship between opportunities, solutions, and outcomes
-- Making data-driven decisions about which solutions to prioritize
-- Tracking the impact of tactical decisions on strategic outcomes
-- Maintaining context across complex product strategy discussions
+Product Managers practicing continuous discovery struggle with:
+- Maintaining a live, evolving view of their product strategy as they learn
+- Visualizing complex hierarchical relationships between jobs-to-be-done, milestones, and granular opportunities
+- Connecting high-level strategic outcomes to detailed execution steps
+- Tracking assumptions and learnings across multiple discovery cycles
+- Adapting their strategy tree as customer insights emerge
+- Finding the right level of granularity for solutions based on opportunity scope
 
 ### Solution Overview
 
-An interactive, AI-enhanced impact tree that allows PMs to:
-1. Define strategic objectives and measurable outcomes (OKRs)
-2. Map market opportunities to desired outcomes
-3. Design and evaluate solution approaches
-4. Test assumptions across multiple categories
-5. Track metrics and conduct research
-6. Leverage AI for strategic insights and suggestions
+A continuously evolving, AI-enhanced impact tree that grows with PM learning:
+1. **Live Document Approach**: Tree structure that adapts and evolves through continuous discovery
+2. **Hierarchical Branching**: Multi-level outcomes for different teams and cascading opportunities from jobs-to-be-done to steps
+3. **Variable Solution Granularity**: Solutions that scale from broad (job-level) to granular (step-level) based on opportunity scope
+4. **Continuous Discovery Integration**: Built-in research and assumption tracking for ongoing learning
+5. **AI-Powered Insights**: Contextual suggestions that adapt to the PM's discovery journey
+
+### Product Philosophy: Continuous Discovery & Iterative Development
+
+**Core Principles:**
+- **Learning Over Planning**: The tree evolves based on customer insights, not predetermined roadmaps
+- **Small Steps, Big Impact**: Start simple, iterate based on real usage and feedback
+- **Discovery-Driven**: Every feature supports the continuous discovery process
+- **Open Source Foundation**: Community-driven development with sustainable monetization
+- **Product-Market Fit Focus**: Every iteration moves toward better user-problem fit
 
 ### Target User: Product Manager Ideal Customer Profile (ICP)
 
-**Primary Persona: Strategic Product Manager**
-- 3-7 years of product management experience
-- Working in tech companies (50-500 employees)
-- Responsible for product strategy and roadmap planning
-- Uses OKR frameworks
-- Manages multiple stakeholders and cross-functional teams
-- Needs to justify product decisions with data
+**Primary Persona: Discovery-Driven Product Manager**
+- 2-5 years of product management experience
+- Practices continuous discovery methodologies (Teresa Torres, Jeff Patton approaches)
+- Works in product teams (10-100 person companies)
+- Values learning over feature delivery
+- Needs tools that evolve with their understanding
+- Frustrated with static planning tools
 
-**Secondary Persona: Senior Product Manager**
-- 7+ years of experience
-- Leading product teams
-- Strategic decision maker
-- Focused on business outcomes and ROI
+**Secondary Persona: Product Leader**
+- 5+ years of experience leading product teams
+- Advocates for evidence-based product decisions
+- Needs visibility into team discovery processes
+- Values flexible, adaptive planning approaches
 
 ### Core Features & Functionality
 
-#### 1. Tree Structure & Node Types
+#### 1. Live Document Architecture
 
-**Strategic Level (Root & Primary Branches)**
-- **Objectives**: High-level strategic goals (OKR Objectives)
-  - Visual: Blue nodes with flag icon
-  - Purpose: Define what the product aims to achieve
-  - Example: "Become the go-to platform for freelancers managing their finances"
+**Continuous Evolution Capabilities**
+- Real-time tree updates as discoveries emerge
+- Version history showing strategy evolution
+- Learning capture at every node level
+- Assumption validation tracking over time
+- Discovery cycle integration
 
-- **Outcomes**: Measurable results that indicate objective achievement (OKR Key Results)
+**Tree as Living Strategy**
+- No "final" tree state - always evolving
+- Discovery insights automatically update related nodes
+- Hypothesis tracking across discovery cycles
+- Learning artifacts attached to nodes
+
+#### 2. Hierarchical Branching System
+
+**Multi-Level Outcomes Structure**
+```
+Objective
+├── Team A Outcome
+│   ├── Sub-outcome 1
+│   └── Sub-outcome 2
+├── Team B Outcome
+│   ├── Sub-outcome 3
+│   └── Sub-outcome 4
+```
+
+**Jobs-to-be-Done Opportunity Hierarchy**
+```
+Job to be Done (Top-level Opportunity)
+├── Milestone 1 (Journey Stage)
+│   ├── Step 1.1 (Granular Opportunity)
+│   ├── Step 1.2 (Granular Opportunity)
+│   └── Step 1.3 (Granular Opportunity)
+├── Milestone 2 (Journey Stage)
+│   ├── Step 2.1 (Granular Opportunity)
+│   └── Step 2.2 (Granular Opportunity)
+```
+
+**Variable Solution Granularity**
+- **Broad Solutions**: Address entire jobs-to-be-done
+- **Milestone Solutions**: Target specific journey stages
+- **Granular Solutions**: Solve individual steps
+- **Solution Scope Indicators**: Visual cues showing solution breadth
+
+#### 3. Node Types & Hierarchical Structure
+
+**Strategic Level**
+- **Objectives**: High-level strategic goals
+- **Outcomes**: Measurable results that can branch into team-specific outcomes
   - Visual: Indigo nodes with bullseye icon
-  - Purpose: Quantifiable measures of success
-  - Example: "Increase bank account connection rate from 40% to 60% by Q3"
+  - Branching: Multiple outcomes per objective for different teams/areas
 
-**Discovery Level (Secondary Branches)**
-- **Opportunities**: Market needs, pain points, or desires that drive outcomes
-  - Visual: Purple nodes with lightbulb icon
-  - Purpose: Identify what customer problems to solve
-  - Example: "Customers worry about bank account security"
+**Discovery Level**
+- **Opportunities**: Following Jobs-to-be-Done hierarchy
+  - **Job Level**: Main customer job (purple nodes with lightbulb icon)
+  - **Milestone Level**: Journey stages (purple nodes with map icon)
+  - **Step Level**: Granular opportunities (purple nodes with step icon)
 
-**Execution Level (Leaves)**
-- **Solutions**: Specific approaches to address opportunities
-  - Visual: Emerald nodes with cog icon
-  - Purpose: Define how to solve the identified problems
-  - Example: "Add security logos to connection page"
+**Execution Level**
+- **Solutions**: Variable granularity based on opportunity level
+  - **Broad Solutions**: Target jobs/milestones (emerald nodes with gear icon)
+  - **Granular Solutions**: Address specific steps (emerald nodes with tool icon)
 
-**Validation Level (Sub-leaves)**
-- **Assumptions**: Hypotheses to validate across four categories:
-  - Business Viability: Will this drive business value?
-  - Customer Value: Do customers actually want this?
-  - Usability: Can users easily use this solution?
-  - Technical Feasibility: Can we build this effectively?
-  - Visual: Orange nodes with flask icon
+**Validation Level**
+- **Assumptions**: Continuous discovery hypotheses
+- **Research**: Ongoing discovery activities
+- **Metrics**: Learning and success indicators
 
-**Supporting Elements**
-- **Metrics**: KPIs and measurement systems
-  - Visual: Yellow nodes with chart icon
-  - Purpose: Track progress and impact
-  - Types: Leading metrics (input) and lagging metrics (outcome)
+#### 4. Continuous Discovery Integration
 
-- **Research**: Discovery and validation activities
-  - Visual: Teal nodes with search icon
-  - Purpose: Gather data to inform decisions
-  - Example: "Interview 5 users who dropped off at bank connection"
+**Discovery Cycle Support**
+- Weekly discovery activities tracking
+- Customer interview insights linking to opportunities
+- Assumption validation workflows
+- Learning capture and synthesis tools
 
-#### 2. AI-Native Capabilities
+**Research-First Approach**
+- Every opportunity starts with research questions
+- Interview insights automatically suggest new opportunities
+- Assumption testing drives solution development
+- Metric collection focuses on learning, not just tracking
 
-**Context-Aware AI Assistant**
-- Analyzes the entire tree structure for context
-- Understands relationships between nodes
-- Provides suggestions based on current focus area
+#### 5. AI-Native Capabilities for Discovery
 
-**AI Suggestion Types by Node Context:**
-- **At Objective Level**: Suggest relevant outcome metrics
-- **At Outcome Level**: Recommend opportunity areas to explore
-- **At Opportunity Level**: Propose solution approaches and research activities
-- **At Solution Level**: Generate assumption categories and metrics to track
-- **At Assumption Level**: Suggest validation methods and research approaches
+**Discovery-Focused AI Suggestions**
+- Research question recommendations based on tree context
+- Opportunity gap identification using customer feedback
+- Solution ideation based on validated learnings
+- Assumption generation for continuous testing
 
-**AI Capabilities:**
-- Gap analysis: Identify missing elements in the strategy
-- Risk assessment: Highlight potential assumption risks
-- Prioritization support: Suggest focus areas based on impact/effort analysis
-- Competitive insights: Recommend opportunities based on market analysis
+**Learning Amplification**
+- Pattern recognition across discovery cycles
+- Insight synthesis from multiple research activities
+- Hypothesis prioritization based on learning value
+- Discovery roadmap suggestions
 
-#### 3. Canvas & Interaction Features
+### MVP: Discovery Playground (12 Weeks)
 
-**Visual Canvas**
-- Infinite, zoomable workspace
-- Drag-and-drop node manipulation
-- Auto-layout algorithms (horizontal/vertical)
-- Visual connection lines showing relationships
-- Collision detection and smart positioning
+#### Phase 1: Foundation Playground (4 weeks)
+**Goal**: Enable PMs to experiment with hierarchical tree structures
 
-**Navigation & Controls**
-- Home button: Auto-center on outcome nodes
-- Zoom controls with fit-to-screen
-- Orientation toggle (horizontal/vertical layout)
-- Node expansion/collapse for focus
-- Search and filter capabilities
+**Core Features:**
+- Basic hierarchical node creation (Objectives → Outcomes → Opportunities → Solutions)
+- Simple drag-and-drop tree building
+- Multi-level outcome branching for teams
+- Jobs-to-be-Done opportunity structure
+- Variable solution granularity indicators
 
-**Creation & Editing**
-- Right-click context menus for node creation
-- Sidebar palette for drag-and-drop creation
-- Modal dialogs for detailed node editing
-- Bulk operations for efficiency
-- Undo/redo functionality
+**Success Metrics:**
+- 50 PMs create their first tree
+- Average 20+ nodes per tree
+- 3+ levels of hierarchy per tree
+- User feedback on tree structure value
 
-#### 4. Metric Tracking System
+#### Phase 2: Discovery Integration (4 weeks)
+**Goal**: Connect tree structure to discovery activities
 
-**Metric Hierarchy**
-- Outcome metrics (lagging indicators)
-- Solution metrics (leading indicators)
-- Input metrics (activity indicators)
+**Features:**
+- Research node creation and linking
+- Basic assumption tracking
+- Simple learning capture
+- Discovery activity templates
 
-**Metric Relationships**
-- Visual connections showing metric dependencies
-- Impact tracking from solutions to outcomes
-- Rollup calculations for aggregate metrics
+**Success Metrics:**
+- 80% of users add research nodes
+- Active assumption tracking
+- Weekly tree updates by 60% of users
 
-### User Stories & Acceptance Criteria
+#### Phase 3: AI Discovery Assistant (4 weeks)
+**Goal**: Provide basic AI-powered discovery insights
 
-#### Epic 1: Strategic Planning
-**As a PM, I want to define my product objectives and outcomes so that I have a clear strategic direction.**
+**Features:**
+- Research question suggestions
+- Opportunity gap identification
+- Basic pattern recognition
+- Learning synthesis support
 
-**User Stories:**
-1. Create objective nodes with clear descriptions and success criteria
-2. Define measurable outcome nodes linked to objectives
-3. Visualize the strategic hierarchy
+**Success Metrics:**
+- 70% AI suggestion acceptance rate
+- Faster opportunity identification
+- Increased research activity per tree
 
-#### Epic 2: Opportunity Discovery
-**As a PM, I want to map market opportunities to my outcomes so that I can identify the best areas to focus on.**
+### Iterative Development Approach
 
-**User Stories:**
-1. Create opportunity nodes linked to specific outcomes
-2. Use AI suggestions to identify potential opportunity gaps
-3. Research and validate opportunity assumptions
+#### Discovery-Driven Roadmap
+- **Week 1-4**: Launch playground, gather usage patterns
+- **Week 5-8**: Enhance based on real user trees
+- **Week 9-12**: Add AI based on discovered needs
+- **Ongoing**: Monthly discovery cycles with users
 
-#### Epic 3: Solution Design
-**As a PM, I want to design and compare solution approaches so that I can choose the highest-impact options.**
+#### Learning Questions Per Phase
+**Phase 1**: How do PMs naturally structure their strategy trees?
+**Phase 2**: What discovery activities do they most value?
+**Phase 3**: Where does AI provide the most value in their process?
 
-**User Stories:**
-1. Create multiple solution options for each opportunity
-2. Define and track assumptions for each solution
-3. Use AI to suggest validation approaches
+#### User Research Integration
+- Weekly user interviews during development
+- Tree structure analysis for pattern identification
+- Feature usage tracking for prioritization
+- Continuous feedback collection and implementation
 
-#### Epic 4: AI-Powered Insights
-**As a PM, I want AI suggestions based on my tree context so that I can make better strategic decisions.**
+### Open Source Strategy & Monetization
 
-**User Stories:**
-1. Receive contextual AI suggestions at each tree level
-2. Get gap analysis for incomplete strategy areas
-3. Access competitive and market insights
+#### Open Source Foundation
+**Community Benefits:**
+- Core tree functionality always free
+- Open development roadmap
+- Community-driven feature development
+- Educational resources and templates
 
-### Technical Architecture
+**Repository Structure:**
+- Core impact tree engine (MIT License)
+- Basic canvas and node management
+- Community templates and examples
+- Documentation and guides
 
-#### Current Implementation Status
-Based on the codebase review, the following components are implemented:
+#### Sustainable Monetization Options
 
-**Frontend (React/TypeScript)**
-- Canvas rendering with SVG-based node visualization
-- Drag-and-drop functionality with collision detection
-- Context menus and modal dialogs
-- Responsive design with mobile support
-- Node type definitions and visual styling
+**Freemium SaaS Model:**
+- **Free Tier**: Core tree functionality, basic AI suggestions (5 trees, 100 nodes each)
+- **Pro Tier ($15/month))**: Unlimited trees, advanced AI, collaboration features
+- **Team Tier ($50/month)**: Multi-team outcomes, shared templates, analytics
+- **Enterprise Tier ($200/month)**: SSO, advanced integrations, priority support
 
-**Node Type System**
-- Complete implementation of all 7 node types
-- Visual configuration (colors, icons, styling)
-- Placeholder text system for user guidance
-- Type-specific behaviors and validations
+**Service-Based Revenue:**
+- Discovery facilitation workshops using the tool
+- Product strategy consulting with tree methodology
+- Training and certification programs
+- Custom implementation and integration services
 
-**Data Management**
-- PostgreSQL database with Drizzle ORM
-- Tree structure storage (nodes and connections)
-- Canvas state persistence (zoom, pan, orientation)
-- Real-time updates and synchronization
+**Community-Driven Growth:**
+- Open source core drives adoption
+- Premium features fund development
+- Community contributions enhance value
+- Network effects increase retention
 
-**Canvas Features**
-- Auto-layout algorithms
-- Zoom and pan controls
-- Node visibility management
-- Spatial grid for performance optimization
-- Home positioning for outcome-centric navigation
+### Success Metrics & Learning Goals
 
-#### Required AI Integration
-**To Be Implemented:**
-- LLM integration for contextual suggestions
-- Prompt engineering for product management use cases
-- Context window management for large trees
-- User feedback collection for AI improvement
+#### Discovery Phase Success (Weeks 1-12)
+**Usage Metrics:**
+- 200+ registered PMs trying the tool
+- 50+ active weekly users
+- Average 15 minutes per session
+- 70% completion rate for first tree creation
 
-### Success Metrics
+**Learning Metrics:**
+- Tree structure patterns identified
+- Most valuable discovery features validated
+- AI assistance value propositions confirmed
+- Monetization willingness established
 
-#### User Adoption Metrics
-- Monthly Active Users (MAU)
-- Session duration and frequency
-- Tree creation and completion rates
-- Feature adoption rates (AI suggestions, metrics tracking)
+**Community Metrics:**
+- 20+ GitHub stars/forks
+- 5+ community-contributed templates
+- Active Discord/Slack community participation
+- Positive feedback on product direction
 
-#### Product Impact Metrics
-- Time to create initial product strategy (baseline vs. with tool)
-- Decision confidence scores (user surveys)
-- Strategy iteration frequency
-- Cross-team collaboration metrics
+#### Product-Market Fit Indicators
+**User Behavior:**
+- Weekly active usage with growing trees
+- Unsolicited sharing and recommendations
+- Feature requests aligned with discovery needs
+- Resistance to switching away from tool
 
-#### AI Effectiveness Metrics
-- AI suggestion acceptance rate
-- Time saved through AI assistance
-- User satisfaction with AI recommendations
-- Accuracy of AI-generated insights
+**Business Signals:**
+- Conversion from free to paid tiers
+- Organic user acquisition growth
+- Community-driven content creation
+- Partnership and integration requests
 
-### Implementation Roadmap
+### Risk Mitigation & Learning Approach
 
-#### Phase 1: Core Functionality Enhancement (4 weeks)
-- Complete node editing and relationship management
-- Implement comprehensive tree validation
-- Add export/import capabilities
-- Enhance mobile responsiveness
+#### Development Risks
+**Overbuilding Risk**: Start minimal, expand based on usage
+**Complexity Risk**: Progressive disclosure, simple onboarding
+**AI Cost Risk**: Usage-based pricing, efficient prompt design
 
-#### Phase 2: AI Integration (6 weeks)
-- Integrate LLM for contextual suggestions
-- Implement prompt templates for each node type
-- Add AI-powered gap analysis
-- Create feedback collection system
+#### Product-Market Fit Risks
+**Solution-First Risk**: Continuous user research and feedback
+**Feature Creep Risk**: Strict focus on discovery use cases
+**Market Timing Risk**: Open source approach reduces pressure
 
-#### Phase 3: Advanced Features (8 weeks)
-- Implement metric tracking system
-- Add collaboration features (commenting, sharing)
-- Create template library for common strategy patterns
-- Build analytics dashboard
+#### Learning-First Mitigation
+- Weekly user interviews throughout development
+- Feature flags for rapid experimentation
+- Community feedback integration
+- Data-driven development decisions
 
-#### Phase 4: Enterprise Features (6 weeks)
-- Add team management and permissions
-- Implement integration APIs (Jira, Confluence, etc.)
-- Create reporting and presentation modes
-- Add audit trails and version history
+### Next Steps: Week 1 Goals
 
-### Risk Assessment
+#### Immediate Actions (Week 1)
+1. **Set up user research pipeline**: Recruit 10 PMs for weekly interviews
+2. **Create community presence**: GitHub repo, Discord/Slack channel
+3. **Define MVP scope**: Finalize Phase 1 features based on existing codebase
+4. **Establish learning metrics**: Analytics setup for usage tracking
 
-#### Technical Risks
-- AI response latency affecting user experience
-- LLM cost scaling with user adoption
-- Complex tree structures causing performance issues
+#### Technical Foundation
+- Enhance existing hierarchical node system
+- Add outcome branching capabilities
+- Implement opportunity hierarchy indicators
+- Create solution granularity visual system
 
-#### Product Risks
-- Learning curve for new users unfamiliar with impact mapping
-- Over-reliance on AI suggestions reducing strategic thinking
-- Feature complexity overwhelming the core value proposition
-
-#### Mitigation Strategies
-- Implement caching and response optimization for AI
-- Design progressive disclosure for feature complexity
-- Provide onboarding and educational resources
-- Monitor AI suggestion quality and user feedback
-
-### Success Criteria
-
-#### MVP Success (3 months post-launch)
-- 100+ active Product Managers using the tool weekly
-- Average session duration > 30 minutes
-- 70%+ completion rate for initial tree creation
-- 4.0+ user satisfaction score
-
-#### Growth Success (6 months post-launch)
-- 500+ MAU with 60%+ retention rate
-- 50%+ of users actively using AI suggestions
-- Measurable impact on product decision speed
-- Positive ROI on AI infrastructure investment
-
-This PRD provides a comprehensive foundation for building and scaling the AI-Native Impact Tree tool, leveraging the existing technical foundation while clearly defining the product vision and user value proposition.
+This iterative, discovery-driven approach ensures we build what PMs actually need while maintaining sustainable development through open source community growth and targeted monetization.
