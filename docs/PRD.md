@@ -301,18 +301,270 @@ Job to be Done (Top-level Opportunity)
 - Community feedback integration
 - Data-driven development decisions
 
+### Technology Stack
+
+#### Current Foundation (Validated & Production-Ready)
+**Frontend Architecture:**
+- **React 18 + TypeScript**: Component-based UI with type safety for complex tree structures
+- **Tailwind CSS + Radix UI**: Rapid, accessible component development with consistent design system
+- **Wouter**: Lightweight routing for single-page application navigation
+- **TanStack Query**: Server state management with caching and synchronization
+- **Framer Motion**: Smooth animations for tree interactions and node transitions
+- **React Hook Form + Zod**: Type-safe form validation and data handling
+
+**Backend & Database:**
+- **Node.js + Express + TypeScript**: RESTful API with type safety
+- **Drizzle ORM + PostgreSQL**: Type-safe database operations with relational data modeling
+- **Session-based Authentication**: Secure user management with Passport.js integration
+
+**Canvas & Visualization:**
+- **Custom Canvas Implementation**: High-performance tree rendering with SVG connections
+- **Drag & Drop System**: Intuitive node manipulation and tree restructuring
+- **Context Menus & Modals**: Rich interaction patterns for node editing
+
+#### Enhanced Tech Stack for MVP
+
+**Phase 1 Additions (Foundation Playground):**
+```json
+{
+  "dependencies": {
+    "zustand": "^4.4.0",
+    "d3-hierarchy": "^3.1.0",
+    "@types/d3-hierarchy": "^3.1.0"
+  }
+}
+```
+- **Zustand**: Lightweight state management for complex tree operations
+- **D3-hierarchy**: Automatic tree layout algorithms and hierarchy calculations
+
+**Phase 2 Additions (Discovery Integration):**
+```json
+{
+  "dependencies": {
+    "socket.io": "^4.7.0",
+    "socket.io-client": "^4.7.0",
+    "react-window": "^1.8.8",
+    "@types/react-window": "^1.8.5"
+  }
+}
+```
+- **Socket.io**: Real-time collaboration and live document updates
+- **React-window**: Virtualization for large tree performance optimization
+
+**Phase 3 Additions (AI Discovery Assistant):**
+```json
+{
+  "dependencies": {
+    "@google-cloud/aiplatform": "^3.1.0",
+    "@google-cloud/vertexai": "^0.4.0",
+    "tiktoken": "^1.0.10",
+    "openai": "^4.24.0"
+  }
+}
+```
+- **Google Cloud Vertex AI**: Primary AI service for discovery insights and content generation
+- **Vertex AI Features**: Generative AI, embeddings, and pattern recognition capabilities
+- **Tiktoken**: Token counting for efficient AI prompt management
+- **OpenAI SDK**: Fallback/alternative AI provider for comparison and redundancy
+
+#### Architecture Advantages for Discovery Use Case
+
+**React Component Hierarchy**: Perfect for representing nested tree structures (Objectives → Outcomes → Opportunities → Solutions)
+
+**TypeScript Benefits**: 
+- Type-safe node relationships and tree operations
+- Compile-time validation of complex data structures
+- Better developer experience for collaborative development
+
+**Drizzle ORM + PostgreSQL**:
+- Hierarchical queries with recursive CTEs for tree traversal
+- Type-safe relationships between parent-child nodes
+- Efficient indexing for large tree structures
+- JSONB support for flexible node metadata storage
+
+**Canvas Performance**:
+- Efficient SVG rendering for connection lines
+- Virtualized rendering for trees with 1000+ nodes
+- Smooth animations without performance degradation
+- Touch and mouse interaction support
+
+#### AI Integration Strategy with Vertex AI
+
+**Vertex AI Services Integration:**
+- **Gemini Pro**: Natural language processing for discovery insights
+- **Text Embeddings**: Pattern recognition across user trees and industry templates
+- **PaLM 2**: Content generation for research questions and opportunity suggestions
+- **Vertex Search**: Semantic search across research artifacts and assumptions
+
+**AI Context Management:**
+```typescript
+// Tree structure as context for AI prompts
+interface AIContext {
+  treeStructure: Node[];
+  currentNode: Node;
+  siblingNodes: Node[];
+  researchHistory: ResearchArtifact[];
+  assumptions: Assumption[];
+  discoveryGoals: string[];
+}
+```
+
+**Privacy & Cost Management:**
+- On-device processing where possible
+- Batched API calls for efficiency
+- User consent for AI feature usage
+- Transparent cost monitoring and limits
+
+### Enhanced Development Iterations
+
+#### Phase 1: Discovery Playground Foundation (Weeks 1-4)
+**Goal**: Enable PMs to experiment with hierarchical tree structures and discover natural usage patterns
+
+**Technical Implementation:**
+- Enhance existing hierarchical node system with Zustand state management
+- Implement multi-level outcome branching for team-specific outcomes
+- Create Jobs-to-be-Done opportunity hierarchy with visual indicators
+- Add solution granularity classification system
+- Integrate D3-hierarchy for automatic tree layout algorithms
+
+**Key Features:**
+- **Advanced Node Creation**: Support for all hierarchy levels with proper parent-child relationships
+- **Drag-and-Drop Enhancement**: Intelligent node placement with hierarchy validation
+- **Multi-Level Outcomes**: Visual branching for team-specific outcome trees
+- **Opportunity Classification**: Job → Milestone → Step hierarchy with appropriate icons
+- **Solution Granularity Indicators**: Visual cues showing solution scope (broad vs. granular)
+- **Tree Layout Algorithms**: Automatic positioning for optimal tree visualization
+
+**Success Metrics:**
+- 50 PMs create their first complete tree structure
+- Average 25+ nodes per tree with 4+ hierarchy levels
+- 80% of trees include multi-level outcomes for different teams
+- User feedback validation on Jobs-to-be-Done hierarchy approach
+
+#### Phase 2: Continuous Discovery Integration (Weeks 5-8)
+**Goal**: Transform static trees into live documents that evolve with PM learning
+
+**Technical Implementation:**
+- Socket.io integration for real-time tree updates
+- Research artifact storage and linking system
+- Assumption tracking with validation workflow
+- Discovery cycle templates and scheduling
+- Version history and tree evolution tracking
+
+**Key Features:**
+- **Live Document Architecture**: Real-time synchronization across devices and team members
+- **Research Node Integration**: Link customer interviews, surveys, and competitive analysis to opportunities
+- **Assumption Management**: Create, track, and validate assumptions with evidence collection
+- **Discovery Templates**: Pre-built research workflows for common discovery activities
+- **Tree Evolution History**: Visual timeline showing how strategy evolved with learning
+- **Learning Synthesis Tools**: Automatic aggregation of insights across research activities
+
+**Discovery Workflow Integration:**
+- Weekly discovery planning templates
+- Customer interview insight capture
+- Competitive analysis integration
+- Market research artifact linking
+- Assumption hypothesis testing workflows
+
+**Success Metrics:**
+- 80% of users actively update trees weekly
+- Average 5+ research nodes per tree
+- 90% assumption validation rate within 2 weeks
+- Measurable strategy pivots based on discovery insights
+
+#### Phase 3: AI Discovery Assistant (Weeks 9-12)
+**Goal**: Provide intelligent discovery insights using Vertex AI to accelerate learning cycles
+
+**Technical Implementation:**
+- Vertex AI Gemini Pro integration for content generation
+- Embedding-based pattern recognition across user trees
+- Research question recommendation engine
+- Opportunity gap identification algorithms
+- Learning synthesis and insight generation
+
+**AI-Powered Features:**
+- **Smart Research Questions**: Context-aware suggestions based on tree structure and industry patterns
+- **Opportunity Gap Analysis**: AI identification of missing opportunities in user journey mapping
+- **Solution Ideation**: Generative suggestions based on validated learnings and industry best practices
+- **Assumption Generation**: Intelligent hypothesis creation for continuous testing
+- **Pattern Recognition**: Cross-tree learning from community usage patterns
+- **Discovery Roadmap Suggestions**: AI-recommended next steps based on current tree state
+
+**Vertex AI Integration Points:**
+```typescript
+// Research question generation
+await vertexAI.generateResearchQuestions({
+  opportunity: currentNode,
+  treeContext: fullTreeStructure,
+  industryContext: userIndustry,
+  discoveryHistory: pastResearch
+});
+
+// Opportunity gap identification
+await vertexAI.analyzeOpportunityGaps({
+  currentOpportunities: opportunityNodes,
+  userJourney: journeyMapping,
+  competitiveContext: marketResearch
+});
+```
+
+**Success Metrics:**
+- 75% AI suggestion acceptance rate
+- 40% faster opportunity identification compared to manual process
+- 60% increase in research question quality scores
+- Measurable improvement in discovery cycle effectiveness
+
+#### Phase 4: Community & Collaboration (Weeks 13-16)
+**Goal**: Build sustainable community and enhance collaborative discovery features
+
+**Technical Implementation:**
+- Enhanced real-time collaboration with conflict resolution
+- Community template sharing system
+- Advanced analytics and tree comparison tools
+- Integration APIs for external tools
+- Advanced AI coaching features
+
+**Community Features:**
+- **Template Marketplace**: Industry-specific tree templates shared by community
+- **Collaborative Trees**: Multi-PM editing with role-based permissions
+- **Discovery Sharing**: Anonymous tree patterns for community learning
+- **Mentorship Tools**: Senior PM guidance features with tree review capabilities
+- **Integration Ecosystem**: APIs for popular PM tools (Mixpanel, Amplitude, etc.)
+
+#### Ongoing: Continuous Discovery for Product Development (Week 17+)
+**Goal**: Apply continuous discovery principles to our own product development
+
+**Monthly Discovery Cycles:**
+- User interview programs with 10+ PMs monthly
+- Feature usage analytics and behavior pattern analysis
+- Community feedback integration and prioritization
+- Competitive analysis and market positioning refinement
+- Business model optimization based on user value delivery
+
+**Learning Questions by Phase:**
+- **Phase 1**: How do PMs naturally structure strategy hierarchies?
+- **Phase 2**: Which discovery activities provide the most value?
+- **Phase 3**: Where does AI create the biggest impact in discovery workflows?
+- **Phase 4**: What collaboration patterns emerge in team usage?
+
 ### Next Steps: Week 1 Goals
 
 #### Immediate Actions (Week 1)
-1. **Set up user research pipeline**: Recruit 10 PMs for weekly interviews
-2. **Create community presence**: GitHub repo, Discord/Slack channel
-3. **Define MVP scope**: Finalize Phase 1 features based on existing codebase
-4. **Establish learning metrics**: Analytics setup for usage tracking
+1. **Set up user research pipeline**: Recruit 15 discovery-practicing PMs for weekly interviews
+2. **Enhance existing codebase**: Integrate Zustand and D3-hierarchy for advanced tree management
+3. **Create community presence**: GitHub repo with clear contribution guidelines, Discord community
+4. **Establish learning metrics**: Analytics implementation for tree structure and usage pattern analysis
 
-#### Technical Foundation
-- Enhance existing hierarchical node system
-- Add outcome branching capabilities
-- Implement opportunity hierarchy indicators
-- Create solution granularity visual system
+#### Technical Foundation Implementation
+- **Zustand State Management**: Replace local state with scalable tree operation management
+- **D3-Hierarchy Integration**: Automatic layout algorithms for complex tree structures
+- **Enhanced Node System**: Support for all hierarchy levels with proper relationship modeling
+- **Performance Optimization**: Implement virtualization foundation for large tree handling
 
-This iterative, discovery-driven approach ensures we build what PMs actually need while maintaining sustainable development through open source community growth and targeted monetization.
+#### User Research Focus Areas
+- Natural tree structuring patterns among discovery-practicing PMs
+- Most valuable hierarchy levels and relationship types
+- Pain points in current strategy documentation tools
+- Discovery workflow integration requirements
+
+This iterative, discovery-driven approach with robust technical foundations ensures we build exactly what PMs need while maintaining sustainable development through community growth and strategic AI enhancement.
