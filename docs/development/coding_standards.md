@@ -1,100 +1,173 @@
-# 🐍 React + Java Coding Standards
 
-> **Comprehensive coding standards for React, TypeScript, and Java development**
+# 🎨 AI-Native Impact Tree Coding Standards
+
+> **Comprehensive coding standards for React + Node.js development in the Impact Tree project**
 
 ---
 
 ## 📋 **Overview**
 
-This document establishes coding standards for React + Java development to ensure consistent, maintainable, and high-quality code across the entire full-stack codebase.
+This document establishes coding standards for the AI-Native Impact Tree project to ensure consistent, maintainable, and high-quality code across the React frontend and Node.js backend, with special focus on canvas performance and PM discovery workflow support.
 
 ---
 
-## ☕ **Java Standards**
+## 🟢 **Node.js + Express Standards**
 
 ### **Code Style**
-- **Google Java Style Guide**: Follow Google's Java style guidelines
+- **Google JavaScript Style Guide**: Follow Google's JavaScript/TypeScript style guidelines
 - **Line Length**: Maximum 100 characters
 - **Indentation**: 2 spaces (no tabs)
-- **Encoding**: UTF-8 for all Java files
+- **Encoding**: UTF-8 for all TypeScript files
 
 ### **Naming Conventions**
-```java
-// Variables and methods: camelCase
-String userName = "developer";
-public void calculateSentimentScore() {}
+```typescript
+// Variables and functions: camelCase
+const impactTreeData = [];
+function calculateTreeDepth() {}
 
 // Classes: PascalCase
-public class TradingSignalAnalyzer {}
+export class ImpactTreeService {}
+export class DiscoveryAIService {}
 
 // Constants: UPPER_SNAKE_CASE
-public static final int MAX_RETRY_ATTEMPTS = 3;
-public static final String DEFAULT_API_URL = "https://api.example.com";
+const MAX_TREE_NODES = 500;
+const VERTEX_AI_TIMEOUT = 30000;
 
-// Packages: lowercase with dots
-package com.company.project.service;
+// Files: kebab-case
+impact-tree-service.ts
+discovery-ai-service.ts
+tree-validation.ts
 
-// Private methods: camelCase (no underscore prefix)
-private void validateInput() {}
+// API endpoints: kebab-case with RESTful patterns
+GET /api/impact-trees
+POST /api/impact-trees/:id/canvas
+PUT /api/discovery/insights
 ```
 
-### **Annotations and Documentation**
-```java
+### **Express API Patterns**
+```typescript
+// ✅ RECOMMENDED: Impact tree API structure
+import express from 'express';
+import { z } from 'zod';
+import { ImpactTreeService } from '../services/impact-tree-service';
+
+const router = express.Router();
+const treeService = new ImpactTreeService();
+
 /**
- * Service for managing trading features.
- * 
- * This service handles CRUD operations for trading features
- * and integrates with external data providers.
+ * Get impact tree by ID
+ * Supports PM discovery workflow with full tree structure
  */
-@Service
-@Transactional
-public class FeatureService {
-    
-    private final FeatureRepository featureRepository;
-    
-    /**
-     * Creates a new feature with the given request data.
-     * 
-     * @param request the feature creation request
-     * @return the created feature entity
-     * @throws IllegalArgumentException if request is invalid
-     */
-    public FeatureEntity createFeature(@Valid CreateFeatureRequest request) {
-        // Implementation
+router.get('/api/impact-trees/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ 
+        error: 'Invalid tree ID',
+        code: 'INVALID_TREE_ID'
+      });
     }
-}
+
+    const tree = await treeService.getTreeById(id);
+    if (!tree) {
+      return res.status(404).json({ 
+        error: 'Impact tree not found',
+        code: 'TREE_NOT_FOUND'
+      });
+    }
+
+    res.json(tree);
+  } catch (error) {
+    console.error('Error fetching impact tree:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * Update canvas state for PM discovery workflow
+ * Handles tree node positions, connections, and canvas state
+ */
+router.put('/api/impact-trees/:id/canvas', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const validatedData = updateCanvasSchema.parse(req.body);
+    
+    const updatedTree = await treeService.updateCanvasState(id, validatedData);
+    if (!updatedTree) {
+      return res.status(404).json({ 
+        error: 'Impact tree not found',
+        code: 'TREE_NOT_FOUND'
+      });
+    }
+
+    res.json(updatedTree);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        error: 'Invalid canvas data',
+        code: 'VALIDATION_ERROR',
+        details: error.errors
+      });
+    }
+    
+    console.error('Error updating canvas state:', error);
+    res.status(500).json({ 
+      error: 'Failed to update canvas state',
+      code: 'UPDATE_ERROR'
+    });
+  }
+});
 ```
 
-### **Exception Handling**
-```java
-// ✅ RECOMMENDED: Specific exception handling
-public FeatureEntity getFeatureById(Long id) {
-    return featureRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("Feature not found with id: " + id));
+### **Error Handling Patterns**
+```typescript
+// ✅ RECOMMENDED: Consistent error handling for PM workflow
+export class ImpactTreeError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public statusCode: number = 500
+  ) {
+    super(message);
+    this.name = 'ImpactTreeError';
+  }
 }
 
-// ✅ RECOMMENDED: Custom exceptions
-public class FeatureNotFoundException extends RuntimeException {
-    public FeatureNotFoundException(String message) {
-        super(message);
-    }
+export class TreeNotFoundError extends ImpactTreeError {
+  constructor(treeId: number) {
+    super(`Impact tree with ID ${treeId} not found`, 'TREE_NOT_FOUND', 404);
+  }
 }
 
-// ✅ RECOMMENDED: Global exception handler
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException e) {
-        ErrorResponse error = new ErrorResponse("NOT_FOUND", e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
+export class CanvasStateError extends ImpactTreeError {
+  constructor(message: string) {
+    super(message, 'CANVAS_STATE_ERROR', 400);
+  }
 }
+
+// Global error handler for Express
+export const errorHandler = (error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (error instanceof ImpactTreeError) {
+    return res.status(error.statusCode).json({
+      error: error.message,
+      code: error.code
+    });
+  }
+
+  console.error('Unhandled error:', error);
+  res.status(500).json({
+    error: 'Internal server error',
+    code: 'INTERNAL_ERROR'
+  });
+};
 ```
 
 ---
 
-## ⚛️ **React/TypeScript Standards**
+## ⚛️ **React + TypeScript Standards**
 
 ### **Code Style**
 - **Prettier Configuration**: Use Prettier for consistent formatting
@@ -102,323 +175,371 @@ public class GlobalExceptionHandler {
 - **Indentation**: 2 spaces
 - **Quotes**: Single quotes for strings, double quotes for JSX attributes
 
-### **Naming Conventions**
+### **Component Naming and Structure**
 ```typescript
-// Variables and functions: camelCase
-const userName = 'developer';
-const calculateScore = () => {};
+// ✅ RECOMMENDED: Impact tree component structure
+import React, { useState, useEffect, useCallback, memo } from 'react';
+import { TreeNode, NodeConnection, CanvasState } from '../types/canvas';
+import { useTreeStore } from '../stores/tree-store';
 
-// Components: PascalCase
-const FeatureList: React.FC = () => {};
-
-// Constants: UPPER_SNAKE_CASE
-const MAX_ITEMS_PER_PAGE = 20;
-const API_BASE_URL = 'https://api.example.com';
-
-// Interfaces: PascalCase with 'I' prefix (optional)
-interface Feature {
-  id: number;
-  name: string;
-}
-
-// Types: PascalCase
-type FeatureStatus = 'active' | 'inactive' | 'pending';
-
-// Files: kebab-case or PascalCase for components
-feature-list.component.tsx
-FeatureList.tsx
-```
-
-### **Component Structure**
-```typescript
-// ✅ RECOMMENDED: Functional component with TypeScript
-import React, { useState, useEffect, useCallback } from 'react';
-
-interface FeatureListProps {
-  onFeatureSelect?: (feature: Feature) => void;
+interface ImpactTreeCanvasProps {
+  treeId: number;
+  onNodeSelect?: (node: TreeNode | null) => void;
+  onTreeUpdate?: (updates: CanvasUpdate) => void;
   className?: string;
 }
 
-export const FeatureList: React.FC<FeatureListProps> = ({ 
-  onFeatureSelect, 
-  className 
+/**
+ * Interactive canvas for PM discovery workflow
+ * Supports tree visualization, node editing, and discovery activities
+ */
+export const ImpactTreeCanvas: React.FC<ImpactTreeCanvasProps> = memo(({
+  treeId,
+  onNodeSelect,
+  onTreeUpdate,
+  className
 }) => {
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    nodes,
+    connections,
+    canvasState,
+    selectedNode,
+    updateCanvasState,
+    selectNode
+  } = useTreeStore();
 
-  const loadFeatures = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await FeatureService.getAllFeatures();
-      setFeatures(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load features');
-    } finally {
-      setLoading(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+
+  // Canvas interaction for PM discovery workflow
+  const handleCanvasClick = useCallback((event: React.MouseEvent) => {
+    if (event.target === event.currentTarget) {
+      selectNode(null); // Deselect nodes when clicking empty canvas
+      onNodeSelect?.(null);
     }
-  }, []);
+  }, [selectNode, onNodeSelect]);
 
-  useEffect(() => {
-    loadFeatures();
-  }, [loadFeatures]);
+  // Optimized canvas rendering for large trees
+  const handleCanvasRender = useCallback(() => {
+    // Canvas rendering logic optimized for 100+ nodes
+    // Use virtualization for trees larger than 200 nodes
+  }, [nodes, connections, canvasState]);
 
-  const handleFeatureClick = useCallback((feature: Feature) => {
-    onFeatureSelect?.(feature);
-  }, [onFeatureSelect]);
+  // Discovery workflow support
+  const handleNodeCreate = useCallback((nodeType: NodeType, position: Position) => {
+    const newNode: TreeNode = {
+      id: crypto.randomUUID(),
+      type: nodeType,
+      title: getNodePlaceholder(nodeType),
+      position,
+      metadata: {}
+    };
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
+    addNode(newNode);
+    onTreeUpdate?.({
+      type: 'node_added',
+      node: newNode
+    });
+  }, [addNode, onTreeUpdate]);
 
   return (
-    <div className={`feature-list ${className || ''}`}>
-      {features.map(feature => (
-        <div 
-          key={feature.id} 
-          className="feature-item"
-          onClick={() => handleFeatureClick(feature)}
-        >
-          <h3>{feature.name}</h3>
-        </div>
-      ))}
+    <div 
+      className={`impact-tree-canvas ${className || ''}`}
+      onClick={handleCanvasClick}
+      data-testid="impact-tree-canvas"
+    >
+      {/* Canvas rendering optimized for PM workflow */}
+      <svg className="connections-layer">
+        {connections.map(connection => (
+          <ConnectionLine
+            key={connection.id}
+            connection={connection}
+            nodes={nodes}
+            zoom={canvasState.zoom}
+          />
+        ))}
+      </svg>
+
+      {/* Tree nodes with PM-focused interactions */}
+      <div className="nodes-layer">
+        {nodes.map(node => (
+          <TreeNodeComponent
+            key={node.id}
+            node={node}
+            isSelected={selectedNode?.id === node.id}
+            onSelect={() => {
+              selectNode(node);
+              onNodeSelect?.(node);
+            }}
+            onUpdate={(updates) => updateNode(node.id, updates)}
+            onDelete={() => deleteNode(node.id)}
+          />
+        ))}
+      </div>
     </div>
   );
-};
+});
+
+ImpactTreeCanvas.displayName = 'ImpactTreeCanvas';
 ```
 
-### **Type Definitions**
+### **State Management with Zustand**
 ```typescript
-// ✅ RECOMMENDED: Comprehensive type definitions
-export interface Feature {
-  id: number;
-  name: string;
-  description?: string;
-  status: FeatureStatus;
-  createdAt: string;
-  updatedAt: string;
+// ✅ RECOMMENDED: Tree state management for PM workflow
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+
+interface TreeStore {
+  // Core tree data
+  nodes: TreeNode[];
+  connections: NodeConnection[];
+  canvasState: CanvasState;
+  
+  // PM workflow state
+  selectedNode: TreeNode | null;
+  discoveryMode: 'strategy' | 'research' | 'assumptions';
+  lastSaved: Date | null;
+  
+  // Tree operations optimized for discovery workflow
+  addNode: (node: TreeNode) => void;
+  updateNode: (id: string, updates: Partial<TreeNode>) => void;
+  deleteNode: (id: string) => void;
+  duplicateNode: (id: string) => void;
+  
+  // Canvas operations for PM interactions
+  updateCanvasState: (updates: Partial<CanvasState>) => void;
+  resetCanvasPosition: () => void;
+  zoomToFit: () => void;
+  
+  // Discovery workflow operations
+  selectNode: (node: TreeNode | null) => void;
+  setDiscoveryMode: (mode: DiscoveryMode) => void;
+  markTreeSaved: () => void;
 }
 
-export interface CreateFeatureRequest {
-  name: string;
-  description?: string;
-}
+export const useTreeStore = create<TreeStore>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        // Initial state
+        nodes: [],
+        connections: [],
+        canvasState: { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'vertical' },
+        selectedNode: null,
+        discoveryMode: 'strategy',
+        lastSaved: null,
 
-export interface UpdateFeatureRequest {
-  name?: string;
-  description?: string;
-  status?: FeatureStatus;
-}
+        // Tree operations
+        addNode: (node) => set((state) => ({
+          nodes: [...state.nodes, node]
+        })),
 
-export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  success: boolean;
-}
+        updateNode: (id, updates) => set((state) => ({
+          nodes: state.nodes.map(node =>
+            node.id === id ? { ...node, ...updates } : node
+          )
+        })),
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-}
+        deleteNode: (id) => set((state) => ({
+          nodes: state.nodes.filter(node => node.id !== id),
+          connections: state.connections.filter(conn =>
+            conn.sourceId !== id && conn.targetId !== id
+          ),
+          selectedNode: state.selectedNode?.id === id ? null : state.selectedNode
+        })),
+
+        // Canvas operations optimized for PM workflow
+        updateCanvasState: (updates) => set((state) => ({
+          canvasState: { ...state.canvasState, ...updates }
+        })),
+
+        resetCanvasPosition: () => set((state) => ({
+          canvasState: { ...state.canvasState, pan: { x: 0, y: 0 }, zoom: 1 }
+        })),
+
+        // Discovery workflow support
+        selectNode: (node) => set({ selectedNode: node }),
+        
+        setDiscoveryMode: (mode) => set({ discoveryMode: mode }),
+        
+        markTreeSaved: () => set({ lastSaved: new Date() })
+      }),
+      {
+        name: 'impact-tree-storage',
+        // Only persist essential state, not UI state
+        partialize: (state) => ({
+          canvasState: state.canvasState,
+          discoveryMode: state.discoveryMode
+        })
+      }
+    ),
+    { name: 'tree-store' }
+  )
+);
 ```
 
 ---
 
-## 🗄️ **Database Standards**
+## 🗄️ **Database Standards (Drizzle ORM + PostgreSQL)**
 
-### **JPA Entity Design**
-```java
-// ✅ RECOMMENDED: Proper entity design
-@Entity
-@Table(name = "features", indexes = {
-    @Index(name = "idx_feature_name", columnList = "name"),
-    @Index(name = "idx_feature_status", columnList = "status"),
-    @Index(name = "idx_feature_created_at", columnList = "createdAt")
-})
-public class FeatureEntity {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, length = 255)
-    private String name;
-    
-    @Column(length = 1000)
-    private String description;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private FeatureStatus status = FeatureStatus.ACTIVE;
-    
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-    
-    // Constructors
-    protected FeatureEntity() {} // JPA requirement
-    
-    public FeatureEntity(String name) {
-        this.name = name;
-    }
-    
-    public FeatureEntity(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
-    
-    // Getters and setters
-    public Long getId() { return id; }
-    
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    
-    // ... other getters and setters
-    
-    // equals, hashCode, toString
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof FeatureEntity)) return false;
-        FeatureEntity that = (FeatureEntity) o;
-        return Objects.equals(id, that.id);
-    }
-    
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-    
-    @Override
-    public String toString() {
-        return "FeatureEntity{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", status=" + status +
-                '}';
-    }
-}
+### **Schema Design for Impact Trees**
+```typescript
+// ✅ RECOMMENDED: Impact tree schema optimized for PM workflow
+import { pgTable, text, serial, integer, jsonb, timestamp, index } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+
+export const impactTrees = pgTable("impact_trees", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  
+  // Tree structure optimized for canvas performance
+  nodes: jsonb("nodes").notNull().default('[]'),
+  connections: jsonb("connections").notNull().default('[]'),
+  
+  // Canvas state for PM workflow persistence
+  canvasState: jsonb("canvas_state").notNull().default(
+    '{"zoom": 1, "pan": {"x": 0, "y": 0}, "orientation": "vertical"}'
+  ),
+  
+  // Discovery workflow metadata
+  discoveryPhase: text("discovery_phase").default('strategy'),
+  lastDiscoveryUpdate: timestamp("last_discovery_update").defaultNow(),
+  
+  // Standard timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Indexes for PM workflow queries
+  nameIdx: index("idx_tree_name").on(table.name),
+  discoveryPhaseIdx: index("idx_discovery_phase").on(table.discoveryPhase),
+  updatedAtIdx: index("idx_updated_at").on(table.updatedAt),
+}));
+
+// Discovery artifacts for continuous discovery
+export const discoveryArtifacts = pgTable("discovery_artifacts", {
+  id: serial("id").primaryKey(),
+  treeId: integer("tree_id").references(() => impactTrees.id, { onDelete: 'cascade' }),
+  nodeId: text("node_id").notNull(),
+  
+  // Artifact type for PM discovery workflow
+  artifactType: text("artifact_type").notNull(), // 'research', 'assumption', 'metric', 'insight'
+  title: text("title").notNull(),
+  content: jsonb("content").notNull(),
+  
+  // Discovery context
+  discoverySession: text("discovery_session"),
+  validationStatus: text("validation_status").default('hypothesis'),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  treeNodeIdx: index("idx_tree_node").on(table.treeId, table.nodeId),
+  artifactTypeIdx: index("idx_artifact_type").on(table.artifactType),
+  discoverySessionIdx: index("idx_discovery_session").on(table.discoverySession),
+}));
+
+// Type-safe schemas with Zod validation
+export const insertImpactTreeSchema = createInsertSchema(impactTrees).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const selectImpactTreeSchema = createSelectSchema(impactTrees);
+
+export type InsertImpactTree = typeof insertImpactTreeSchema._type;
+export type ImpactTree = typeof impactTrees.$inferSelect;
+export type DiscoveryArtifact = typeof discoveryArtifacts.$inferSelect;
 ```
 
-### **Repository Design**
-```java
-// ✅ RECOMMENDED: Repository with custom queries
-@Repository
-public interface FeatureRepository extends JpaRepository<FeatureEntity, Long> {
-    
-    // Query methods
-    List<FeatureEntity> findByStatus(FeatureStatus status);
-    
-    List<FeatureEntity> findByNameContainingIgnoreCase(String name);
-    
-    Optional<FeatureEntity> findByNameIgnoreCase(String name);
-    
-    // Custom queries
-    @Query("SELECT f FROM FeatureEntity f WHERE f.status = :status AND f.createdAt >= :startDate")
-    List<FeatureEntity> findActiveFeaturesSince(
-        @Param("status") FeatureStatus status, 
-        @Param("startDate") LocalDateTime startDate
-    );
-    
-    // Pagination
-    Page<FeatureEntity> findByStatusOrderByCreatedAtDesc(FeatureStatus status, Pageable pageable);
-    
-    // Count queries
-    long countByStatus(FeatureStatus status);
-    
-    // Exists queries
-    boolean existsByNameIgnoreCase(String name);
-}
-```
+### **Repository Patterns for PM Workflow**
+```typescript
+// ✅ RECOMMENDED: Repository with PM-focused operations
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { eq, desc, and } from 'drizzle-orm';
+import { impactTrees, discoveryArtifacts } from '../schema';
 
----
+export class ImpactTreeRepository {
+  constructor(private db: DrizzleDB) {}
 
-## 🌐 **API Design Standards**
+  // Get tree with full discovery context
+  async getTreeById(id: number): Promise<ImpactTree | undefined> {
+    const [tree] = await this.db
+      .select()
+      .from(impactTrees)
+      .where(eq(impactTrees.id, id))
+      .limit(1);
+    
+    return tree;
+  }
 
-### **REST Endpoint Design**
-```java
-// ✅ RECOMMENDED: RESTful API design
-@RestController
-@RequestMapping("/api/v1/features")
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
-@Validated
-public class FeatureController {
+  // Optimized canvas state updates for PM workflow
+  async updateCanvasState(id: number, updates: {
+    nodes: TreeNode[];
+    connections: NodeConnection[];
+    canvasState: CanvasState;
+  }): Promise<ImpactTree | undefined> {
+    const [updated] = await this.db
+      .update(impactTrees)
+      .set({
+        nodes: updates.nodes,
+        connections: updates.connections,
+        canvasState: updates.canvasState,
+        lastDiscoveryUpdate: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(impactTrees.id, id))
+      .returning();
     
-    // GET /api/v1/features - Get all features
-    @GetMapping
-    public ResponseEntity<List<FeatureResponse>> getAllFeatures(
-            @RequestParam(defaultValue = "ACTIVE") FeatureStatus status) {
-        // Implementation
-    }
-    
-    // GET /api/v1/features/{id} - Get feature by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<FeatureResponse> getFeatureById(@PathVariable Long id) {
-        // Implementation
-    }
-    
-    // POST /api/v1/features - Create new feature
-    @PostMapping
-    public ResponseEntity<FeatureResponse> createFeature(
-            @Valid @RequestBody CreateFeatureRequest request) {
-        // Implementation
-    }
-    
-    // PUT /api/v1/features/{id} - Update feature
-    @PutMapping("/{id}")
-    public ResponseEntity<FeatureResponse> updateFeature(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateFeatureRequest request) {
-        // Implementation
-    }
-    
-    // DELETE /api/v1/features/{id} - Delete feature
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFeature(@PathVariable Long id) {
-        // Implementation
-    }
-    
-    // GET /api/v1/features/search - Search features
-    @GetMapping("/search")
-    public ResponseEntity<List<FeatureResponse>> searchFeatures(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        // Implementation
-    }
-}
-```
+    return updated;
+  }
 
-### **Request/Response DTOs**
-```java
-// ✅ RECOMMENDED: Validation and documentation
-public class CreateFeatureRequest {
+  // Discovery artifacts for continuous discovery workflow
+  async addDiscoveryArtifact(artifact: {
+    treeId: number;
+    nodeId: string;
+    artifactType: string;
+    title: string;
+    content: any;
+    discoverySession?: string;
+  }): Promise<DiscoveryArtifact> {
+    const [created] = await this.db
+      .insert(discoveryArtifacts)
+      .values(artifact)
+      .returning();
     
-    @NotBlank(message = "Name is required")
-    @Size(min = 1, max = 255, message = "Name must be between 1 and 255 characters")
-    private String name;
-    
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
-    private String description;
-    
-    // Constructors, getters, setters
-}
+    return created;
+  }
 
-public class FeatureResponse {
-    private Long id;
-    private String name;
-    private String description;
-    private FeatureStatus status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    
-    // Constructors, getters, setters
+  // Get discovery artifacts for PM research
+  async getDiscoveryArtifacts(treeId: number, nodeId?: string): Promise<DiscoveryArtifact[]> {
+    return await this.db
+      .select()
+      .from(discoveryArtifacts)
+      .where(
+        nodeId 
+          ? and(eq(discoveryArtifacts.treeId, treeId), eq(discoveryArtifacts.nodeId, nodeId))
+          : eq(discoveryArtifacts.treeId, treeId)
+      )
+      .orderBy(desc(discoveryArtifacts.createdAt));
+  }
+
+  // Get recent trees for PM dashboard
+  async getRecentTrees(limit: number = 10): Promise<ImpactTree[]> {
+    return await this.db
+      .select({
+        id: impactTrees.id,
+        name: impactTrees.name,
+        description: impactTrees.description,
+        discoveryPhase: impactTrees.discoveryPhase,
+        lastDiscoveryUpdate: impactTrees.lastDiscoveryUpdate,
+        updatedAt: impactTrees.updatedAt
+      })
+      .from(impactTrees)
+      .orderBy(desc(impactTrees.updatedAt))
+      .limit(limit);
+  }
 }
 ```
 
@@ -426,127 +547,202 @@ public class FeatureResponse {
 
 ## 🧪 **Testing Standards**
 
-### **Java Testing**
-```java
-// ✅ RECOMMENDED: Service layer test
-@ExtendWith(MockitoExtension.class)
-class FeatureServiceTest {
-    
-    @Mock
-    private FeatureRepository featureRepository;
-    
-    @InjectMocks
-    private FeatureService featureService;
-    
-    @Test
-    @DisplayName("Should create feature successfully")
-    void shouldCreateFeature() {
-        // Given
-        CreateFeatureRequest request = new CreateFeatureRequest();
-        request.setName("Test Feature");
-        
-        FeatureEntity savedEntity = new FeatureEntity("Test Feature");
-        savedEntity.setId(1L);
-        
-        when(featureRepository.save(any(FeatureEntity.class))).thenReturn(savedEntity);
-        
-        // When
-        FeatureEntity result = featureService.createFeature(request);
-        
-        // Then
-        assertThat(result.getName()).isEqualTo("Test Feature");
-        assertThat(result.getId()).isEqualTo(1L);
-        verify(featureRepository).save(any(FeatureEntity.class));
-    }
-    
-    @Test
-    @DisplayName("Should throw exception for empty name")
-    void shouldThrowExceptionForEmptyName() {
-        // Given
-        CreateFeatureRequest request = new CreateFeatureRequest();
-        request.setName("");
-        
-        // When & Then
-        assertThatThrownBy(() -> featureService.createFeature(request))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Feature name cannot be empty");
-    }
-}
-```
-
-### **React Testing**
+### **React Component Testing**
 ```typescript
-// ✅ RECOMMENDED: Component test with React Testing Library
+// ✅ RECOMMENDED: Impact tree component testing
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { FeatureList } from '../FeatureList';
-import { FeatureService } from '../../services/FeatureService';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ImpactTreeCanvas } from '../ImpactTreeCanvas';
+import { useTreeStore } from '../../stores/tree-store';
 
-jest.mock('../../services/FeatureService');
+// Mock the tree store for testing
+jest.mock('../../stores/tree-store');
 
-describe('FeatureList', () => {
-  const mockFeatures = [
-    { id: 1, name: 'Feature 1', status: 'active', createdAt: '2023-01-01T00:00:00Z' },
-    { id: 2, name: 'Feature 2', status: 'active', createdAt: '2023-01-02T00:00:00Z' }
-  ];
+describe('ImpactTreeCanvas', () => {
+  let queryClient: QueryClient;
+  const mockTreeStore = {
+    nodes: [
+      {
+        id: 'node-1',
+        type: 'objective',
+        title: 'Increase User Engagement',
+        position: { x: 100, y: 100 },
+        metadata: {}
+      }
+    ],
+    connections: [],
+    canvasState: { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'vertical' },
+    selectedNode: null,
+    updateCanvasState: jest.fn(),
+    selectNode: jest.fn(),
+    addNode: jest.fn(),
+    updateNode: jest.fn(),
+    deleteNode: jest.fn()
+  };
 
   beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+    (useTreeStore as jest.Mock).mockReturnValue(mockTreeStore);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  test('displays features when loaded successfully', async () => {
-    // Given
-    (FeatureService.getAllFeatures as jest.Mock).mockResolvedValue(mockFeatures);
-
-    // When
-    render(<FeatureList />);
-
-    // Then
-    await waitFor(() => {
-      expect(screen.getByText('Feature 1')).toBeInTheDocument();
-      expect(screen.getByText('Feature 2')).toBeInTheDocument();
-    });
-  });
-
-  test('displays loading state initially', () => {
-    // Given
-    (FeatureService.getAllFeatures as jest.Mock).mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve(mockFeatures), 100))
+  test('renders impact tree canvas for PM workflow', () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ImpactTreeCanvas treeId={1} />
+      </QueryClientProvider>
     );
 
-    // When
-    render(<FeatureList />);
-
-    // Then
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByTestId('impact-tree-canvas')).toBeInTheDocument();
+    expect(screen.getByText('Increase User Engagement')).toBeInTheDocument();
   });
 
-  test('displays error message when loading fails', async () => {
-    // Given
-    (FeatureService.getAllFeatures as jest.Mock).mockRejectedValue(new Error('API Error'));
+  test('handles node selection for discovery workflow', async () => {
+    const onNodeSelect = jest.fn();
 
-    // When
-    render(<FeatureList />);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ImpactTreeCanvas treeId={1} onNodeSelect={onNodeSelect} />
+      </QueryClientProvider>
+    );
 
-    // Then
+    const node = screen.getByText('Increase User Engagement');
+    fireEvent.click(node);
+
     await waitFor(() => {
-      expect(screen.getByText('Error: API Error')).toBeInTheDocument();
+      expect(mockTreeStore.selectNode).toHaveBeenCalledWith(mockTreeStore.nodes[0]);
+      expect(onNodeSelect).toHaveBeenCalledWith(mockTreeStore.nodes[0]);
     });
   });
 
-  test('calls onFeatureSelect when feature is clicked', async () => {
-    // Given
-    const mockOnFeatureSelect = jest.fn();
-    (FeatureService.getAllFeatures as jest.Mock).mockResolvedValue(mockFeatures);
+  test('supports canvas interactions for large trees', async () => {
+    // Test with 100+ nodes to verify performance
+    const manyNodes = Array.from({ length: 150 }, (_, i) => ({
+      id: `node-${i}`,
+      type: 'opportunity' as const,
+      title: `Opportunity ${i}`,
+      position: { x: (i % 10) * 200, y: Math.floor(i / 10) * 150 },
+      metadata: {}
+    }));
 
-    // When
-    render(<FeatureList onFeatureSelect={mockOnFeatureSelect} />);
-
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('Feature 1'));
+    (useTreeStore as jest.Mock).mockReturnValue({
+      ...mockTreeStore,
+      nodes: manyNodes
     });
 
-    // Then
-    expect(mockOnFeatureSelect).toHaveBeenCalledWith(mockFeatures[0]);
+    const { container } = render(
+      <QueryClientProvider client={queryClient}>
+        <ImpactTreeCanvas treeId={1} />
+      </QueryClientProvider>
+    );
+
+    // Verify all nodes are rendered (with virtualization if implemented)
+    expect(container.querySelectorAll('[data-testid*="tree-node"]')).toHaveLength(150);
+  });
+});
+```
+
+### **API Testing**
+```typescript
+// ✅ RECOMMENDED: Impact tree API testing
+import request from 'supertest';
+import { app } from '../app';
+import { ImpactTreeService } from '../services/impact-tree-service';
+
+jest.mock('../services/impact-tree-service');
+
+describe('Impact Tree API', () => {
+  const mockTreeService = {
+    getTreeById: jest.fn(),
+    updateCanvasState: jest.fn(),
+    createTree: jest.fn()
+  };
+
+  beforeEach(() => {
+    (ImpactTreeService as jest.Mock).mockImplementation(() => mockTreeService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('GET /api/impact-trees/:id', () => {
+    test('returns impact tree for PM discovery workflow', async () => {
+      const mockTree = {
+        id: 1,
+        name: 'Product Strategy Canvas',
+        nodes: [
+          { id: 'node-1', type: 'objective', title: 'Increase Revenue' }
+        ],
+        connections: [],
+        canvasState: { zoom: 1, pan: { x: 0, y: 0 } }
+      };
+
+      mockTreeService.getTreeById.mockResolvedValue(mockTree);
+
+      const response = await request(app)
+        .get('/api/impact-trees/1')
+        .expect(200);
+
+      expect(response.body).toEqual(mockTree);
+      expect(mockTreeService.getTreeById).toHaveBeenCalledWith(1);
+    });
+
+    test('returns 404 for non-existent tree', async () => {
+      mockTreeService.getTreeById.mockResolvedValue(undefined);
+
+      const response = await request(app)
+        .get('/api/impact-trees/999')
+        .expect(404);
+
+      expect(response.body).toEqual({
+        error: 'Impact tree not found',
+        code: 'TREE_NOT_FOUND'
+      });
+    });
+  });
+
+  describe('PUT /api/impact-trees/:id/canvas', () => {
+    test('updates canvas state for PM workflow', async () => {
+      const canvasUpdate = {
+        nodes: [
+          { id: 'node-1', type: 'objective', title: 'Updated Objective', position: { x: 100, y: 100 } }
+        ],
+        connections: [],
+        canvasState: { zoom: 1.5, pan: { x: 50, y: 25 } }
+      };
+
+      const updatedTree = { id: 1, ...canvasUpdate };
+      mockTreeService.updateCanvasState.mockResolvedValue(updatedTree);
+
+      const response = await request(app)
+        .put('/api/impact-trees/1/canvas')
+        .send(canvasUpdate)
+        .expect(200);
+
+      expect(response.body).toEqual(updatedTree);
+      expect(mockTreeService.updateCanvasState).toHaveBeenCalledWith(1, canvasUpdate);
+    });
+
+    test('validates canvas data for tree integrity', async () => {
+      const invalidUpdate = {
+        nodes: [], // Missing required nodes
+        // Missing connections and canvasState
+      };
+
+      const response = await request(app)
+        .put('/api/impact-trees/1/canvas')
+        .send(invalidUpdate)
+        .expect(400);
+
+      expect(response.body.error).toContain('Invalid canvas data');
+      expect(response.body.code).toBe('VALIDATION_ERROR');
+    });
   });
 });
 ```
@@ -555,35 +751,33 @@ describe('FeatureList', () => {
 
 ## 📋 **Code Quality Checklist**
 
-### **Java Code Quality**
-- [ ] **Proper naming conventions** followed
-- [ ] **JavaDoc comments** for public methods
-- [ ] **Exception handling** implemented
-- [ ] **Input validation** performed
-- [ ] **Unit tests** written and passing
-- [ ] **No code duplication**
-- [ ] **SOLID principles** followed
+### **Impact Tree Specific Quality**
+- [ ] **PM Workflow Support**: Features support continuous discovery practices
+- [ ] **Canvas Performance**: Optimized for trees with 100+ nodes
+- [ ] **Tree State Integrity**: Node relationships and connections maintained
+- [ ] **Discovery Context**: All features align with PM discovery methodology
 
-### **React Code Quality**
-- [ ] **TypeScript types** defined and used
-- [ ] **Component props** properly typed
-- [ ] **Error boundaries** implemented where needed
-- [ ] **Loading states** handled
-- [ ] **Accessibility** considerations included
-- [ ] **Component tests** written and passing
-- [ ] **No unused imports or variables**
+### **Frontend Code Quality**
+- [ ] **React Best Practices**: Proper hooks usage, component composition
+- [ ] **TypeScript Types**: Comprehensive typing for tree operations
+- [ ] **Canvas Optimization**: Efficient rendering and interaction handling
+- [ ] **State Management**: Clean Zustand integration with persistence
+
+### **Backend Code Quality**
+- [ ] **API Design**: RESTful endpoints for tree operations
+- [ ] **Database Optimization**: Efficient JSONB queries and indexing
+- [ ] **Error Handling**: Comprehensive error responses for PM workflow
+- [ ] **Validation**: Input validation for tree integrity
 
 ### **General Quality**
-- [ ] **Code formatted** with Prettier/IDE formatter
-- [ ] **Linting rules** followed
-- [ ] **No console.log** statements in production code
-- [ ] **Environment variables** used for configuration
-- [ ] **Security best practices** followed
-- [ ] **Performance considerations** addressed
+- [ ] **Code formatted** with Prettier
+- [ ] **ESLint rules** followed for TypeScript
+- [ ] **No performance regressions** in canvas or API
+- [ ] **Discovery workflow** not disrupted by changes
 
 ---
 
-**📝 Standards Version**: 1.0  
-**🎯 Project Type**: React + Java  
-**📅 Last Updated**: June 2025  
-**🚀 Status**: Production Ready
+**📝 Standards Version**: 2.0  
+**🎯 Project Type**: AI-Native Impact Tree (React + Node.js)  
+**📅 Last Updated**: [Date]  
+**🚀 Status**: Production Ready for PM Discovery Workflow
