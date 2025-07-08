@@ -126,6 +126,9 @@ Environment variables required:
 - January 08, 2025. Implemented Replit authentication system with database integration and user profile management
 - January 08, 2025. Added user profile dropdown menu with avatar, navigation, and sign-out functionality
 - January 08, 2025. Created subtle canvas header with minimal navigation back to home page
+- January 08, 2025. Implemented activity-based auto-hide navigation with magnetic return functionality
+- January 08, 2025. Navigation hides when interacting with canvas elements and returns via top strip hover, ESC key, or double-click
+- January 08, 2025. Navigation pushes canvas content down when visible to keep toolbar accessible
 
 ## User Preferences
 

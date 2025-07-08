@@ -21,10 +21,10 @@ export function useNavAutoHide() {
 
   // Handle mouse movement for magnetic zone
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    const { clientX, clientY } = e;
+    const { clientY } = e;
     
-    // Magnetic zone: top-left corner (100px x 60px)
-    if (clientX <= 100 && clientY <= 60 && !isNavVisible) {
+    // Magnetic zone: entire top 60px strip
+    if (clientY <= 60 && !isNavVisible) {
       showNav();
     }
   }, [isNavVisible, showNav]);
@@ -88,9 +88,9 @@ export function useNavAutoHide() {
         return;
       }
       
-      // Don't hide if we're in the magnetic zone (top-left 100x60px area)
-      const { clientX, clientY } = e as MouseEvent;
-      if (clientX <= 100 && clientY <= 60) {
+      // Don't hide if we're in the magnetic zone (top 60px area)
+      const { clientY } = e as MouseEvent;
+      if (clientY <= 60) {
         return;
       }
       

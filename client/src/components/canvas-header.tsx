@@ -14,14 +14,10 @@ interface CanvasHeaderProps {
 export function CanvasHeader({ impactTree, isNew, isVisible = true, magneticZoneRef }: CanvasHeaderProps) {
   return (
     <>
-      {/* Magnetic zone for nav return */}
+      {/* Invisible magnetic zone for nav return - full top strip */}
       <div 
         ref={magneticZoneRef}
-        className="fixed top-0 left-0 w-24 h-16 z-50 pointer-events-none"
-        style={{ 
-          background: !isVisible ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-          transition: 'background 0.3s ease'
-        }}
+        className="fixed top-0 left-0 right-0 h-16 z-50 pointer-events-none"
       />
       
       <header 
@@ -58,22 +54,6 @@ export function CanvasHeader({ impactTree, isNew, isVisible = true, magneticZone
 
         <UserProfileMenu />
       </header>
-
-      {/* Subtle hint overlay when nav is hidden (appears after delay) */}
-      {!isVisible && (
-        <div 
-          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-30 bg-black/60 text-white px-3 py-1.5 rounded-md text-xs hint-fade-in pointer-events-none backdrop-blur-sm"
-          style={{ 
-            animationDelay: '2s',
-            opacity: 0,
-            animation: 'hintFadeIn 0.3s ease-out 2s forwards'
-          }}
-        >
-          <div className="text-center text-gray-200">
-            Top-left corner • ESC • Double-click
-          </div>
-        </div>
-      )}
     </>
   );
 }

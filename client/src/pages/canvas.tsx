@@ -121,7 +121,9 @@ export default function CanvasPage() {
         magneticZoneRef={magneticZoneRef}
       />
       
-      <main className="h-full relative canvas-background">
+      <main className={`relative canvas-background transition-all duration-500 ease-out ${
+        isNavVisible ? 'h-full pt-14' : 'h-full'
+      }`}>
         <ImpactTreeCanvas
           nodes={nodes}
           connections={connections}
