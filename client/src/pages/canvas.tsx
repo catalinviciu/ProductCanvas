@@ -63,37 +63,6 @@ export default function CanvasPage() {
     },
   });
 
-  const { isNavVisible, magneticZoneRef } = useNavAutoHide();
-
-  const {
-    selectedNode,
-    contextMenu,
-    editDrawer,
-    createFirstNodeModal,
-    canvasState,
-    nodes,
-    connections,
-    handleNodeCreate,
-    handleNodeUpdate,
-    handleNodeDelete,
-    handleNodeSelect,
-    handleCanvasUpdate,
-    handleContextMenu,
-    handleAddChildFromContext,
-    handleNodeReattach,
-    handleToggleCollapse,
-    handleToggleChildVisibility,
-    handleAutoLayout,
-    handleOrientationToggle,
-    closeContextMenu,
-    closeEditDrawer,
-    openEditDrawer,
-    resetToHome,
-    fitToScreen,
-    closeCreateFirstNodeModal,
-    handleCreateFirstNode,
-  } = useCanvas(impactTree);
-
   // Create tree immediately when accessing /canvas/new
   useEffect(() => {
     if (id === "new" && isAuthenticated && !authLoading && !hasCreatedTree.current) {
@@ -127,6 +96,37 @@ export default function CanvasPage() {
       </div>
     );
   }
+
+  const { isNavVisible, magneticZoneRef } = useNavAutoHide();
+
+  const {
+    selectedNode,
+    contextMenu,
+    editDrawer,
+    createFirstNodeModal,
+    canvasState,
+    nodes,
+    connections,
+    handleNodeCreate,
+    handleNodeUpdate,
+    handleNodeDelete,
+    handleNodeSelect,
+    handleCanvasUpdate,
+    handleContextMenu,
+    handleAddChildFromContext,
+    handleNodeReattach,
+    handleToggleCollapse,
+    handleToggleChildVisibility,
+    handleAutoLayout,
+    handleOrientationToggle,
+    closeContextMenu,
+    closeEditDrawer,
+    openEditDrawer,
+    resetToHome,
+    fitToScreen,
+    closeCreateFirstNodeModal,
+    handleCreateFirstNode,
+  } = useCanvas(impactTree);
 
   // Listen for custom reattach events from context menu
   useEffect(() => {

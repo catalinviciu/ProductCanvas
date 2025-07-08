@@ -1,0 +1,24 @@
+Rendered fewer hooks than expected. This may be caused by an accidental early return statement.
+at renderWithHooks (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:11595:19)
+at updateFunctionComponent (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:14582:28)
+at beginWork (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:15924:22)
+at HTMLUnknownElement.callCallback2 (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:3674:22)
+at Object.invokeGuardedCallbackDev (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:3699:24)
+at invokeGuardedCallback (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:3733:39)
+at beginWork$1 (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:19765:15)
+at performUnitOfWork (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:19198:20)
+at workLoopSync (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:19137:13)
+at renderRootSync (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WERSD76P.js?v=91387c85:19116:15)
+The above error occurred in the <CanvasPage> component:
+
+    at CanvasPage (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/src/pages/canvas.tsx:34:18)
+    at Route (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=91387c85:323:16)
+    at Switch (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=91387c85:379:17)
+    at Router (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/src/App.tsx?v=Q_AAngr2KjG_-vD-oLQ6g:30:42)
+    at Provider (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-XIZKKOCE.js?v=91387c85:22:15)
+    at TooltipProvider (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=91387c85:64:5)
+    at QueryClientProvider (https://2d06918f-352b-4d04-808a-c00efdcbd3ab-00-2lvbik89dmkss.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=91387c85:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
