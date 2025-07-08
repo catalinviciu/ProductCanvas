@@ -1563,142 +1563,184 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
 }) {
   // Calculate priority based on evidence strength and impact
   const calculatePriority = (evidenceScore: number, impactScore: number) => {
-    // Priority calculation based on implementation plan:
-    // Strong Evidence (>=4) + High Impact (>=4) = Low Priority
-    // Strong Evidence (>=4) + Low Impact (<4) = Not Worth Testing  
-    // Weak Evidence (<4) + Low Impact (<4) = Low Priority
-    // Weak Evidence (<4) + High Impact (>=4) = High Priority
-    
     if (evidenceScore >= 4 && impactScore >= 4) return 'Low Priority';
     if (evidenceScore >= 4 && impactScore < 4) return 'Not Worth Testing';
     if (evidenceScore < 4 && impactScore < 4) return 'Low Priority';
     return 'High Priority'; // Weak evidence + high impact
   };
 
-  const priority = calculatePriority(data.evidenceScore || 1, data.impactScore || 1);
+  const evidenceScore = data.evidenceScore || 1;
+  const impactScore = data.impactScore || 1;
+  const priority = calculatePriority(evidenceScore, impactScore);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High Priority': return "text-red-600";
-      case 'Low Priority': return "text-yellow-600";
-      case 'Not Worth Testing': return "text-gray-600";
-      default: return "text-gray-600";
+      case 'High Priority': return "text-red-600 bg-red-50";
+      case 'Low Priority': return "text-yellow-600 bg-yellow-50";
+      case 'Not Worth Testing': return "text-gray-600 bg-gray-50";
+      default: return "text-gray-600 bg-gray-50";
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'High Priority': return "🔴";
+      case 'Low Priority': return "🟡";
+      case 'Not Worth Testing': return "⚪";
+      default: return "⚪";
     }
   };
 
   return (
-    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-      {/* Header with Priority */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Calculator className="w-4 h-4" />
-          <span className="font-medium">Evidence-Impact Prioritization</span>
+    <div className="space-y-6">
+      {/* Priority Result Header */}
+      <div className={cn("p-4 rounded-xl border-2 text-center", getPriorityColor(priority))}>
+        <div className="text-2xl mb-2">{getPriorityIcon(priority)}</div>
+        <div className="text-xl font-bold mb-1">
+          {priority}
         </div>
-        <div className="text-right">
-          <div className={cn("text-lg font-bold", getPriorityColor(priority))}>
-            {priority}
+        <div className="text-sm opacity-80">
+          {priority === 'High Priority' && 'Focus testing here - risky but important'}
+          {priority === 'Low Priority' && 'Test when resources allow'}
+          {priority === 'Not Worth Testing' && 'Already proven - skip testing'}
+        </div>
+      </div>
+
+      {/* Interactive Priority Matrix */}
+      <div className="bg-white p-4 rounded-lg border shadow-sm">
+        <div className="text-sm font-semibold mb-4 text-center text-gray-700">Priority Matrix</div>
+        
+        {/* Y-axis label */}
+        <div className="flex items-center mb-2">
+          <div className="w-16 text-xs text-gray-500 font-medium text-center transform -rotate-90">
+            Impact if Wrong
           </div>
-          <div className="text-xs text-gray-500">
-            Score: {calculatedScore}
+          <div className="flex-1">
+            <div className="text-xs text-gray-500 text-center mb-1">High Impact</div>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              {/* Top Row: High Impact */}
+              <div className={cn("p-3 text-center border-2 rounded-lg transition-all duration-200", 
+                evidenceScore >= 4 && impactScore >= 4 
+                  ? "bg-yellow-200 border-yellow-400 shadow-md transform scale-105" 
+                  : "bg-yellow-50 border-yellow-200 hover:bg-yellow-100")}>
+                <div className="text-lg mb-1">🟡</div>
+                <div className="text-xs font-semibold text-yellow-800">Low Priority</div>
+                <div className="text-xs text-yellow-700 mt-1">Already proven</div>
+              </div>
+              
+              <div className={cn("p-3 text-center border-2 rounded-lg transition-all duration-200",
+                evidenceScore < 4 && impactScore >= 4 
+                  ? "bg-red-200 border-red-400 shadow-md transform scale-105" 
+                  : "bg-red-50 border-red-200 hover:bg-red-100")}>
+                <div className="text-lg mb-1">🔴</div>
+                <div className="text-xs font-semibold text-red-800">High Priority</div>
+                <div className="text-xs text-red-700 mt-1">Test now!</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              {/* Bottom Row: Low Impact */}
+              <div className={cn("p-3 text-center border-2 rounded-lg transition-all duration-200",
+                evidenceScore >= 4 && impactScore < 4 
+                  ? "bg-gray-200 border-gray-400 shadow-md transform scale-105" 
+                  : "bg-gray-50 border-gray-200 hover:bg-gray-100")}>
+                <div className="text-lg mb-1">⚪</div>
+                <div className="text-xs font-semibold text-gray-800">Skip Testing</div>
+                <div className="text-xs text-gray-700 mt-1">Not worth it</div>
+              </div>
+              
+              <div className={cn("p-3 text-center border-2 rounded-lg transition-all duration-200",
+                evidenceScore < 4 && impactScore < 4 
+                  ? "bg-yellow-200 border-yellow-400 shadow-md transform scale-105" 
+                  : "bg-yellow-50 border-yellow-200 hover:bg-yellow-100")}>
+                <div className="text-lg mb-1">🟡</div>
+                <div className="text-xs font-semibold text-yellow-800">Low Priority</div>
+                <div className="text-xs text-yellow-700 mt-1">Test later</div>
+              </div>
+            </div>
+            
+            <div className="text-xs text-gray-500 text-center mt-1">Low Impact</div>
+          </div>
+        </div>
+        
+        {/* X-axis label */}
+        <div className="text-xs text-gray-500 font-medium text-center mt-2">
+          <div className="flex justify-between px-4">
+            <span>Weak Evidence</span>
+            <span>Strong Evidence</span>
+          </div>
+        </div>
+        
+        {/* Current Position Indicator */}
+        <div className="bg-blue-50 p-3 rounded-lg mt-4 text-center">
+          <div className="text-sm font-medium text-blue-800">
+            📍 Your Position: Evidence {evidenceScore}/5, Impact {impactScore}/5
           </div>
         </div>
       </div>
 
-      {/* 2x2 Priority Matrix Visualization */}
-      <div className="bg-white p-4 rounded-lg border">
-        <div className="text-sm font-medium mb-3 text-center">Priority Matrix</div>
-        <div className="grid grid-cols-2 gap-1 h-32 text-xs">
-          {/* Top Row: High Impact */}
-          <div className={cn("p-2 text-center border rounded", 
-            data.evidenceScore >= 4 && data.impactScore >= 4 ? "bg-yellow-200 border-yellow-400 font-semibold" : "bg-yellow-100 border-yellow-200")}>
-            <div className="font-medium text-yellow-800">Low Priority</div>
-            <div className="text-yellow-700 mt-1">Strong Evidence<br/>+ High Impact</div>
-          </div>
-          <div className={cn("p-2 text-center border rounded",
-            data.evidenceScore < 4 && data.impactScore >= 4 ? "bg-red-200 border-red-400 font-semibold" : "bg-red-100 border-red-200")}>
-            <div className="font-medium text-red-800">High Priority</div>
-            <div className="text-red-700 mt-1">Weak Evidence<br/>+ High Impact</div>
-          </div>
-          {/* Bottom Row: Low Impact */}
-          <div className={cn("p-2 text-center border rounded",
-            data.evidenceScore >= 4 && data.impactScore < 4 ? "bg-gray-300 border-gray-400 font-semibold" : "bg-gray-100 border-gray-200")}>
-            <div className="font-medium text-gray-800">Not Worth Testing</div>
-            <div className="text-gray-700 mt-1">Strong Evidence<br/>+ Low Impact</div>
-          </div>
-          <div className={cn("p-2 text-center border rounded",
-            data.evidenceScore < 4 && data.impactScore < 4 ? "bg-yellow-200 border-yellow-400 font-semibold" : "bg-yellow-100 border-yellow-200")}>
-            <div className="font-medium text-yellow-800">Low Priority</div>
-            <div className="text-yellow-700 mt-1">Weak Evidence<br/>+ Low Impact</div>
-          </div>
-        </div>
-        <div className="text-xs text-gray-600 mt-2 text-center">
-          Current position: <strong>Evidence {data.evidenceScore || 1}, Impact {data.impactScore || 1}</strong>
-        </div>
-      </div>
-
-      {/* Scoring Grid */}
-      <div className="grid grid-cols-1 gap-3">
-        {/* Evidence */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Evidence Strength</Label>
-            <span className="text-sm text-gray-500">
-              {data.evidenceScore || 1} / 5
-            </span>
+      {/* Scoring Controls */}
+      <div className="space-y-4">
+        {/* Evidence Strength */}
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-sm font-semibold text-gray-700">Evidence Strength</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-blue-600">{evidenceScore}</span>
+              <span className="text-sm text-gray-500">/ 5</span>
+            </div>
           </div>
           <Slider
-            value={[data.evidenceScore || 1]}
+            value={[evidenceScore]}
             onValueChange={([value]) => onFieldChange('template.evidenceScore', value)}
             max={5}
             min={1}
             step={1}
-            className="w-full"
+            className="w-full mb-3"
           />
-          <div className="text-xs text-gray-600">
-            1 = Weak Evidence (assumptions, no data) → 5 = Strong Evidence (validated research)
+          <div className="flex justify-between text-xs text-gray-600 mb-3">
+            <span>1 - Assumptions</span>
+            <span>3 - Some data</span>
+            <span>5 - Validated</span>
           </div>
           <Textarea
             value={data.evidenceRationale || ''}
             onChange={(e) => onFieldChange('template.evidenceRationale', e.target.value)}
-            placeholder={TEMPLATE_GUIDANCE.assumption.evidenceRationale.placeholder}
-            rows={1}
-            className="text-xs"
+            placeholder="Why did you choose this evidence level?"
+            rows={2}
+            className="text-sm"
           />
         </div>
 
-        {/* Impact */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Impact if Wrong</Label>
-            <span className="text-sm text-gray-500">
-              {data.impactScore || 1} / 5
-            </span>
+        {/* Impact if Wrong */}
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-sm font-semibold text-gray-700">Impact if Wrong</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-red-600">{impactScore}</span>
+              <span className="text-sm text-gray-500">/ 5</span>
+            </div>
           </div>
           <Slider
-            value={[data.impactScore || 1]}
+            value={[impactScore]}
             onValueChange={([value]) => onFieldChange('template.impactScore', value)}
             max={5}
             min={1}
             step={1}
-            className="w-full"
+            className="w-full mb-3"
           />
-          <div className="text-xs text-gray-600">
-            1 = Low Impact (minor setback) → 5 = High Impact (major failure risk)
+          <div className="flex justify-between text-xs text-gray-600 mb-3">
+            <span>1 - Minor setback</span>
+            <span>3 - Moderate risk</span>
+            <span>5 - Major failure</span>
           </div>
           <Textarea
             value={data.impactRationale || ''}
             onChange={(e) => onFieldChange('template.impactRationale', e.target.value)}
-            placeholder={TEMPLATE_GUIDANCE.assumption.impactRationale.placeholder}
-            rows={1}
-            className="text-xs"
+            placeholder="What happens if this assumption is wrong?"
+            rows={2}
+            className="text-sm"
           />
-        </div>
-      </div>
-
-      <div className="pt-2 border-t text-xs text-gray-600">
-        <div className="space-y-1">
-          <div><strong>Logic:</strong> Strong Evidence + High Impact = Low Priority (already proven)</div>
-          <div><strong>Target:</strong> Focus on High Priority (risky but important assumptions)</div>
         </div>
       </div>
     </div>
