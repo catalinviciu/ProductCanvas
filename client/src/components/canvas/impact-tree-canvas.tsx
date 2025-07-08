@@ -113,6 +113,9 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   );
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Dispatch custom event to hide navigation
+    document.dispatchEvent(new CustomEvent('canvasInteraction', { detail: { type: 'mousedown' } }));
+    
     // Close canvas context menu on any click
     setCanvasContextMenu(null);
     

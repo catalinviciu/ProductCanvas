@@ -68,14 +68,20 @@ export function CanvasToolbar({
         <div className="toolbar-section">
           <button 
             className={`toolbar-btn ${!isPanMode ? 'toolbar-btn-active' : ''}`}
-            onClick={() => onTogglePanMode()}
+            onClick={() => {
+              document.dispatchEvent(new CustomEvent('canvasInteraction', { detail: { type: 'toolbar' } }));
+              onTogglePanMode();
+            }}
             title="Select Tool - Click and drag nodes"
           >
             <i className="fas fa-mouse-pointer"></i>
           </button>
           <button 
             className={`toolbar-btn ${isPanMode ? 'toolbar-btn-active' : ''}`}
-            onClick={onTogglePanMode}
+            onClick={() => {
+              document.dispatchEvent(new CustomEvent('canvasInteraction', { detail: { type: 'toolbar' } }));
+              onTogglePanMode();
+            }}
             title="Pan Tool - Click and drag canvas (Space)"
           >
             <i className="fas fa-hand-paper"></i>
@@ -87,14 +93,20 @@ export function CanvasToolbar({
       <div className="toolbar-group">
         <div className="toolbar-section">
           <button 
-            onClick={onOrientationToggle}
+            onClick={() => {
+              document.dispatchEvent(new CustomEvent('canvasInteraction', { detail: { type: 'toolbar' } }));
+              onOrientationToggle();
+            }}
             className="toolbar-btn"
             title={`Switch to ${orientation === 'horizontal' ? 'vertical' : 'horizontal'} layout`}
           >
             <i className={`fas ${orientation === 'horizontal' ? 'fa-arrows-alt-v' : 'fa-arrows-alt-h'}`}></i>
           </button>
           <button 
-            onClick={onFitToScreen}
+            onClick={() => {
+              document.dispatchEvent(new CustomEvent('canvasInteraction', { detail: { type: 'toolbar' } }));
+              onFitToScreen();
+            }}
             className="toolbar-btn toolbar-btn-primary"
             title="Fit to screen"
           >

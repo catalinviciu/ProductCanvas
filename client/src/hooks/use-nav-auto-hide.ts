@@ -54,15 +54,29 @@ export function useNavAutoHide() {
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('dblclick', handleDoubleClick);
 
+    // Listen for custom canvas events
+    const handleCustomCanvasEvent = () => {
+      if (isNavVisible) {
+        hideNav();
+      }
+    };
+
+    document.addEventListener('canvasInteraction', handleCustomCanvasEvent);
+    document.addEventListener('nodeSelected', handleCustomCanvasEvent);
+    document.addEventListener('nodeDragged', handleCustomCanvasEvent);
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('dblclick', handleDoubleClick);
+      document.removeEventListener('canvasInteraction', handleCustomCanvasEvent);
+      document.removeEventListener('nodeSelected', handleCustomCanvasEvent);
+      document.removeEventListener('nodeDragged', handleCustomCanvasEvent);
       if (navTimeoutRef.current) {
         clearTimeout(navTimeoutRef.current);
       }
     };
-  }, [handleMouseMove, handleKeyDown, handleDoubleClick]);
+  }, [handleMouseMove, handleKeyDown, handleDoubleClick, isNavVisible, hideNav]);
 
   // Listen for canvas interaction events
   useEffect(() => {
@@ -70,20 +84,28 @@ export function useNavAutoHide() {
       const target = e.target as HTMLElement;
       
       // Don't hide nav if clicking on the nav itself or user profile menu
-      if (target.closest('header') || target.closest('[role="dialog"]')) {
+      if (target.closest('header') || target.closest('[role="dialog"]') || target.closest('[role="menu"]')) {
+        return;
+      }
+      
+      // Don't hide if we're in the magnetic zone (top-left 100x60px area)
+      const { clientX, clientY } = e as MouseEvent;
+      if (clientX <= 100 && clientY <= 60) {
         return;
       }
       
       // Hide nav when interacting with canvas elements
-      if (
-        target.classList.contains('tree-node') ||
-        target.closest('.tree-node') ||
-        target.classList.contains('canvas-toolbar') ||
+      const isCanvasInteraction = (
+        target.closest('.modern-canvas-container') ||
         target.closest('.canvas-toolbar') ||
-        target.classList.contains('canvas-background') ||
-        target.tagName === 'CANVAS' ||
-        (target.tagName === 'BUTTON' && !target.closest('header'))
-      ) {
+        target.closest('.tree-node') ||
+        target.closest('.zoom-controls-container') ||
+        target.classList.contains('canvas-interaction-layer') ||
+        target.classList.contains('modern-canvas-background') ||
+        target.classList.contains('modern-grid-pattern')
+      );
+      
+      if (isCanvasInteraction && isNavVisible) {
         hideNav();
       }
     };
@@ -98,7 +120,7 @@ export function useNavAutoHide() {
       document.removeEventListener('click', handleCanvasInteraction);
       document.removeEventListener('touchstart', handleCanvasInteraction);
     };
-  }, [hideNav]);
+  }, [hideNav, isNavVisible]);
 
   return {
     isNavVisible,

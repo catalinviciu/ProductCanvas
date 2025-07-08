@@ -59,12 +59,18 @@ export function CanvasHeader({ impactTree, isNew, isVisible = true, magneticZone
         <UserProfileMenu />
       </header>
 
-      {/* Hint overlay when nav is hidden */}
+      {/* Subtle hint overlay when nav is hidden (appears after delay) */}
       {!isVisible && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-30 bg-black/80 text-white px-3 py-2 rounded-lg text-xs hint-fade-in pointer-events-none backdrop-blur-sm">
-          <div className="text-center">
-            <div className="font-medium">Navigation Hidden</div>
-            <div className="text-gray-300 mt-1">Top-left corner • ESC • Double-click canvas</div>
+        <div 
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-30 bg-black/60 text-white px-3 py-1.5 rounded-md text-xs hint-fade-in pointer-events-none backdrop-blur-sm"
+          style={{ 
+            animationDelay: '2s',
+            opacity: 0,
+            animation: 'hintFadeIn 0.3s ease-out 2s forwards'
+          }}
+        >
+          <div className="text-center text-gray-200">
+            Top-left corner • ESC • Double-click
           </div>
         </div>
       )}

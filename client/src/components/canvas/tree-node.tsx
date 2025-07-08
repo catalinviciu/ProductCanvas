@@ -186,6 +186,8 @@ const TreeNodeComponent = memo(function TreeNode({
       if (e.button === 0) {
         // Left click
         e.stopPropagation();
+        // Dispatch custom event to hide navigation
+        document.dispatchEvent(new CustomEvent('nodeSelected', { detail: { nodeId: node.id } }));
         onSelect(node);
 
         // Only enable position dragging if not in editing mode and not using attachment dragging
