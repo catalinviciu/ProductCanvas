@@ -86,20 +86,6 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     };
   }, []);
 
-  const createTreeMutation = useMutation({
-    mutationFn: async (treeData: { name: string; description?: string; nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {
-      return apiRequest('POST', '/api/impact-trees', treeData);
-    },
-    onSuccess: (newTree) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees'] });
-      // Update the current tree reference for future saves
-      queryClient.setQueryData(['/api/impact-trees', newTree.id], newTree);
-      
-      // Redirect to the new tree's URL to ensure proper state
-      window.history.replaceState({}, '', `/canvas/${newTree.id}`);
-    },
-  });
-
   const updateTreeMutation = useMutation({
     mutationFn: async (updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {
       if (!impactTree?.id) throw new Error('No impact tree loaded');
@@ -115,28 +101,18 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const finalConnections = updatedConnections || connections;
     const finalCanvasState = updatedCanvasState || canvasState;
 
-    // If this is a new tree (no impactTree or no ID), create it first
-    if (!impactTree || !impactTree.id) {
-      const treeData = {
-        name: "New Impact Tree",
-        description: "Strategic planning canvas",
-        nodes: finalNodes,
-        connections: finalConnections,
-        canvasState: finalCanvasState
-      };
-      
-      createTreeMutation.mutate(treeData);
-      return;
+    // Only save if we have an existing tree with an ID
+    if (impactTree && impactTree.id) {
+      enhancedPersistence.saveTreeWithTracking(
+        finalNodes,
+        finalConnections,
+        finalCanvasState,
+        activityType
+      );
     }
-
-    // For existing trees, use enhanced persistence with activity tracking
-    enhancedPersistence.saveTreeWithTracking(
-      finalNodes,
-      finalConnections,
-      finalCanvasState,
-      activityType
-    );
-  }, [nodes, connections, canvasState, enhancedPersistence, impactTree, createTreeMutation]);
+    // For new trees (when impactTree is null), we need to create the tree first
+    // but this should be handled at the page level, not here
+  }, [nodes, connections, canvasState, enhancedPersistence, impactTree]);
 
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
     const nodeId = generateNodeId(type);
