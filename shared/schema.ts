@@ -40,6 +40,37 @@ export interface TreeNode {
   children: string[];
   isCollapsed?: boolean;
   hiddenChildren?: string[]; // Track which specific children are hidden
+  templateData?: {
+    // Objective fields
+    coreWhy?: string;
+    desiredOutcome?: string;
+    strategicContext?: string;
+    targetAudience?: string;
+    exclusionCriteria?: string;
+    
+    // Outcome fields
+    who?: string;
+    doesWhat?: string;
+    baseline?: string;
+    target?: string;
+    measurementMethod?: string;
+    timeframe?: string;
+    
+    // Opportunity fields
+    customerProblem?: string;
+    evidenceInsights?: string;
+    linkToKeyResult?: string;
+    impactOnCustomer?: string;
+    customerSegments?: string;
+    
+    // ICE scoring
+    iceImpact?: number;
+    iceConfidence?: number;
+    iceEase?: number;
+    iceImpactRationale?: string;
+    iceConfidenceRationale?: string;
+    iceEaseRationale?: string;
+  };
 }
 
 export interface NodeConnection {

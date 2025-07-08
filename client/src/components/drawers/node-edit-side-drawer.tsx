@@ -626,7 +626,7 @@ function OpportunityTemplate({ data, onFieldChange }: {
       />
       <TemplateField
         id="impactOnCustomer"
-        label="Impact on the Customer (The \"So What?\" for Them)"
+        label="Impact on the Customer (The 'So What?' for Them)"
         value={data.impactOnCustomer || ''}
         placeholder={TEMPLATE_PLACEHOLDERS.opportunity.impactOnCustomer}
         onChange={(value) => onFieldChange('template.impactOnCustomer', value)}
