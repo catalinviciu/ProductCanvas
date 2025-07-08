@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TreePine, LogOut, Plus } from "lucide-react";
+import { UserProfileMenu } from "@/components/user-profile-menu";
+import { TreePine, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { ImpactTree } from "@shared/schema";
@@ -39,23 +40,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Button 
-              onClick={() => window.location.href = '/api/logout'}
-              variant="outline"
-              className="flex items-center"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-            {user?.profileImageUrl && (
-              <img 
-                src={user.profileImageUrl} 
-                alt="Profile" 
-                className="h-8 w-8 rounded-full object-cover"
-              />
-            )}
-          </div>
+          <UserProfileMenu />
         </div>
 
         <div className="grid gap-6">

@@ -5,6 +5,7 @@ import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
 import { NodeEditSideDrawer } from "@/components/drawers/node-edit-side-drawer";
 import { ContextMenu } from "@/components/modals/context-menu";
 import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
+import { CanvasHeader } from "@/components/canvas-header";
 import { useCanvas } from "@/hooks/use-canvas";
 import { useAuth } from "@/hooks/useAuth";
 import { type ImpactTree } from "@shared/schema";
@@ -94,7 +95,7 @@ export default function CanvasPage() {
     };
   }, [handleNodeReattach]);
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-lg text-gray-600">Loading impact tree...</div>
@@ -102,17 +103,17 @@ export default function CanvasPage() {
     );
   }
 
-  if (!impactTree) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-red-600">Failed to load impact tree</div>
-      </div>
-    );
+  if (!isAuthenticated) {
+    return null; // Redirect handled in useEffect
   }
 
+  const isNewTree = id === "new";
+
   return (
-    <div className="h-screen bg-white relative overflow-hidden">
-      <main className="h-full">
+    <div className="h-screen bg-white dark:bg-gray-900 relative overflow-hidden flex flex-col">
+      <CanvasHeader impactTree={impactTree} isNew={isNewTree} />
+      
+      <main className="flex-1 relative">
         <ImpactTreeCanvas
           nodes={nodes}
           connections={connections}
