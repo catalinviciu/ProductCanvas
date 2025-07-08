@@ -118,6 +118,8 @@ Environment variables required:
 - January 08, 2025. Implemented realistic example placeholders based on financial planning use cases
 - January 08, 2025. Created compact ICE scoring widget for opportunity prioritization with inline rationale fields
 - January 08, 2025. Enhanced TemplateField component with integrated tooltip support for user guidance
+- January 08, 2025. Converged assumption type definitions to use unified system: Value, Viability, Usability, and Feasibility
+- January 08, 2025. Removed redundant test category selector from assumption template, now uses assumption type directly
 
 ## User Preferences
 

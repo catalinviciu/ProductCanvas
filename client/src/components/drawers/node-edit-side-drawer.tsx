@@ -109,7 +109,7 @@ interface NodeFormData {
   type: NodeType;
   title: string;
   description: string;
-  testCategory?: TestCategory;
+
   templateData: TemplateData;
 }
 
@@ -261,7 +261,7 @@ const TEMPLATE_GUIDANCE = {
   },
   assumption: {
     assumptionType: {
-      tooltip: "Select the type of assumption being tested: desirability (do users want it?), feasibility (can we build it?), viability (is it sustainable?), or usability (can users use it?).",
+      tooltip: "Select the type of assumption being tested: value (do users want it?), feasibility (can we build it?), viability (is it sustainable?), or usability (can users use it?).",
       placeholder: "Select assumption type..."
     },
     hypothesisStatement: {
@@ -348,7 +348,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
     type: 'objective',
     title: '',
     description: '',
-    testCategory: 'viability',
+
     templateData: {}
   });
   const [isDirty, setIsDirty] = useState(false);
@@ -362,8 +362,10 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
         type: node.type,
         title: node.title,
         description: node.description,
-        testCategory: node.testCategory || 'viability',
-        templateData: (node as any).templateData || {}
+        templateData: {
+          ...(node as any).templateData,
+          assumptionType: node.testCategory || 'value',
+        }
       });
       setIsDirty(false);
     }
@@ -398,7 +400,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
       type: formData.type,
       title: formData.title,
       description: formData.description,
-      testCategory: formData.type === 'assumption' ? formData.testCategory : undefined,
+      testCategory: formData.type === 'assumption' ? (formData.templateData.assumptionType as TestCategory) : undefined,
       templateData: formData.templateData
     } as any;
 
@@ -750,40 +752,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
               </>
             )}
 
-            {/* Test Category for Assumptions */}
-            {formData.type === 'assumption' && (
-              <>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4" />
-                    <Label className="text-sm font-medium">Test Category</Label>
-                  </div>
-                  <RadioGroup
-                    value={formData.testCategory}
-                    onValueChange={(value: TestCategory) => handleFieldChange('testCategory', value)}
-                    className="grid grid-cols-2 gap-4"
-                  >
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value="viability" id="viability" />
-                      <Label htmlFor="viability" className="cursor-pointer">Viability</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value="value" id="value" />
-                      <Label htmlFor="value" className="cursor-pointer">Value</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value="feasibility" id="feasibility" />
-                      <Label htmlFor="feasibility" className="cursor-pointer">Feasibility</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value="usability" id="usability" />
-                      <Label htmlFor="usability" className="cursor-pointer">Usability</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                <Separator />
-              </>
-            )}
+
           </div>
         </ScrollArea>
 
@@ -1201,7 +1170,7 @@ function AssumptionTemplate({ data, onFieldChange }: {
   // Get specific placeholders based on assumption type
   const getAssumptionPlaceholders = (type: string) => {
     const placeholders = {
-      desirability: {
+      value: {
         hypothesisStatement: "e.g., 'Our music streaming app users desire a personalized playlist curator feature that learns their preferences and automatically generates new playlists, saving them time and introducing them to new music.'",
         testMethod: "e.g., 'Conduct a brief, in-app survey for 100 active users asking: \"Would you be interested in a feature that automatically creates personalized playlists for you based on your listening habits?\"'",
         successCriteria: "e.g., 'Over 70% of surveyed users indicating strong interest (\"Yes, definitely\" or \"Yes, probably\"). Recurring themes in open-ended responses about saving time, discovering new artists, or matching specific moods.'"
@@ -1223,10 +1192,10 @@ function AssumptionTemplate({ data, onFieldChange }: {
       }
     };
     
-    return placeholders[type as keyof typeof placeholders] || placeholders.desirability;
+    return placeholders[type as keyof typeof placeholders] || placeholders.value;
   };
 
-  const currentPlaceholders = getAssumptionPlaceholders(data.assumptionType || 'desirability');
+  const currentPlaceholders = getAssumptionPlaceholders(data.assumptionType || 'value');
 
   return (
     <div className="space-y-4">
@@ -1250,7 +1219,7 @@ function AssumptionTemplate({ data, onFieldChange }: {
             <SelectValue placeholder="Select assumption type..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="desirability">Desirability (Do users want it?)</SelectItem>
+            <SelectItem value="value">Value (Do users want it?)</SelectItem>
             <SelectItem value="feasibility">Feasibility (Can we build it?)</SelectItem>
             <SelectItem value="viability">Viability (Is it sustainable?)</SelectItem>
             <SelectItem value="usability">Usability (Can users use it?)</SelectItem>
