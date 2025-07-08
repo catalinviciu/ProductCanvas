@@ -101,7 +101,7 @@ export function CreateFirstNodeModal({
             </div>
             <div>
               <div className="font-medium text-gray-900">Metric</div>
-              <div className="text-xs text-gray-500">Key performance indicator</div>
+              <div className="text-xs text-gray-500">Quantifiable measure</div>
             </div>
           </button>
           

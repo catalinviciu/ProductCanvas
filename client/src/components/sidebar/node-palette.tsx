@@ -56,7 +56,7 @@ const nodeTypes = [
     borderColor: 'border-yellow-500',
     hoverColor: 'hover:border-yellow-600',
     title: 'Metric',
-    description: 'Track key performance indicators',
+    description: 'Track quantifiable measures',
     icon: 'fas fa-chart-line',
   },
   {

@@ -120,6 +120,9 @@ Environment variables required:
 - January 08, 2025. Enhanced TemplateField component with integrated tooltip support for user guidance
 - January 08, 2025. Converged assumption type definitions to use unified system: Value, Viability, Usability, and Feasibility
 - January 08, 2025. Removed redundant test category selector from assumption template, now uses assumption type directly
+- January 08, 2025. Redesigned Evidence-Impact priority matrix with modern UI including visual matrix, emoji icons, and better user guidance
+- January 08, 2025. Updated Metric node template to add "Current Value" field at beginning and remove "Target Value & Timeframe" field
+- January 08, 2025. Changed metric node description from "Key performance indicator" to "Quantifiable measure" across all UI components
 
 ## User Preferences
 

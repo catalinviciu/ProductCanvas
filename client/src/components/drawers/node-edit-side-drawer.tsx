@@ -1279,6 +1279,15 @@ function MetricTemplate({ data, onFieldChange }: {
   return (
     <div className="space-y-4">
       <TemplateField
+        id="baseline"
+        label="Current Value"
+        value={data.baseline || ''}
+        placeholder={TEMPLATE_GUIDANCE.outcome.baseline.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.outcome.baseline.tooltip}
+        onChange={(value) => onFieldChange('template.baseline', value)}
+        type="text"
+      />
+      <TemplateField
         id="metricType"
         label="Metric Type"
         value={data.metricType || ''}
@@ -1324,15 +1333,6 @@ function MetricTemplate({ data, onFieldChange }: {
         placeholder={TEMPLATE_GUIDANCE.metric.reportingFrequency.placeholder}
         tooltip={TEMPLATE_GUIDANCE.metric.reportingFrequency.tooltip}
         onChange={(value) => onFieldChange('template.reportingFrequency', value)}
-        type="text"
-      />
-      <TemplateField
-        id="target"
-        label="Target Value & Timeframe"
-        value={data.target || ''}
-        placeholder={TEMPLATE_GUIDANCE.metric.target.placeholder}
-        tooltip={TEMPLATE_GUIDANCE.metric.target.tooltip}
-        onChange={(value) => onFieldChange('template.target', value)}
         type="text"
       />
     </div>
