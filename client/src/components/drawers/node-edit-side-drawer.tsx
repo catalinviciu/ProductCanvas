@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface NodeEditSideDrawerProps {
@@ -85,32 +86,89 @@ const NODE_TYPE_COLORS = {
   research: "bg-teal-100 text-teal-800 border-teal-200",
 };
 
-// Template field definitions
-const TEMPLATE_PLACEHOLDERS = {
+// Template field definitions with tooltips and examples
+const TEMPLATE_GUIDANCE = {
   objective: {
-    coreWhy: "What fundamental problem are we solving for users? What unmet need or significant opportunity are we addressing? Focus on user pain or gain...",
-    desiredOutcome: "What qualitative change do we aim to achieve for users? How will their experience be different and better?",
-    strategicContext: "Which broader company strategy does this support? How does it contribute to our long-term vision?",
-    targetAudience: "Which specific user segments or customer groups are we primarily focused on impacting?",
-    exclusionCriteria: "What specific problems, features, or initiatives are explicitly NOT covered by this objective? Helps maintain focus..."
+    coreWhy: {
+      tooltip: "What fundamental problem are we solving for users? What unmet need or significant opportunity are we addressing? Focus on user pain or gain...",
+      placeholder: "Users can't easily track their spending across multiple accounts, leading to overspending and financial stress"
+    },
+    desiredOutcome: {
+      tooltip: "What qualitative change do we aim to achieve for users? How will their experience be different and better?",
+      placeholder: "Users will feel confident about their financial health and make informed spending decisions"
+    },
+    strategicContext: {
+      tooltip: "Which broader company strategy does this support? How does it contribute to our long-term vision?",
+      placeholder: "Supports Q2 strategic pillar: 'Empower financial literacy' and contributes to becoming the primary financial wellness platform"
+    },
+    targetAudience: {
+      tooltip: "Which specific user segments or customer groups are we primarily focused on impacting?",
+      placeholder: "Young professionals (25-35) with multiple income sources and basic financial literacy"
+    },
+    exclusionCriteria: {
+      tooltip: "What specific problems, features, or initiatives are explicitly NOT covered by this objective? Helps maintain focus...",
+      placeholder: "Does NOT include investment advice, business financial planning, or advanced tax optimization features"
+    }
   },
   outcome: {
-    who: "Which specific user segment, customer group, or persona are we focusing on? Be as precise as possible...",
-    doesWhat: "What specific, valuable action should the target audience perform? Describe the desired behavior change...",
-    baseline: "What is the current measurable state? e.g., 'Currently, 10% of new users complete X action' or 'Average score is 3.5/5'",
-    target: "What specific target do we aim to reach? e.g., 'Increase to 25%' or 'Achieve average score of 4.2/5'",
-    measurementMethod: "How will we measure this? Which tools/systems? e.g., 'Google Analytics event tracking' or 'Internal database query'",
-    timeframe: "By when should we achieve this target? Should align with objective timeframe, typically a quarter..."
+    who: {
+      tooltip: "Which specific user segment, customer group, or persona are we focusing on? Be as precise as possible...",
+      placeholder: "New users who signed up in the last 30 days and have connected at least one bank account"
+    },
+    doesWhat: {
+      tooltip: "What specific, valuable action should the target audience perform? Describe the desired behavior change...",
+      placeholder: "Complete their first budget setup within 7 days of account creation"
+    },
+    baseline: {
+      tooltip: "What is the current measurable state? e.g., 'Currently, 10% of new users complete X action' or 'Average score is 3.5/5'",
+      placeholder: "Currently, 12% of new users complete budget setup within 7 days"
+    },
+    target: {
+      tooltip: "What specific target do we aim to reach? e.g., 'Increase to 25%' or 'Achieve average score of 4.2/5'",
+      placeholder: "Increase to 35% completion rate within 7 days"
+    },
+    measurementMethod: {
+      tooltip: "How will we measure this? Which tools/systems? e.g., 'Google Analytics event tracking' or 'Internal database query'",
+      placeholder: "Mixpanel event tracking: 'budget_setup_completed' within 7 days of 'account_created'"
+    },
+    timeframe: {
+      tooltip: "By when should we achieve this target? Should align with objective timeframe, typically a quarter...",
+      placeholder: "End of Q2 2025 (June 30th)"
+    }
   },
   opportunity: {
-    customerProblem: "Describe the specific challenge or unmet need from the customer's perspective. What are they struggling with?",
-    evidenceInsights: "What qualitative evidence confirms this problem? Quote customers directly, describe behaviors, reference research sessions...",
-    linkToKeyResult: "How does solving this problem directly contribute to moving the linked Key Result? Explain the causal connection...",
-    impactOnCustomer: "What negative consequence or frustration occurs if this isn't addressed? How does it hinder their progress?",
-    customerSegments: "Which specific customer groups are most impacted? e.g., 'New users in onboarding' or 'SMB segment customers'",
-    iceImpactRationale: "Why did you give this impact score? Consider potential effect on Key Result and customer impact...",
-    iceConfidenceRationale: "Why this confidence level? Consider strength of evidence, problem clarity, and prior experience...",
-    iceEaseRationale: "Why this ease score? Consider technical complexity, required research, team capacity, and dependencies..."
+    customerProblem: {
+      tooltip: "Describe the specific challenge or unmet need from the customer's perspective. What are they struggling with?",
+      placeholder: "Users abandon budget setup because the process feels overwhelming and they don't understand why certain categories are suggested"
+    },
+    evidenceInsights: {
+      tooltip: "What qualitative evidence confirms this problem? Quote customers directly, describe behaviors, reference research sessions...",
+      placeholder: "User research (Jan 2025): 'I don't know where to start' mentioned by 8/10 participants. Heatmaps show 67% exit on category selection screen"
+    },
+    linkToKeyResult: {
+      tooltip: "How does solving this problem directly contribute to moving the linked Key Result? Explain the causal connection...",
+      placeholder: "Simplifying budget setup will increase completion rates, directly improving our Q2 KR: 'Increase new user activation by 23%'"
+    },
+    impactOnCustomer: {
+      tooltip: "What negative consequence or frustration occurs if this isn't addressed? How does it hinder their progress?",
+      placeholder: "Users never experience the core value of budgeting, leading to app abandonment and continued financial stress"
+    },
+    customerSegments: {
+      tooltip: "Which specific customer groups are most impacted? e.g., 'New users in onboarding' or 'SMB segment customers'",
+      placeholder: "First-time budgeters and users with irregular income patterns"
+    },
+    iceImpactRationale: {
+      tooltip: "Why did you give this impact score? Consider potential effect on Key Result and customer impact...",
+      placeholder: "High impact: Directly affects new user activation, our top Q2 priority"
+    },
+    iceConfidenceRationale: {
+      tooltip: "Why this confidence level? Consider strength of evidence, problem clarity, and prior experience...",
+      placeholder: "High confidence: Clear user research evidence and similar patterns from competitor analysis"
+    },
+    iceEaseRationale: {
+      tooltip: "Why this ease score? Consider technical complexity, required research, team capacity, and dependencies...",
+      placeholder: "Medium ease: Requires UX redesign and some backend changes, but no new integrations"
+    }
   }
 };
 
@@ -482,7 +540,8 @@ function ObjectiveTemplate({ data, onFieldChange }: {
         id="coreWhy"
         label='The "Why" (Core Problem/Opportunity)'
         value={data.coreWhy || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.objective.coreWhy}
+        placeholder={TEMPLATE_GUIDANCE.objective.coreWhy.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.objective.coreWhy.tooltip}
         onChange={(value) => onFieldChange('template.coreWhy', value)}
         type="textarea"
         rows={3}
@@ -491,7 +550,8 @@ function ObjectiveTemplate({ data, onFieldChange }: {
         id="desiredOutcome"
         label='Desired Outcome (The "What")'
         value={data.desiredOutcome || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.objective.desiredOutcome}
+        placeholder={TEMPLATE_GUIDANCE.objective.desiredOutcome.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.objective.desiredOutcome.tooltip}
         onChange={(value) => onFieldChange('template.desiredOutcome', value)}
         type="textarea"
         rows={3}
@@ -500,7 +560,8 @@ function ObjectiveTemplate({ data, onFieldChange }: {
         id="strategicContext"
         label="Strategic Context & Alignment"
         value={data.strategicContext || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.objective.strategicContext}
+        placeholder={TEMPLATE_GUIDANCE.objective.strategicContext.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.objective.strategicContext.tooltip}
         onChange={(value) => onFieldChange('template.strategicContext', value)}
         type="textarea"
         rows={2}
@@ -509,7 +570,8 @@ function ObjectiveTemplate({ data, onFieldChange }: {
         id="targetAudience"
         label="Target Audience"
         value={data.targetAudience || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.objective.targetAudience}
+        placeholder={TEMPLATE_GUIDANCE.objective.targetAudience.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.objective.targetAudience.tooltip}
         onChange={(value) => onFieldChange('template.targetAudience', value)}
         type="text"
       />
@@ -517,7 +579,8 @@ function ObjectiveTemplate({ data, onFieldChange }: {
         id="exclusionCriteria"
         label="Exclusion Criteria / What This Objective Is NOT"
         value={data.exclusionCriteria || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.objective.exclusionCriteria}
+        placeholder={TEMPLATE_GUIDANCE.objective.exclusionCriteria.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.objective.exclusionCriteria.tooltip}
         onChange={(value) => onFieldChange('template.exclusionCriteria', value)}
         type="textarea"
         rows={2}
@@ -536,7 +599,8 @@ function OutcomeTemplate({ data, onFieldChange }: {
         id="who"
         label="Who? (The Target Audience)"
         value={data.who || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.outcome.who}
+        placeholder={TEMPLATE_GUIDANCE.outcome.who.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.outcome.who.tooltip}
         onChange={(value) => onFieldChange('template.who', value)}
         type="textarea"
         rows={2}
@@ -545,7 +609,8 @@ function OutcomeTemplate({ data, onFieldChange }: {
         id="doesWhat"
         label="Does What? (The Desired Behavior)"
         value={data.doesWhat || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.outcome.doesWhat}
+        placeholder={TEMPLATE_GUIDANCE.outcome.doesWhat.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.outcome.doesWhat.tooltip}
         onChange={(value) => onFieldChange('template.doesWhat', value)}
         type="textarea"
         rows={2}
@@ -555,7 +620,8 @@ function OutcomeTemplate({ data, onFieldChange }: {
           id="baseline"
           label="Baseline (Current State)"
           value={data.baseline || ''}
-          placeholder={TEMPLATE_PLACEHOLDERS.outcome.baseline}
+          placeholder={TEMPLATE_GUIDANCE.outcome.baseline.placeholder}
+          tooltip={TEMPLATE_GUIDANCE.outcome.baseline.tooltip}
           onChange={(value) => onFieldChange('template.baseline', value)}
           type="textarea"
           rows={2}
@@ -564,7 +630,8 @@ function OutcomeTemplate({ data, onFieldChange }: {
           id="target"
           label="Target (Desired State)"
           value={data.target || ''}
-          placeholder={TEMPLATE_PLACEHOLDERS.outcome.target}
+          placeholder={TEMPLATE_GUIDANCE.outcome.target.placeholder}
+          tooltip={TEMPLATE_GUIDANCE.outcome.target.tooltip}
           onChange={(value) => onFieldChange('template.target', value)}
           type="textarea"
           rows={2}
@@ -574,7 +641,8 @@ function OutcomeTemplate({ data, onFieldChange }: {
         id="measurementMethod"
         label="Measurement Method & Data Source"
         value={data.measurementMethod || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.outcome.measurementMethod}
+        placeholder={TEMPLATE_GUIDANCE.outcome.measurementMethod.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.outcome.measurementMethod.tooltip}
         onChange={(value) => onFieldChange('template.measurementMethod', value)}
         type="textarea"
         rows={2}
@@ -583,7 +651,8 @@ function OutcomeTemplate({ data, onFieldChange }: {
         id="timeframe"
         label="Timeframe"
         value={data.timeframe || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.outcome.timeframe}
+        placeholder={TEMPLATE_GUIDANCE.outcome.timeframe.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.outcome.timeframe.tooltip}
         onChange={(value) => onFieldChange('template.timeframe', value)}
         type="text"
       />
@@ -601,7 +670,8 @@ function OpportunityTemplate({ data, onFieldChange }: {
         id="customerProblem"
         label="The Customer's Problem/Need (The &quot;What&quot;)"
         value={data.customerProblem || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.opportunity.customerProblem}
+        placeholder={TEMPLATE_GUIDANCE.opportunity.customerProblem.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.opportunity.customerProblem.tooltip}
         onChange={(value) => onFieldChange('template.customerProblem', value)}
         type="textarea"
         rows={3}
@@ -610,7 +680,8 @@ function OpportunityTemplate({ data, onFieldChange }: {
         id="evidenceInsights"
         label="Evidence & Insights (Why We Believe This is Real)"
         value={data.evidenceInsights || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.opportunity.evidenceInsights}
+        placeholder={TEMPLATE_GUIDANCE.opportunity.evidenceInsights.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.opportunity.evidenceInsights.tooltip}
         onChange={(value) => onFieldChange('template.evidenceInsights', value)}
         type="textarea"
         rows={3}
@@ -619,7 +690,8 @@ function OpportunityTemplate({ data, onFieldChange }: {
         id="linkToKeyResult"
         label="Direct Link to Key Result (How It Moves the Needle)"
         value={data.linkToKeyResult || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.opportunity.linkToKeyResult}
+        placeholder={TEMPLATE_GUIDANCE.opportunity.linkToKeyResult.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.opportunity.linkToKeyResult.tooltip}
         onChange={(value) => onFieldChange('template.linkToKeyResult', value)}
         type="textarea"
         rows={2}
@@ -628,7 +700,8 @@ function OpportunityTemplate({ data, onFieldChange }: {
         id="impactOnCustomer"
         label="Impact on the Customer (The 'So What?' for Them)"
         value={data.impactOnCustomer || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.opportunity.impactOnCustomer}
+        placeholder={TEMPLATE_GUIDANCE.opportunity.impactOnCustomer.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.opportunity.impactOnCustomer.tooltip}
         onChange={(value) => onFieldChange('template.impactOnCustomer', value)}
         type="textarea"
         rows={2}
@@ -637,7 +710,8 @@ function OpportunityTemplate({ data, onFieldChange }: {
         id="customerSegments"
         label="Customer Segment(s) Primarily Affected"
         value={data.customerSegments || ''}
-        placeholder={TEMPLATE_PLACEHOLDERS.opportunity.customerSegments}
+        placeholder={TEMPLATE_GUIDANCE.opportunity.customerSegments.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.opportunity.customerSegments.tooltip}
         onChange={(value) => onFieldChange('template.customerSegments', value)}
         type="text"
       />
@@ -663,28 +737,31 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center justify-between">
-          <span>ICE Prioritization Score</span>
-          <div className="text-right">
-            <div className={cn("text-2xl font-bold", getScoreColor(calculatedScore))}>
-              {calculatedScore}
-            </div>
-            <div className="text-sm text-gray-500">
-              {getScoreLabel(calculatedScore)}
-            </div>
+    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+      {/* Header with Score */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calculator className="w-4 h-4" />
+          <span className="font-medium">ICE Score</span>
+        </div>
+        <div className="text-right">
+          <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
+            {calculatedScore}
           </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+          <div className="text-xs text-gray-500">
+            {getScoreLabel(calculatedScore)}
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Scoring Grid */}
+      <div className="grid grid-cols-1 gap-3">
         {/* Impact */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Impact</Label>
-            <HelpCircle className="w-3 h-3 text-gray-400" />
-            <span className="text-sm text-gray-500 ml-auto">
-              Score: {data.iceImpact || 1}
+            <span className="text-sm text-gray-500">
+              {data.iceImpact || 1}
             </span>
           </div>
           <Slider
@@ -695,27 +772,21 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>1 - Minimal</span>
-            <span>3 - Moderate</span>
-            <span>5 - Transformational</span>
-          </div>
           <Textarea
             value={data.iceImpactRationale || ''}
             onChange={(e) => onFieldChange('template.iceImpactRationale', e.target.value)}
-            placeholder={TEMPLATE_PLACEHOLDERS.opportunity.iceImpactRationale}
-            rows={2}
-            className="text-sm"
+            placeholder={TEMPLATE_GUIDANCE.opportunity.iceImpactRationale.placeholder}
+            rows={1}
+            className="text-xs"
           />
         </div>
 
         {/* Confidence */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Confidence</Label>
-            <HelpCircle className="w-3 h-3 text-gray-400" />
-            <span className="text-sm text-gray-500 ml-auto">
-              Score: {data.iceConfidence || 1}
+            <span className="text-sm text-gray-500">
+              {data.iceConfidence || 1}
             </span>
           </div>
           <Slider
@@ -726,27 +797,21 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>1 - Speculative</span>
-            <span>3 - Moderate</span>
-            <span>5 - Very Certain</span>
-          </div>
           <Textarea
             value={data.iceConfidenceRationale || ''}
             onChange={(e) => onFieldChange('template.iceConfidenceRationale', e.target.value)}
-            placeholder={TEMPLATE_PLACEHOLDERS.opportunity.iceConfidenceRationale}
-            rows={2}
-            className="text-sm"
+            placeholder={TEMPLATE_GUIDANCE.opportunity.iceConfidenceRationale.placeholder}
+            rows={1}
+            className="text-xs"
           />
         </div>
 
         {/* Ease */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Ease</Label>
-            <HelpCircle className="w-3 h-3 text-gray-400" />
-            <span className="text-sm text-gray-500 ml-auto">
-              Score: {data.iceEase || 1}
+            <span className="text-sm text-gray-500">
+              {data.iceEase || 1}
             </span>
           </div>
           <Slider
@@ -757,27 +822,20 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>1 - Very Difficult</span>
-            <span>3 - Moderate</span>
-            <span>5 - Very Easy</span>
-          </div>
           <Textarea
             value={data.iceEaseRationale || ''}
             onChange={(e) => onFieldChange('template.iceEaseRationale', e.target.value)}
-            placeholder={TEMPLATE_PLACEHOLDERS.opportunity.iceEaseRationale}
-            rows={2}
-            className="text-sm"
+            placeholder={TEMPLATE_GUIDANCE.opportunity.iceEaseRationale.placeholder}
+            rows={1}
+            className="text-xs"
           />
         </div>
+      </div>
 
-        <div className="pt-3 border-t">
-          <div className="text-sm text-gray-600">
-            <strong>ICE Score Calculation:</strong> Impact ({data.iceImpact || 1}) × Confidence ({data.iceConfidence || 1}) × Ease ({data.iceEase || 1}) = <strong>{calculatedScore}</strong>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="pt-2 border-t text-xs text-gray-600">
+        <strong>Calculation:</strong> {data.iceImpact || 1} × {data.iceConfidence || 1} × {data.iceEase || 1} = <strong>{calculatedScore}</strong>
+      </div>
+    </div>
   );
 }
 
@@ -786,6 +844,7 @@ function TemplateField({
   label, 
   value, 
   placeholder, 
+  tooltip,
   onChange, 
   type = 'text',
   rows = 1
@@ -794,33 +853,48 @@ function TemplateField({
   label: string;
   value: string;
   placeholder: string;
+  tooltip?: string;
   onChange: (value: string) => void;
   type?: 'text' | 'textarea';
   rows?: number;
 }) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id} className="text-sm font-medium">
-        {label}
-      </Label>
-      {type === 'textarea' ? (
-        <Textarea
-          id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          rows={rows}
-          className="text-sm"
-        />
-      ) : (
-        <Input
-          id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="text-sm"
-        />
-      )}
-    </div>
+    <TooltipProvider>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label htmlFor={id} className="text-sm font-medium">
+            {label}
+          </Label>
+          {tooltip && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="text-sm">{tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+        {type === 'textarea' ? (
+          <Textarea
+            id={id}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            rows={rows}
+            className="text-sm"
+          />
+        ) : (
+          <Input
+            id={id}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            className="text-sm"
+          />
+        )}
+      </div>
+    </TooltipProvider>
   );
 }
