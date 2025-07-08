@@ -44,14 +44,6 @@ export default function CanvasPage() {
     },
   });
 
-  // Create tree immediately when accessing /canvas/new
-  useEffect(() => {
-    if (id === "new" && isAuthenticated && !authLoading && !hasCreatedTree.current) {
-      hasCreatedTree.current = true;
-      createTreeMutation.mutate();
-    }
-  }, [id, isAuthenticated, authLoading, createTreeMutation]);
-
   const { data: impactTree, isLoading, error } = useQuery<ImpactTree>({
     queryKey: treeId ? ["/api/impact-trees", treeId] : ["/api/impact-trees", "new"],
     enabled: !!isAuthenticated && !authLoading && treeId !== null,
@@ -70,20 +62,6 @@ export default function CanvasPage() {
       return failureCount < 3;
     },
   });
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-    }
-  }, [isAuthenticated, authLoading, toast]);
 
   const { isNavVisible, magneticZoneRef } = useNavAutoHide();
 
@@ -115,6 +93,28 @@ export default function CanvasPage() {
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
   } = useCanvas(impactTree);
+
+  // Create tree immediately when accessing /canvas/new
+  useEffect(() => {
+    if (id === "new" && isAuthenticated && !authLoading && !hasCreatedTree.current) {
+      hasCreatedTree.current = true;
+      createTreeMutation.mutate();
+    }
+  }, [id, isAuthenticated, authLoading, createTreeMutation]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+    }
+  }, [isAuthenticated, authLoading, toast]);
 
   // Show loading state when creating new tree
   if (id === "new" && createTreeMutation.isPending) {
