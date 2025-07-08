@@ -1,6 +1,6 @@
-import { useParams, useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
 import { NodeEditSideDrawer } from "@/components/drawers/node-edit-side-drawer";
 import { ContextMenu } from "@/components/modals/context-menu";
@@ -12,41 +12,18 @@ import { useNavAutoHide } from "@/hooks/use-nav-auto-hide";
 import { type ImpactTree } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
 
 export default function CanvasPage() {
   const { id } = useParams();
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
-  const hasCreatedTree = useRef(false);
   
   // Handle new tree creation or existing tree ID
   const treeId = id === "new" ? null : id ? parseInt(id) : 1;
 
-  // Mutation to create new tree
-  const createTreeMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('POST', '/api/impact-trees', {
-        name: "New Impact Tree",
-        description: "Strategic planning canvas",
-        nodes: [],
-        connections: [],
-        canvasState: { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'vertical' }
-      });
-    },
-    onSuccess: (newTree) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees'] });
-      queryClient.setQueryData(['/api/impact-trees', newTree.id], newTree);
-      // Redirect to the new tree's URL
-      setLocation(`/canvas/${newTree.id}`);
-    },
-  });
-
   const { data: impactTree, isLoading, error } = useQuery<ImpactTree>({
     queryKey: treeId ? ["/api/impact-trees", treeId] : ["/api/impact-trees", "new"],
-    enabled: !!isAuthenticated && !authLoading && treeId !== null,
+    enabled: !!isAuthenticated && !authLoading,
     retry: (failureCount, error) => {
       if (error && isUnauthorizedError(error as Error)) {
         toast({
@@ -63,14 +40,6 @@ export default function CanvasPage() {
     },
   });
 
-  // Create tree immediately when accessing /canvas/new
-  useEffect(() => {
-    if (id === "new" && isAuthenticated && !authLoading && !hasCreatedTree.current) {
-      hasCreatedTree.current = true;
-      createTreeMutation.mutate();
-    }
-  }, [id, isAuthenticated, authLoading, createTreeMutation]);
-
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -84,18 +53,6 @@ export default function CanvasPage() {
       }, 500);
     }
   }, [isAuthenticated, authLoading, toast]);
-
-  // Show loading state when creating new tree
-  if (id === "new" && createTreeMutation.isPending) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg font-medium text-gray-900 dark:text-white">Creating new impact tree...</p>
-        </div>
-      </div>
-    );
-  }
 
   const { isNavVisible, magneticZoneRef } = useNavAutoHide();
 

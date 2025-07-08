@@ -97,22 +97,20 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   });
 
   const saveTree = useCallback((updatedNodes?: TreeNode[], updatedConnections?: NodeConnection[], updatedCanvasState?: CanvasState, activityType?: string) => {
+    if (!impactTree?.id) return; // Don't save if no valid tree ID
+    
     const finalNodes = updatedNodes || nodes;
     const finalConnections = updatedConnections || connections;
     const finalCanvasState = updatedCanvasState || canvasState;
 
-    // Only save if we have an existing tree with an ID
-    if (impactTree && impactTree.id) {
-      enhancedPersistence.saveTreeWithTracking(
-        finalNodes,
-        finalConnections,
-        finalCanvasState,
-        activityType
-      );
-    }
-    // For new trees (when impactTree is null), we need to create the tree first
-    // but this should be handled at the page level, not here
-  }, [nodes, connections, canvasState, enhancedPersistence, impactTree]);
+    // Use enhanced persistence with activity tracking
+    enhancedPersistence.saveTreeWithTracking(
+      finalNodes,
+      finalConnections,
+      finalCanvasState,
+      activityType
+    );
+  }, [nodes, connections, canvasState, enhancedPersistence, impactTree?.id]);
 
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
     const nodeId = generateNodeId(type);
