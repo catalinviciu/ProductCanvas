@@ -8,6 +8,7 @@ import { CreateFirstNodeModal } from "@/components/modals/create-first-node-moda
 import { CanvasHeader } from "@/components/canvas-header";
 import { useCanvas } from "@/hooks/use-canvas";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavAutoHide } from "@/hooks/use-nav-auto-hide";
 import { type ImpactTree } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -52,6 +53,8 @@ export default function CanvasPage() {
       }, 500);
     }
   }, [isAuthenticated, authLoading, toast]);
+
+  const { isNavVisible, magneticZoneRef } = useNavAutoHide();
 
   const {
     selectedNode,
@@ -110,10 +113,15 @@ export default function CanvasPage() {
   const isNewTree = id === "new";
 
   return (
-    <div className="h-screen bg-white dark:bg-gray-900 relative overflow-hidden flex flex-col">
-      <CanvasHeader impactTree={impactTree} isNew={isNewTree} />
+    <div className="h-screen bg-white dark:bg-gray-900 relative overflow-hidden">
+      <CanvasHeader 
+        impactTree={impactTree} 
+        isNew={isNewTree} 
+        isVisible={isNavVisible}
+        magneticZoneRef={magneticZoneRef}
+      />
       
-      <main className="flex-1 relative">
+      <main className="h-full relative canvas-background">
         <ImpactTreeCanvas
           nodes={nodes}
           connections={connections}
