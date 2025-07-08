@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { X, Save, Trash2, Type, Target, BarChart3, Lightbulb, ChevronDown, ChevronRight, Calculator, HelpCircle } from "lucide-react";
+import { X, Save, Trash2, Type, Target, BarChart3, Lightbulb, ChevronDown, ChevronRight, Calculator, HelpCircle, Cog, FlaskConical, TrendingUp, Search } from "lucide-react";
 import { TreeNode, NodeType, TestCategory } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,53 @@ interface TemplateData {
   iceImpactRationale?: string;
   iceConfidenceRationale?: string;
   iceEaseRationale?: string;
+  
+  // Solution fields
+  solutionRationale?: string;
+  implementationApproach?: string;
+  keyFeatures?: string;
+  technicalRequirements?: string;
+  userExperience?: string;
+  dependencies?: string;
+  
+  // RICE scoring for Solutions
+  riceReach?: number;
+  riceImpact?: number;
+  riceConfidence?: number;
+  riceEffort?: number;
+  riceReachRationale?: string;
+  riceImpactRationale?: string;
+  riceConfidenceRationale?: string;
+  riceEffortRationale?: string;
+  
+  // Assumption Test fields
+  assumptionType?: string;
+  hypothesisStatement?: string;
+  testMethod?: string;
+  successCriteria?: string;
+  riskLevel?: string;
+  
+  // Evidence-Impact scoring for Assumptions
+  evidenceScore?: number;
+  impactScore?: number;
+  evidenceRationale?: string;
+  impactRationale?: string;
+  
+  // Metric fields
+  metricType?: string;
+  metricDefinition?: string;
+  calculationMethod?: string;
+  dataSource?: string;
+  reportingFrequency?: string;
+  target?: string;
+  
+  // Research fields
+  researchQuestions?: string;
+  methodology?: string;
+  participants?: string;
+  timeline?: string;
+  expectedOutcomes?: string;
+  researchType?: string;
 }
 
 interface NodeFormData {
@@ -70,10 +117,10 @@ const NODE_TYPE_ICONS = {
   objective: Target,
   outcome: BarChart3,
   opportunity: Lightbulb,
-  solution: Target,
-  assumption: Target,
-  metric: BarChart3,
-  research: Target,
+  solution: Cog,
+  assumption: FlaskConical,
+  metric: TrendingUp,
+  research: Search,
 };
 
 const NODE_TYPE_COLORS = {
@@ -168,6 +215,130 @@ const TEMPLATE_GUIDANCE = {
     iceEaseRationale: {
       tooltip: "Why this ease score? Consider technical complexity, required research, team capacity, and dependencies...",
       placeholder: "Medium ease: Requires UX redesign and some backend changes, but no new integrations"
+    }
+  },
+  solution: {
+    solutionRationale: {
+      tooltip: "Why is this the right solution? What makes it better than alternative approaches?",
+      placeholder: "Guided budget setup wizard reduces cognitive load and provides contextual help, addressing the core usability issue"
+    },
+    implementationApproach: {
+      tooltip: "How will this solution be built? What's the technical approach and methodology?",
+      placeholder: "Progressive disclosure UI pattern with smart defaults, A/B test different flows, iterative user testing"
+    },
+    keyFeatures: {
+      tooltip: "What are the core features and capabilities that make this solution effective?",
+      placeholder: "Smart category suggestions, progress indicators, skip options, contextual help tooltips, mobile-first design"
+    },
+    technicalRequirements: {
+      tooltip: "What technical infrastructure, tools, or systems are needed?",
+      placeholder: "Frontend: New onboarding flow components, Backend: Category suggestion algorithm, Analytics: Flow tracking"
+    },
+    userExperience: {
+      tooltip: "How will users interact with this solution? What's their journey?",
+      placeholder: "Users see 3-step wizard, get personalized categories, can skip advanced options, receive confirmation"
+    },
+    dependencies: {
+      tooltip: "What other work, teams, or systems does this solution depend on?",
+      placeholder: "Depends on: Category data analysis (Analytics team), Design system updates (Design team), API changes (Backend team)"
+    },
+    riceReachRationale: {
+      tooltip: "How many people will this solution impact? Consider user base size and frequency of use.",
+      placeholder: "High reach: All new users go through budget setup (500+ monthly), affects core onboarding flow"
+    },
+    riceImpactRationale: {
+      tooltip: "How much will this solution improve the target metric? Consider magnitude of change.",
+      placeholder: "High impact: Expected 23% increase in completion rate based on similar UX improvements"
+    },
+    riceConfidenceRationale: {
+      tooltip: "How confident are you in the reach and impact estimates? Consider evidence strength.",
+      placeholder: "High confidence: Strong user research evidence, proven UX patterns, similar competitor implementations"
+    },
+    riceEffortRationale: {
+      tooltip: "How much person-time will this solution require? Consider all team efforts.",
+      placeholder: "Medium effort: 2 weeks design, 3 weeks development, 1 week testing (6 person-weeks total)"
+    }
+  },
+  assumption: {
+    assumptionType: {
+      tooltip: "What type of assumption is this? e.g., Value, Feasibility, Viability, Usability",
+      placeholder: "Usability - Users will understand and prefer guided setup over free-form configuration"
+    },
+    hypothesisStatement: {
+      tooltip: "State your assumption as a testable hypothesis with clear conditions for success/failure.",
+      placeholder: "If we provide guided budget setup with smart defaults, then new users will complete setup 50% faster with 40% higher satisfaction"
+    },
+    testMethod: {
+      tooltip: "How will you test this assumption? What's your validation approach?",
+      placeholder: "A/B test: 50% see current flow, 50% see guided wizard. Measure completion time, completion rate, and satisfaction survey"
+    },
+    successCriteria: {
+      tooltip: "What specific results will prove this assumption true? Be measurable and specific.",
+      placeholder: "Success: >20% faster completion, >15% higher completion rate, >0.5 point satisfaction increase (5-point scale)"
+    },
+    riskLevel: {
+      tooltip: "How risky is it if this assumption is wrong? What's the impact of being incorrect?",
+      placeholder: "Medium risk: Wrong direction could delay onboarding improvements by 1 sprint, low development cost to reverse"
+    },
+    evidenceRationale: {
+      tooltip: "How strong is the evidence supporting this assumption? Consider research quality and quantity.",
+      placeholder: "Strong evidence: User interviews, competitor analysis, UX research patterns support guided approach"
+    },
+    impactRationale: {
+      tooltip: "How much will proving this assumption advance the objective? Consider strategic importance.",
+      placeholder: "High impact: Directly addresses main onboarding barrier, enabling broader activation improvements"
+    }
+  },
+  metric: {
+    metricType: {
+      tooltip: "What type of metric is this? e.g., Leading, Lagging, Vanity, Actionable, North Star",
+      placeholder: "Leading metric - Budget setup completion rate (predicts user activation)"
+    },
+    metricDefinition: {
+      tooltip: "Precisely define what this metric measures. Be specific about scope and boundaries.",
+      placeholder: "Percentage of new users who complete budget setup within 7 days of account creation"
+    },
+    calculationMethod: {
+      tooltip: "How is this metric calculated? What's the exact formula or methodology?",
+      placeholder: "Formula: (Users who completed budget setup in 7 days / Total new users in period) × 100"
+    },
+    dataSource: {
+      tooltip: "Where does the data come from? What systems, databases, or tools provide this information?",
+      placeholder: "Primary: Mixpanel event tracking, Secondary: PostgreSQL user database, Validation: Google Analytics"
+    },
+    reportingFrequency: {
+      tooltip: "How often will this metric be measured and reported? Consider business needs and data availability.",
+      placeholder: "Daily monitoring, Weekly team reports, Monthly business reviews"
+    },
+    target: {
+      tooltip: "What target value are you aiming for? Include timeframe and rationale.",
+      placeholder: "Target: 35% completion rate by end of Q2 (up from current 12%)"
+    }
+  },
+  research: {
+    researchQuestions: {
+      tooltip: "What specific questions will this research answer? Be clear and focused.",
+      placeholder: "1. What specific steps in budget setup cause users to abandon? 2. What contextual help do users need most?"
+    },
+    methodology: {
+      tooltip: "How will you conduct this research? What methods and techniques will you use?",
+      placeholder: "Mixed methods: User interviews (n=8), usability testing (n=12), analytics analysis, competitor benchmarking"
+    },
+    participants: {
+      tooltip: "Who will you study? Be specific about target audience and recruitment criteria.",
+      placeholder: "New users (0-14 days), attempted but didn't complete budget setup, mix of demographics, varied financial experience"
+    },
+    timeline: {
+      tooltip: "When will this research be conducted? Include key milestones and deliverables.",
+      placeholder: "Week 1: Recruit and screen participants, Week 2: Interviews, Week 3: Analysis, Week 4: Report and recommendations"
+    },
+    expectedOutcomes: {
+      tooltip: "What insights or decisions will this research enable? How will it inform strategy?",
+      placeholder: "Identify top 3 friction points, design requirements for guided setup, prioritize next iteration features"
+    },
+    researchType: {
+      tooltip: "What type of research is this? e.g., Generative, Evaluative, Quantitative, Qualitative",
+      placeholder: "Evaluative research - Testing current onboarding flow to identify improvement opportunities"
     }
   }
 };
@@ -288,6 +459,19 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
     return iceImpact * iceConfidence * iceEase;
   }, [formData.templateData.iceImpact, formData.templateData.iceConfidence, formData.templateData.iceEase]);
 
+  // Calculate RICE score
+  const riceScore = useMemo(() => {
+    const { riceReach = 0, riceImpact = 0, riceConfidence = 0, riceEffort = 1 } = formData.templateData;
+    if (riceEffort === 0) return 0;
+    return (riceReach * riceImpact * riceConfidence) / riceEffort;
+  }, [formData.templateData.riceReach, formData.templateData.riceImpact, formData.templateData.riceConfidence, formData.templateData.riceEffort]);
+
+  // Calculate Evidence-Impact score
+  const evidenceImpactScore = useMemo(() => {
+    const { evidenceScore = 0, impactScore = 0 } = formData.templateData;
+    return evidenceScore * impactScore;
+  }, [formData.templateData.evidenceScore, formData.templateData.impactScore]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -406,7 +590,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
             <Separator />
 
             {/* Template-Specific Content */}
-            {(formData.type === 'objective' || formData.type === 'outcome' || formData.type === 'opportunity') && (
+            {(formData.type === 'objective' || formData.type === 'outcome' || formData.type === 'opportunity' || formData.type === 'solution' || formData.type === 'metric' || formData.type === 'research') && (
               <>
                 <Collapsible open={isTemplateExpanded} onOpenChange={setIsTemplateExpanded}>
                   <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
@@ -431,6 +615,24 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
                     )}
                     {formData.type === 'opportunity' && (
                       <OpportunityTemplate 
+                        data={formData.templateData}
+                        onFieldChange={handleFieldChange}
+                      />
+                    )}
+                    {formData.type === 'solution' && (
+                      <SolutionTemplate 
+                        data={formData.templateData}
+                        onFieldChange={handleFieldChange}
+                      />
+                    )}
+                    {formData.type === 'metric' && (
+                      <MetricTemplate 
+                        data={formData.templateData}
+                        onFieldChange={handleFieldChange}
+                      />
+                    )}
+                    {formData.type === 'research' && (
+                      <ResearchTemplate 
                         data={formData.templateData}
                         onFieldChange={handleFieldChange}
                       />
@@ -463,6 +665,74 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
                     </Collapsible>
                   </>
                 )}
+
+                {/* RICE Scoring for Solutions */}
+                {formData.type === 'solution' && (
+                  <>
+                    <Separator />
+                    <Collapsible open={isIceExpanded} onOpenChange={setIsIceExpanded}>
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
+                        {isIceExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        <Calculator className="w-4 h-4" />
+                        <Label className="text-sm font-medium cursor-pointer">RICE Prioritization Score</Label>
+                        {riceScore > 0 && (
+                          <Badge variant="secondary" className="ml-auto">
+                            Score: {riceScore.toFixed(1)}
+                          </Badge>
+                        )}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-4">
+                        <RICEScoringWidget 
+                          data={formData.templateData}
+                          onFieldChange={handleFieldChange}
+                          calculatedScore={riceScore}
+                        />
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </>
+                )}
+                <Separator />
+              </>
+            )}
+
+            {/* Assumption Test Template */}
+            {formData.type === 'assumption' && (
+              <>
+                <Collapsible open={isTemplateExpanded} onOpenChange={setIsTemplateExpanded}>
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
+                    {isTemplateExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                    <NodeIcon className="w-4 h-4" />
+                    <Label className="text-sm font-medium cursor-pointer">Assumption Test Template</Label>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-4 mt-4">
+                    <AssumptionTemplate 
+                      data={formData.templateData}
+                      onFieldChange={handleFieldChange}
+                    />
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Evidence-Impact Scoring for Assumptions */}
+                <Separator />
+                <Collapsible open={isIceExpanded} onOpenChange={setIsIceExpanded}>
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
+                    {isIceExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                    <Calculator className="w-4 h-4" />
+                    <Label className="text-sm font-medium cursor-pointer">Evidence-Impact Prioritization</Label>
+                    {evidenceImpactScore > 0 && (
+                      <Badge variant="secondary" className="ml-auto">
+                        Score: {evidenceImpactScore}
+                      </Badge>
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-4">
+                    <EvidenceImpactWidget 
+                      data={formData.templateData}
+                      onFieldChange={handleFieldChange}
+                      calculatedScore={evidenceImpactScore}
+                    />
+                  </CollapsibleContent>
+                </Collapsible>
                 <Separator />
               </>
             )}
@@ -834,6 +1104,517 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
 
       <div className="pt-2 border-t text-xs text-gray-600">
         <strong>Calculation:</strong> {data.iceImpact || 1} × {data.iceConfidence || 1} × {data.iceEase || 1} = <strong>{calculatedScore}</strong>
+      </div>
+    </div>
+  );
+}
+
+// Solution Template Component
+function SolutionTemplate({ data, onFieldChange }: {
+  data: TemplateData;
+  onFieldChange: (field: string, value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <TemplateField
+        id="solutionRationale"
+        label="Solution Rationale (Why This Solution?)"
+        value={data.solutionRationale || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.solutionRationale.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.solutionRationale.tooltip}
+        onChange={(value) => onFieldChange('template.solutionRationale', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="implementationApproach"
+        label="Implementation Approach"
+        value={data.implementationApproach || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.implementationApproach.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.implementationApproach.tooltip}
+        onChange={(value) => onFieldChange('template.implementationApproach', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="keyFeatures"
+        label="Key Features & Capabilities"
+        value={data.keyFeatures || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.keyFeatures.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.keyFeatures.tooltip}
+        onChange={(value) => onFieldChange('template.keyFeatures', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="technicalRequirements"
+        label="Technical Requirements"
+        value={data.technicalRequirements || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.technicalRequirements.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.technicalRequirements.tooltip}
+        onChange={(value) => onFieldChange('template.technicalRequirements', value)}
+        type="textarea"
+        rows={2}
+      />
+      <TemplateField
+        id="userExperience"
+        label="User Experience Design"
+        value={data.userExperience || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.userExperience.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.userExperience.tooltip}
+        onChange={(value) => onFieldChange('template.userExperience', value)}
+        type="textarea"
+        rows={2}
+      />
+      <TemplateField
+        id="dependencies"
+        label="Dependencies & Constraints"
+        value={data.dependencies || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.dependencies.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.dependencies.tooltip}
+        onChange={(value) => onFieldChange('template.dependencies', value)}
+        type="textarea"
+        rows={2}
+      />
+    </div>
+  );
+}
+
+// Assumption Test Template Component
+function AssumptionTemplate({ data, onFieldChange }: {
+  data: TemplateData;
+  onFieldChange: (field: string, value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <TemplateField
+        id="assumptionType"
+        label="Assumption Type"
+        value={data.assumptionType || ''}
+        placeholder={TEMPLATE_GUIDANCE.assumption.assumptionType.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.assumption.assumptionType.tooltip}
+        onChange={(value) => onFieldChange('template.assumptionType', value)}
+        type="text"
+      />
+      <TemplateField
+        id="hypothesisStatement"
+        label="Hypothesis Statement"
+        value={data.hypothesisStatement || ''}
+        placeholder={TEMPLATE_GUIDANCE.assumption.hypothesisStatement.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.assumption.hypothesisStatement.tooltip}
+        onChange={(value) => onFieldChange('template.hypothesisStatement', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="testMethod"
+        label="Test Method & Approach"
+        value={data.testMethod || ''}
+        placeholder={TEMPLATE_GUIDANCE.assumption.testMethod.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.assumption.testMethod.tooltip}
+        onChange={(value) => onFieldChange('template.testMethod', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="successCriteria"
+        label="Success Criteria"
+        value={data.successCriteria || ''}
+        placeholder={TEMPLATE_GUIDANCE.assumption.successCriteria.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.assumption.successCriteria.tooltip}
+        onChange={(value) => onFieldChange('template.successCriteria', value)}
+        type="textarea"
+        rows={2}
+      />
+      <TemplateField
+        id="riskLevel"
+        label="Risk Level & Impact"
+        value={data.riskLevel || ''}
+        placeholder={TEMPLATE_GUIDANCE.assumption.riskLevel.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.assumption.riskLevel.tooltip}
+        onChange={(value) => onFieldChange('template.riskLevel', value)}
+        type="textarea"
+        rows={2}
+      />
+    </div>
+  );
+}
+
+// Metric Template Component
+function MetricTemplate({ data, onFieldChange }: {
+  data: TemplateData;
+  onFieldChange: (field: string, value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <TemplateField
+        id="metricType"
+        label="Metric Type"
+        value={data.metricType || ''}
+        placeholder={TEMPLATE_GUIDANCE.metric.metricType.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.metric.metricType.tooltip}
+        onChange={(value) => onFieldChange('template.metricType', value)}
+        type="text"
+      />
+      <TemplateField
+        id="metricDefinition"
+        label="Metric Definition"
+        value={data.metricDefinition || ''}
+        placeholder={TEMPLATE_GUIDANCE.metric.metricDefinition.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.metric.metricDefinition.tooltip}
+        onChange={(value) => onFieldChange('template.metricDefinition', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="calculationMethod"
+        label="Calculation Method"
+        value={data.calculationMethod || ''}
+        placeholder={TEMPLATE_GUIDANCE.metric.calculationMethod.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.metric.calculationMethod.tooltip}
+        onChange={(value) => onFieldChange('template.calculationMethod', value)}
+        type="textarea"
+        rows={2}
+      />
+      <TemplateField
+        id="dataSource"
+        label="Data Source & Tools"
+        value={data.dataSource || ''}
+        placeholder={TEMPLATE_GUIDANCE.metric.dataSource.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.metric.dataSource.tooltip}
+        onChange={(value) => onFieldChange('template.dataSource', value)}
+        type="textarea"
+        rows={2}
+      />
+      <TemplateField
+        id="reportingFrequency"
+        label="Reporting Frequency"
+        value={data.reportingFrequency || ''}
+        placeholder={TEMPLATE_GUIDANCE.metric.reportingFrequency.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.metric.reportingFrequency.tooltip}
+        onChange={(value) => onFieldChange('template.reportingFrequency', value)}
+        type="text"
+      />
+      <TemplateField
+        id="target"
+        label="Target Value & Timeframe"
+        value={data.target || ''}
+        placeholder={TEMPLATE_GUIDANCE.metric.target.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.metric.target.tooltip}
+        onChange={(value) => onFieldChange('template.target', value)}
+        type="text"
+      />
+    </div>
+  );
+}
+
+// Research Template Component
+function ResearchTemplate({ data, onFieldChange }: {
+  data: TemplateData;
+  onFieldChange: (field: string, value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <TemplateField
+        id="researchType"
+        label="Research Type"
+        value={data.researchType || ''}
+        placeholder={TEMPLATE_GUIDANCE.research.researchType.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.research.researchType.tooltip}
+        onChange={(value) => onFieldChange('template.researchType', value)}
+        type="text"
+      />
+      <TemplateField
+        id="researchQuestions"
+        label="Research Questions"
+        value={data.researchQuestions || ''}
+        placeholder={TEMPLATE_GUIDANCE.research.researchQuestions.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.research.researchQuestions.tooltip}
+        onChange={(value) => onFieldChange('template.researchQuestions', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="methodology"
+        label="Methodology & Approach"
+        value={data.methodology || ''}
+        placeholder={TEMPLATE_GUIDANCE.research.methodology.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.research.methodology.tooltip}
+        onChange={(value) => onFieldChange('template.methodology', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="participants"
+        label="Participants & Recruitment"
+        value={data.participants || ''}
+        placeholder={TEMPLATE_GUIDANCE.research.participants.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.research.participants.tooltip}
+        onChange={(value) => onFieldChange('template.participants', value)}
+        type="textarea"
+        rows={2}
+      />
+      <TemplateField
+        id="timeline"
+        label="Timeline & Milestones"
+        value={data.timeline || ''}
+        placeholder={TEMPLATE_GUIDANCE.research.timeline.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.research.timeline.tooltip}
+        onChange={(value) => onFieldChange('template.timeline', value)}
+        type="textarea"
+        rows={2}
+      />
+      <TemplateField
+        id="expectedOutcomes"
+        label="Expected Outcomes & Deliverables"
+        value={data.expectedOutcomes || ''}
+        placeholder={TEMPLATE_GUIDANCE.research.expectedOutcomes.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.research.expectedOutcomes.tooltip}
+        onChange={(value) => onFieldChange('template.expectedOutcomes', value)}
+        type="textarea"
+        rows={3}
+      />
+    </div>
+  );
+}
+
+// RICE Scoring Widget Component
+function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
+  data: TemplateData;
+  onFieldChange: (field: string, value: any) => void;
+  calculatedScore: number;
+}) {
+  const getScoreColor = (score: number) => {
+    if (score < 10) return "text-red-600";
+    if (score < 50) return "text-yellow-600";
+    return "text-green-600";
+  };
+
+  const getScoreLabel = (score: number) => {
+    if (score < 10) return "Low";
+    if (score < 50) return "Medium";
+    return "High";
+  };
+
+  return (
+    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+      {/* Header with Score */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calculator className="w-4 h-4" />
+          <span className="font-medium">RICE Score</span>
+        </div>
+        <div className="text-right">
+          <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
+            {calculatedScore.toFixed(1)}
+          </div>
+          <div className="text-xs text-gray-500">
+            {getScoreLabel(calculatedScore)}
+          </div>
+        </div>
+      </div>
+
+      {/* Scoring Grid */}
+      <div className="grid grid-cols-1 gap-3">
+        {/* Reach */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Reach</Label>
+            <span className="text-sm text-gray-500">
+              {data.riceReach || 0}
+            </span>
+          </div>
+          <Slider
+            value={[data.riceReach || 0]}
+            onValueChange={([value]) => onFieldChange('template.riceReach', value)}
+            max={100}
+            min={0}
+            step={1}
+            className="w-full"
+          />
+          <Textarea
+            value={data.riceReachRationale || ''}
+            onChange={(e) => onFieldChange('template.riceReachRationale', e.target.value)}
+            placeholder={TEMPLATE_GUIDANCE.solution.riceReachRationale.placeholder}
+            rows={1}
+            className="text-xs"
+          />
+        </div>
+
+        {/* Impact */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Impact</Label>
+            <span className="text-sm text-gray-500">
+              {data.riceImpact || 0}
+            </span>
+          </div>
+          <Slider
+            value={[data.riceImpact || 0]}
+            onValueChange={([value]) => onFieldChange('template.riceImpact', value)}
+            max={5}
+            min={0}
+            step={1}
+            className="w-full"
+          />
+          <Textarea
+            value={data.riceImpactRationale || ''}
+            onChange={(e) => onFieldChange('template.riceImpactRationale', e.target.value)}
+            placeholder={TEMPLATE_GUIDANCE.solution.riceImpactRationale.placeholder}
+            rows={1}
+            className="text-xs"
+          />
+        </div>
+
+        {/* Confidence */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Confidence</Label>
+            <span className="text-sm text-gray-500">
+              {data.riceConfidence || 0}%
+            </span>
+          </div>
+          <Slider
+            value={[data.riceConfidence || 0]}
+            onValueChange={([value]) => onFieldChange('template.riceConfidence', value)}
+            max={100}
+            min={0}
+            step={1}
+            className="w-full"
+          />
+          <Textarea
+            value={data.riceConfidenceRationale || ''}
+            onChange={(e) => onFieldChange('template.riceConfidenceRationale', e.target.value)}
+            placeholder={TEMPLATE_GUIDANCE.solution.riceConfidenceRationale.placeholder}
+            rows={1}
+            className="text-xs"
+          />
+        </div>
+
+        {/* Effort */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Effort (Person-Weeks)</Label>
+            <span className="text-sm text-gray-500">
+              {data.riceEffort || 1}
+            </span>
+          </div>
+          <Slider
+            value={[data.riceEffort || 1]}
+            onValueChange={([value]) => onFieldChange('template.riceEffort', value)}
+            max={50}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          <Textarea
+            value={data.riceEffortRationale || ''}
+            onChange={(e) => onFieldChange('template.riceEffortRationale', e.target.value)}
+            placeholder={TEMPLATE_GUIDANCE.solution.riceEffortRationale.placeholder}
+            rows={1}
+            className="text-xs"
+          />
+        </div>
+      </div>
+
+      <div className="pt-2 border-t text-xs text-gray-600">
+        <strong>Formula:</strong> ({data.riceReach || 0} × {data.riceImpact || 0} × {data.riceConfidence || 0}%) ÷ {data.riceEffort || 1} = <strong>{calculatedScore.toFixed(1)}</strong>
+      </div>
+    </div>
+  );
+}
+
+// Evidence-Impact Widget Component
+function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
+  data: TemplateData;
+  onFieldChange: (field: string, value: any) => void;
+  calculatedScore: number;
+}) {
+  const getScoreColor = (score: number) => {
+    if (score < 6) return "text-red-600";
+    if (score < 15) return "text-yellow-600";
+    return "text-green-600";
+  };
+
+  const getScoreLabel = (score: number) => {
+    if (score < 6) return "Low";
+    if (score < 15) return "Medium";
+    return "High";
+  };
+
+  return (
+    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+      {/* Header with Score */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calculator className="w-4 h-4" />
+          <span className="font-medium">Evidence-Impact Score</span>
+        </div>
+        <div className="text-right">
+          <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
+            {calculatedScore}
+          </div>
+          <div className="text-xs text-gray-500">
+            {getScoreLabel(calculatedScore)}
+          </div>
+        </div>
+      </div>
+
+      {/* Scoring Grid */}
+      <div className="grid grid-cols-1 gap-3">
+        {/* Evidence */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Evidence Strength</Label>
+            <span className="text-sm text-gray-500">
+              {data.evidenceScore || 1}
+            </span>
+          </div>
+          <Slider
+            value={[data.evidenceScore || 1]}
+            onValueChange={([value]) => onFieldChange('template.evidenceScore', value)}
+            max={5}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          <Textarea
+            value={data.evidenceRationale || ''}
+            onChange={(e) => onFieldChange('template.evidenceRationale', e.target.value)}
+            placeholder={TEMPLATE_GUIDANCE.assumption.evidenceRationale.placeholder}
+            rows={1}
+            className="text-xs"
+          />
+        </div>
+
+        {/* Impact */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Impact on Objective</Label>
+            <span className="text-sm text-gray-500">
+              {data.impactScore || 1}
+            </span>
+          </div>
+          <Slider
+            value={[data.impactScore || 1]}
+            onValueChange={([value]) => onFieldChange('template.impactScore', value)}
+            max={5}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          <Textarea
+            value={data.impactRationale || ''}
+            onChange={(e) => onFieldChange('template.impactRationale', e.target.value)}
+            placeholder={TEMPLATE_GUIDANCE.assumption.impactRationale.placeholder}
+            rows={1}
+            className="text-xs"
+          />
+        </div>
+      </div>
+
+      <div className="pt-2 border-t text-xs text-gray-600">
+        <strong>Calculation:</strong> {data.evidenceScore || 1} × {data.impactScore || 1} = <strong>{calculatedScore}</strong>
       </div>
     </div>
   );

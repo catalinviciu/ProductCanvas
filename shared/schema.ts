@@ -70,6 +70,52 @@ export interface TreeNode {
     iceImpactRationale?: string;
     iceConfidenceRationale?: string;
     iceEaseRationale?: string;
+    
+    // Solution fields
+    solutionRationale?: string;
+    implementationApproach?: string;
+    keyFeatures?: string;
+    technicalRequirements?: string;
+    userExperience?: string;
+    dependencies?: string;
+    
+    // RICE scoring for Solutions
+    riceReach?: number;
+    riceImpact?: number;
+    riceConfidence?: number;
+    riceEffort?: number;
+    riceReachRationale?: string;
+    riceImpactRationale?: string;
+    riceConfidenceRationale?: string;
+    riceEffortRationale?: string;
+    
+    // Assumption Test fields
+    assumptionType?: string;
+    hypothesisStatement?: string;
+    testMethod?: string;
+    successCriteria?: string;
+    riskLevel?: string;
+    
+    // Evidence-Impact scoring for Assumptions
+    evidenceScore?: number;
+    impactScore?: number;
+    evidenceRationale?: string;
+    impactRationale?: string;
+    
+    // Metric fields
+    metricType?: string;
+    metricDefinition?: string;
+    calculationMethod?: string;
+    dataSource?: string;
+    reportingFrequency?: string;
+    
+    // Research fields
+    researchQuestions?: string;
+    methodology?: string;
+    participants?: string;
+    timeline?: string;
+    expectedOutcomes?: string;
+    researchType?: string;
   };
 }
 
