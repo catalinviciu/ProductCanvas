@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserProfileMenu } from "@/components/user-profile-menu";
+import { ProgressAnalytics } from "@/components/progress-analytics";
 import { TreePine, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -44,6 +45,10 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6">
+          {trees.length > 0 && (
+            <ProgressAnalytics />
+          )}
+          
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">

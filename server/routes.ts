@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertImpactTreeSchema, type TreeNode, type NodeConnection, type CanvasState } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { registerEnhancedRoutes } from "./enhanced-routes";
 
 const updateNodeSchema = z.object({
   id: z.string(),
@@ -101,8 +102,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new impact tree
   app.post("/api/impact-trees", isAuthenticated, async (req, res) => {
     try {
+      const userId = req.user?.claims.sub;
       const validatedData = insertImpactTreeSchema.parse(req.body);
-      const tree = await storage.createImpactTree(validatedData);
+      const treeWithUserId = {
+        ...validatedData,
+        user_id: userId
+      };
+      const tree = await storage.createImpactTree(treeWithUserId);
       res.status(201).json(tree);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -158,6 +164,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete impact tree" });
     }
   });
+
+  // Register enhanced routes for AI and user progress tracking
+  registerEnhancedRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

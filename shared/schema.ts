@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, varchar, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, varchar, index, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -26,14 +26,59 @@ export const users = pgTable("users", {
 
 export const impactTrees = pgTable("impact_trees", {
   id: serial("id").primaryKey(),
+  user_id: varchar("user_id", { length: 255 }),
   name: text("name").notNull(),
   description: text("description"),
+  
+  // Legacy structure (maintain compatibility)
   nodes: jsonb("nodes").notNull().default('[]'),
   connections: jsonb("connections").notNull().default('[]'),
   canvasState: jsonb("canvas_state").notNull().default('{"zoom": 1, "pan": {"x": 0, "y": 0}}'),
+  
+  // AI-optimized structure
+  treeStructure: jsonb("tree_structure").notNull().default('{}'),
+  userMetrics: jsonb("user_metrics").notNull().default('{}'),
+  aiMetadata: jsonb("ai_metadata").notNull().default('{}'),
+  processingVersion: integer("processing_version").default(1),
+  lastAiProcessedAt: timestamp("last_ai_processed_at"),
+  
+  // Timestamps
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userUpdatedIdx: index("idx_trees_user_updated").on(table.user_id, table.updatedAt.desc()),
+  aiProcessingIdx: index("idx_trees_ai_processing").on(table.lastAiProcessedAt, table.processingVersion),
+  treeStructureGin: index("idx_tree_structure_gin").using("gin", table.treeStructure),
+  nodesGin: index("idx_nodes_gin").using("gin", table.nodes),
+}));
+
+export const treeVersions = pgTable("tree_versions", {
+  id: serial("id").primaryKey(),
+  treeId: integer("tree_id").notNull().references(() => impactTrees.id, { onDelete: 'cascade' }),
+  versionNumber: integer("version_number").notNull(),
+  treeSnapshot: jsonb("tree_snapshot").notNull(),
+  changeDescription: text("change_description"),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  treeTimeIdx: index("idx_versions_tree_time").on(table.treeId, table.createdAt.desc()),
+  uniqueVersion: unique("unique_tree_version").on(table.treeId, table.versionNumber),
+}));
+
+export const userActivities = pgTable("user_activities", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  treeId: integer("tree_id").references(() => impactTrees.id, { onDelete: 'cascade' }),
+  nodeId: varchar("node_id", { length: 255 }),
+  activityType: varchar("activity_type", { length: 50 }).notNull(),
+  activityData: jsonb("activity_data").notNull().default('{}'),
+  sessionId: varchar("session_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  durationMs: integer("duration_ms"),
+}, (table) => ({
+  userTimeIdx: index("idx_activities_user_time").on(table.userId, table.createdAt.desc()),
+  treeTypeIdx: index("idx_activities_tree_type").on(table.treeId, table.activityType, table.createdAt.desc()),
+}));
 
 export const insertImpactTreeSchema = createInsertSchema(impactTrees).omit({
   id: true,
@@ -43,6 +88,10 @@ export const insertImpactTreeSchema = createInsertSchema(impactTrees).omit({
 
 export type InsertImpactTree = z.infer<typeof insertImpactTreeSchema>;
 export type ImpactTree = typeof impactTrees.$inferSelect;
+export type TreeVersion = typeof treeVersions.$inferSelect;
+export type UserActivity = typeof userActivities.$inferSelect;
+export type InsertTreeVersion = typeof treeVersions.$inferInsert;
+export type InsertUserActivity = typeof userActivities.$inferInsert;
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;

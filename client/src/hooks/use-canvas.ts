@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop } from "@/lib/canvas-utils";
+import { useEnhancedTreePersistence } from "./use-enhanced-tree-persistence";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface CreateFirstNodeModalState {
 
 export function useCanvas(impactTree: ImpactTree | undefined) {
   const queryClient = useQueryClient();
+  const enhancedPersistence = useEnhancedTreePersistence(impactTree?.id || 0);
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     isOpen: false,
@@ -94,19 +96,21 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     },
   });
 
-  const saveTree = useCallback((updatedNodes?: TreeNode[], updatedConnections?: NodeConnection[], updatedCanvasState?: CanvasState) => {
+  const saveTree = useCallback((updatedNodes?: TreeNode[], updatedConnections?: NodeConnection[], updatedCanvasState?: CanvasState, activityType?: string) => {
     if (!impactTree?.id) return; // Don't save if no valid tree ID
     
     const finalNodes = updatedNodes || nodes;
     const finalConnections = updatedConnections || connections;
     const finalCanvasState = updatedCanvasState || canvasState;
 
-    updateTreeMutation.mutate({
-      nodes: finalNodes,
-      connections: finalConnections,
-      canvasState: finalCanvasState,
-    });
-  }, [nodes, connections, canvasState, updateTreeMutation, impactTree?.id]);
+    // Use enhanced persistence with activity tracking
+    enhancedPersistence.saveTreeWithTracking(
+      finalNodes,
+      finalConnections,
+      finalCanvasState,
+      activityType
+    );
+  }, [nodes, connections, canvasState, enhancedPersistence, impactTree?.id]);
 
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
     const nodeId = generateNodeId(type);
@@ -142,7 +146,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
 
     setNodes(updatedNodes);
     setConnections(updatedConnections);
-    saveTree(updatedNodes, updatedConnections);
+    saveTree(updatedNodes, updatedConnections, undefined, 'node_created');
   }, [nodes, connections, canvasState.orientation, saveTree]);
 
   const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
