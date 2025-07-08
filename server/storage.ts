@@ -1,6 +1,13 @@
-import { type ImpactTree, type InsertImpactTree } from "@shared/schema";
+import { type ImpactTree, type InsertImpactTree, type User, type UpsertUser } from "@shared/schema";
+import { db } from "./db";
+import { users, impactTrees } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations for Replit Auth
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  // Impact tree operations
   getImpactTree(id: number): Promise<ImpactTree | undefined>;
   getAllImpactTrees(): Promise<ImpactTree[]>;
   createImpactTree(tree: InsertImpactTree): Promise<ImpactTree>;
@@ -8,77 +15,62 @@ export interface IStorage {
   deleteImpactTree(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private impactTrees: Map<number, ImpactTree>;
-  private currentId: number;
-
-  constructor() {
-    this.impactTrees = new Map();
-    this.currentId = 1;
-    this.createSampleTree();
+export class DatabaseStorage implements IStorage {
+  // User operations for Replit Auth
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
-  private createSampleTree() {
-    const sampleTree: ImpactTree = {
-      id: 1,
-      name: "Product Strategy Canvas",
-      description: "User retention improvement strategy",
-      nodes: [],
-      connections: [],
-      canvasState: {
-        zoom: 1,
-        pan: { x: 0, y: 0 },
-        orientation: 'vertical'
-      },
-      createdAt: new Date('2024-01-15T10:00:00Z'),
-      updatedAt: new Date('2024-01-20T14:30:00Z')
-    };
-
-    this.impactTrees.set(1, sampleTree);
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
   }
 
+  // Impact tree operations
   async getImpactTree(id: number): Promise<ImpactTree | undefined> {
-    return this.impactTrees.get(id);
+    const [tree] = await db.select().from(impactTrees).where(eq(impactTrees.id, id));
+    return tree;
   }
 
   async getAllImpactTrees(): Promise<ImpactTree[]> {
-    return Array.from(this.impactTrees.values());
+    return await db.select().from(impactTrees);
   }
 
   async createImpactTree(insertTree: InsertImpactTree): Promise<ImpactTree> {
-    this.currentId++;
-    const tree: ImpactTree = {
-      id: this.currentId,
-      name: insertTree.name,
-      description: insertTree.description ?? null,
-      nodes: insertTree.nodes ?? [],
-      connections: insertTree.connections ?? [],
-      canvasState: insertTree.canvasState ?? { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'vertical' },
-      createdAt: new Date(),
-      updatedAt: new Date()
-    } as ImpactTree;
-
-    this.impactTrees.set(this.currentId, tree);
+    const [tree] = await db
+      .insert(impactTrees)
+      .values(insertTree)
+      .returning();
     return tree;
   }
 
   async updateImpactTree(id: number, updates: Partial<InsertImpactTree>): Promise<ImpactTree | undefined> {
-    const existingTree = this.impactTrees.get(id);
-    if (!existingTree) return undefined;
-
-    const updatedTree: ImpactTree = {
-      ...existingTree,
-      ...updates,
-      updatedAt: new Date()
-    };
-
-    this.impactTrees.set(id, updatedTree);
-    return updatedTree;
+    const [tree] = await db
+      .update(impactTrees)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(impactTrees.id, id))
+      .returning();
+    return tree;
   }
 
   async deleteImpactTree(id: number): Promise<boolean> {
-    return this.impactTrees.delete(id);
+    const result = await db
+      .delete(impactTrees)
+      .where(eq(impactTrees.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

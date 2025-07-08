@@ -2,21 +2,55 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
-
-
 import { NodeEditSideDrawer } from "@/components/drawers/node-edit-side-drawer";
 import { ContextMenu } from "@/components/modals/context-menu";
 import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
 import { useCanvas } from "@/hooks/use-canvas";
+import { useAuth } from "@/hooks/useAuth";
 import { type ImpactTree } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 export default function CanvasPage() {
   const { id } = useParams();
-  const treeId = id ? parseInt(id) : 1; // Default to tree 1 if no ID provided
+  const { toast } = useToast();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  
+  // Handle new tree creation or existing tree ID
+  const treeId = id === "new" ? null : id ? parseInt(id) : 1;
 
-  const { data: impactTree, isLoading } = useQuery<ImpactTree>({
-    queryKey: ["/api/impact-trees", treeId],
+  const { data: impactTree, isLoading, error } = useQuery<ImpactTree>({
+    queryKey: treeId ? ["/api/impact-trees", treeId] : ["/api/impact-trees", "new"],
+    enabled: !!isAuthenticated && !authLoading,
+    retry: (failureCount, error) => {
+      if (error && isUnauthorizedError(error as Error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+    }
+  }, [isAuthenticated, authLoading, toast]);
 
   const {
     selectedNode,

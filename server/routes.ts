@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertImpactTreeSchema, type TreeNode, type NodeConnection, type CanvasState } from "@shared/schema";
 import { z } from "zod";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 const updateNodeSchema = z.object({
   id: z.string(),
@@ -35,18 +36,51 @@ const updateCanvasSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // Get all impact trees
-  app.get("/api/impact-trees", async (req, res) => {
+  app.get("/api/impact-trees", isAuthenticated, async (req, res) => {
     try {
       const trees = await storage.getAllImpactTrees();
-      res.json(trees);
+      
+      // If no trees exist, create a sample tree
+      if (trees.length === 0) {
+        const sampleTree = await storage.createImpactTree({
+          name: "Sample Product Strategy",
+          description: "A sample impact tree demonstrating strategic planning",
+          nodes: [],
+          connections: [],
+          canvasState: {
+            zoom: 1,
+            pan: { x: 0, y: 0 },
+            orientation: 'vertical'
+          }
+        });
+        res.json([sampleTree]);
+      } else {
+        res.json(trees);
+      }
     } catch (error) {
+      console.error("Error fetching impact trees:", error);
       res.status(500).json({ message: "Failed to fetch impact trees" });
     }
   });
 
   // Get a specific impact tree
-  app.get("/api/impact-trees/:id", async (req, res) => {
+  app.get("/api/impact-trees/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -65,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new impact tree
-  app.post("/api/impact-trees", async (req, res) => {
+  app.post("/api/impact-trees", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertImpactTreeSchema.parse(req.body);
       const tree = await storage.createImpactTree(validatedData);
@@ -79,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update an impact tree
-  app.put("/api/impact-trees/:id", async (req, res) => {
+  app.put("/api/impact-trees/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -107,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete an impact tree
-  app.delete("/api/impact-trees/:id", async (req, res) => {
+  app.delete("/api/impact-trees/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
