@@ -599,7 +599,7 @@ function OpportunityTemplate({ data, onFieldChange }: {
     <div className="space-y-4">
       <TemplateField
         id="customerProblem"
-        label="The Customer's Problem/Need (The \"What\")"
+        label="The Customer's Problem/Need (The &quot;What&quot;)"
         value={data.customerProblem || ''}
         placeholder={TEMPLATE_PLACEHOLDERS.opportunity.customerProblem}
         onChange={(value) => onFieldChange('template.customerProblem', value)}
