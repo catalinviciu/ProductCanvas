@@ -261,32 +261,32 @@ const TEMPLATE_GUIDANCE = {
   },
   assumption: {
     assumptionType: {
-      tooltip: "What type of assumption is this? e.g., Value, Feasibility, Viability, Usability",
-      placeholder: "Usability - Users will understand and prefer guided setup over free-form configuration"
+      tooltip: "Select the type of assumption being tested: desirability (do users want it?), feasibility (can we build it?), viability (is it sustainable?), or usability (can users use it?).",
+      placeholder: "Select assumption type..."
     },
     hypothesisStatement: {
       tooltip: "State your assumption as a testable hypothesis with clear conditions for success/failure.",
-      placeholder: "If we provide guided budget setup with smart defaults, then new users will complete setup 50% faster with 40% higher satisfaction"
+      placeholder: "We believe that users desire a personalized playlist curator feature that learns their preferences..."
     },
     testMethod: {
       tooltip: "How will you test this assumption? What's your validation approach?",
-      placeholder: "A/B test: 50% see current flow, 50% see guided wizard. Measure completion time, completion rate, and satisfaction survey"
+      placeholder: "Conduct a brief, in-app survey for 100 active users asking about interest..."
     },
     successCriteria: {
       tooltip: "What specific results will prove this assumption true? Be measurable and specific.",
-      placeholder: "Success: >20% faster completion, >15% higher completion rate, >0.5 point satisfaction increase (5-point scale)"
+      placeholder: "Over 70% of surveyed users indicating strong interest..."
     },
     riskLevel: {
       tooltip: "How risky is it if this assumption is wrong? What's the impact of being incorrect?",
-      placeholder: "Medium risk: Wrong direction could delay onboarding improvements by 1 sprint, low development cost to reverse"
+      placeholder: "Medium risk: Wrong direction could delay feature development..."
     },
     evidenceRationale: {
       tooltip: "How strong is the evidence supporting this assumption? Consider research quality and quantity.",
-      placeholder: "Strong evidence: User interviews, competitor analysis, UX research patterns support guided approach"
+      placeholder: "Strong evidence: User interviews, competitor analysis, UX research patterns..."
     },
     impactRationale: {
       tooltip: "How much will proving this assumption advance the objective? Consider strategic importance.",
-      placeholder: "High impact: Directly addresses main onboarding barrier, enabling broader activation improvements"
+      placeholder: "High impact: Directly addresses main user need, enabling broader engagement..."
     }
   },
   metric: {
@@ -466,7 +466,22 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
     return (riceReach * riceImpact * riceConfidence) / riceEffort;
   }, [formData.templateData.riceReach, formData.templateData.riceImpact, formData.templateData.riceConfidence, formData.templateData.riceEffort]);
 
-  // Calculate Evidence-Impact score
+  // Calculate Evidence-Impact priority based on proper quadrant logic
+  const evidenceImpactPriority = useMemo(() => {
+    const { evidenceScore = 1, impactScore = 1 } = formData.templateData;
+    
+    // Priority calculation based on implementation plan:
+    // Strong Evidence (>=4) + High Impact (>=4) = Low Priority
+    // Strong Evidence (>=4) + Low Impact (<4) = Not Worth Testing  
+    // Weak Evidence (<4) + Low Impact (<4) = Low Priority
+    // Weak Evidence (<4) + High Impact (>=4) = High Priority
+    
+    if (evidenceScore >= 4 && impactScore >= 4) return 'Low Priority';
+    if (evidenceScore >= 4 && impactScore < 4) return 'Not Worth Testing';
+    if (evidenceScore < 4 && impactScore < 4) return 'Low Priority';
+    return 'High Priority'; // Weak evidence + high impact
+  }, [formData.templateData.evidenceScore, formData.templateData.impactScore]);
+
   const evidenceImpactScore = useMemo(() => {
     const { evidenceScore = 0, impactScore = 0 } = formData.templateData;
     return evidenceScore * impactScore;
@@ -719,11 +734,9 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
                     {isIceExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                     <Calculator className="w-4 h-4" />
                     <Label className="text-sm font-medium cursor-pointer">Evidence-Impact Prioritization</Label>
-                    {evidenceImpactScore > 0 && (
-                      <Badge variant="secondary" className="ml-auto">
-                        Score: {evidenceImpactScore}
-                      </Badge>
-                    )}
+                    <Badge variant="secondary" className="ml-auto">
+                      {evidenceImpactPriority}
+                    </Badge>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-4">
                     <EvidenceImpactWidget 
@@ -1185,22 +1198,71 @@ function AssumptionTemplate({ data, onFieldChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
 }) {
+  // Get specific placeholders based on assumption type
+  const getAssumptionPlaceholders = (type: string) => {
+    const placeholders = {
+      desirability: {
+        hypothesisStatement: "e.g., 'Our music streaming app users desire a personalized playlist curator feature that learns their preferences and automatically generates new playlists, saving them time and introducing them to new music.'",
+        testMethod: "e.g., 'Conduct a brief, in-app survey for 100 active users asking: \"Would you be interested in a feature that automatically creates personalized playlists for you based on your listening habits?\"'",
+        successCriteria: "e.g., 'Over 70% of surveyed users indicating strong interest (\"Yes, definitely\" or \"Yes, probably\"). Recurring themes in open-ended responses about saving time, discovering new artists, or matching specific moods.'"
+      },
+      feasibility: {
+        hypothesisStatement: "e.g., 'Our current database and API infrastructure can handle real-time inventory updates across all product SKUs for our e-commerce platform during peak traffic without significant latency or data inconsistencies.'",
+        testMethod: "e.g., 'Run a controlled load test in a staging environment. Simulate 500 concurrent users browsing products and 50 concurrent \"purchase\" events (which trigger inventory updates).'",
+        successCriteria: "e.g., 'Average inventory update latency remaining below 200ms. Database CPU and memory utilization staying below 80%. No instances of incorrect inventory counts observed after concurrent updates.'"
+      },
+      viability: {
+        hypothesisStatement: "e.g., 'Our premium subscription model with advanced analytics features will generate sufficient revenue to support the development costs and maintain a profitable business line within 12 months.'",
+        testMethod: "e.g., 'Launch a limited beta with 200 existing users, offering premium features at target price point. Track conversion rates, usage patterns, and retention over 3 months.'",
+        successCriteria: "e.g., 'Minimum 15% conversion rate from free to premium, average revenue per user of $25/month, 80% monthly retention rate after 3 months.'"
+      },
+      usability: {
+        hypothesisStatement: "e.g., 'Users can successfully complete the new checkout flow without assistance, experiencing reduced friction and fewer abandonment points compared to the current system.'",
+        testMethod: "e.g., 'Conduct moderated usability testing with 12 participants representing our core demographics. Observe task completion, measure time-to-complete, and gather satisfaction feedback.'",
+        successCriteria: "e.g., 'Task completion rate >90%, average time-to-complete reduced by 25%, post-task satisfaction score >4.0/5.0, fewer than 2 critical usability issues identified.'"
+      }
+    };
+    
+    return placeholders[type as keyof typeof placeholders] || placeholders.desirability;
+  };
+
+  const currentPlaceholders = getAssumptionPlaceholders(data.assumptionType || 'desirability');
+
   return (
     <div className="space-y-4">
-      <TemplateField
-        id="assumptionType"
-        label="Assumption Type"
-        value={data.assumptionType || ''}
-        placeholder={TEMPLATE_GUIDANCE.assumption.assumptionType.placeholder}
-        tooltip={TEMPLATE_GUIDANCE.assumption.assumptionType.tooltip}
-        onChange={(value) => onFieldChange('template.assumptionType', value)}
-        type="text"
-      />
+      {/* Assumption Type Selector */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="assumptionType" className="text-sm font-medium">
+            Assumption Type
+          </Label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="text-sm">{TEMPLATE_GUIDANCE.assumption.assumptionType.tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <Select value={data.assumptionType || ''} onValueChange={(value) => onFieldChange('template.assumptionType', value)}>
+          <SelectTrigger className="text-sm">
+            <SelectValue placeholder="Select assumption type..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desirability">Desirability (Do users want it?)</SelectItem>
+            <SelectItem value="feasibility">Feasibility (Can we build it?)</SelectItem>
+            <SelectItem value="viability">Viability (Is it sustainable?)</SelectItem>
+            <SelectItem value="usability">Usability (Can users use it?)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <TemplateField
         id="hypothesisStatement"
         label="Hypothesis Statement"
         value={data.hypothesisStatement || ''}
-        placeholder={TEMPLATE_GUIDANCE.assumption.hypothesisStatement.placeholder}
+        placeholder={currentPlaceholders.hypothesisStatement}
         tooltip={TEMPLATE_GUIDANCE.assumption.hypothesisStatement.tooltip}
         onChange={(value) => onFieldChange('template.hypothesisStatement', value)}
         type="textarea"
@@ -1210,7 +1272,7 @@ function AssumptionTemplate({ data, onFieldChange }: {
         id="testMethod"
         label="Test Method & Approach"
         value={data.testMethod || ''}
-        placeholder={TEMPLATE_GUIDANCE.assumption.testMethod.placeholder}
+        placeholder={currentPlaceholders.testMethod}
         tooltip={TEMPLATE_GUIDANCE.assumption.testMethod.tooltip}
         onChange={(value) => onFieldChange('template.testMethod', value)}
         type="textarea"
@@ -1220,7 +1282,7 @@ function AssumptionTemplate({ data, onFieldChange }: {
         id="successCriteria"
         label="Success Criteria"
         value={data.successCriteria || ''}
-        placeholder={TEMPLATE_GUIDANCE.assumption.successCriteria.placeholder}
+        placeholder={currentPlaceholders.successCriteria}
         tooltip={TEMPLATE_GUIDANCE.assumption.successCriteria.tooltip}
         onChange={(value) => onFieldChange('template.successCriteria', value)}
         type="textarea"
@@ -1530,33 +1592,78 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
   onFieldChange: (field: string, value: any) => void;
   calculatedScore: number;
 }) {
-  const getScoreColor = (score: number) => {
-    if (score < 6) return "text-red-600";
-    if (score < 15) return "text-yellow-600";
-    return "text-green-600";
+  // Calculate priority based on evidence strength and impact
+  const calculatePriority = (evidenceScore: number, impactScore: number) => {
+    // Priority calculation based on implementation plan:
+    // Strong Evidence (>=4) + High Impact (>=4) = Low Priority
+    // Strong Evidence (>=4) + Low Impact (<4) = Not Worth Testing  
+    // Weak Evidence (<4) + Low Impact (<4) = Low Priority
+    // Weak Evidence (<4) + High Impact (>=4) = High Priority
+    
+    if (evidenceScore >= 4 && impactScore >= 4) return 'Low Priority';
+    if (evidenceScore >= 4 && impactScore < 4) return 'Not Worth Testing';
+    if (evidenceScore < 4 && impactScore < 4) return 'Low Priority';
+    return 'High Priority'; // Weak evidence + high impact
   };
 
-  const getScoreLabel = (score: number) => {
-    if (score < 6) return "Low";
-    if (score < 15) return "Medium";
-    return "High";
+  const priority = calculatePriority(data.evidenceScore || 1, data.impactScore || 1);
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High Priority': return "text-red-600";
+      case 'Low Priority': return "text-yellow-600";
+      case 'Not Worth Testing': return "text-gray-600";
+      default: return "text-gray-600";
+    }
   };
 
   return (
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-      {/* Header with Score */}
+      {/* Header with Priority */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calculator className="w-4 h-4" />
-          <span className="font-medium">Evidence-Impact Score</span>
+          <span className="font-medium">Evidence-Impact Prioritization</span>
         </div>
         <div className="text-right">
-          <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
-            {calculatedScore}
+          <div className={cn("text-lg font-bold", getPriorityColor(priority))}>
+            {priority}
           </div>
           <div className="text-xs text-gray-500">
-            {getScoreLabel(calculatedScore)}
+            Score: {calculatedScore}
           </div>
+        </div>
+      </div>
+
+      {/* 2x2 Priority Matrix Visualization */}
+      <div className="bg-white p-4 rounded-lg border">
+        <div className="text-sm font-medium mb-3 text-center">Priority Matrix</div>
+        <div className="grid grid-cols-2 gap-1 h-32 text-xs">
+          {/* Top Row: High Impact */}
+          <div className={cn("p-2 text-center border rounded", 
+            data.evidenceScore >= 4 && data.impactScore >= 4 ? "bg-yellow-200 border-yellow-400 font-semibold" : "bg-yellow-100 border-yellow-200")}>
+            <div className="font-medium text-yellow-800">Low Priority</div>
+            <div className="text-yellow-700 mt-1">Strong Evidence<br/>+ High Impact</div>
+          </div>
+          <div className={cn("p-2 text-center border rounded",
+            data.evidenceScore < 4 && data.impactScore >= 4 ? "bg-red-200 border-red-400 font-semibold" : "bg-red-100 border-red-200")}>
+            <div className="font-medium text-red-800">High Priority</div>
+            <div className="text-red-700 mt-1">Weak Evidence<br/>+ High Impact</div>
+          </div>
+          {/* Bottom Row: Low Impact */}
+          <div className={cn("p-2 text-center border rounded",
+            data.evidenceScore >= 4 && data.impactScore < 4 ? "bg-gray-300 border-gray-400 font-semibold" : "bg-gray-100 border-gray-200")}>
+            <div className="font-medium text-gray-800">Not Worth Testing</div>
+            <div className="text-gray-700 mt-1">Strong Evidence<br/>+ Low Impact</div>
+          </div>
+          <div className={cn("p-2 text-center border rounded",
+            data.evidenceScore < 4 && data.impactScore < 4 ? "bg-yellow-200 border-yellow-400 font-semibold" : "bg-yellow-100 border-yellow-200")}>
+            <div className="font-medium text-yellow-800">Low Priority</div>
+            <div className="text-yellow-700 mt-1">Weak Evidence<br/>+ Low Impact</div>
+          </div>
+        </div>
+        <div className="text-xs text-gray-600 mt-2 text-center">
+          Current position: <strong>Evidence {data.evidenceScore || 1}, Impact {data.impactScore || 1}</strong>
         </div>
       </div>
 
@@ -1567,7 +1674,7 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Evidence Strength</Label>
             <span className="text-sm text-gray-500">
-              {data.evidenceScore || 1}
+              {data.evidenceScore || 1} / 5
             </span>
           </div>
           <Slider
@@ -1578,6 +1685,9 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
+          <div className="text-xs text-gray-600">
+            1 = Weak Evidence (assumptions, no data) → 5 = Strong Evidence (validated research)
+          </div>
           <Textarea
             value={data.evidenceRationale || ''}
             onChange={(e) => onFieldChange('template.evidenceRationale', e.target.value)}
@@ -1590,9 +1700,9 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
         {/* Impact */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Impact on Objective</Label>
+            <Label className="text-sm font-medium">Impact if Wrong</Label>
             <span className="text-sm text-gray-500">
-              {data.impactScore || 1}
+              {data.impactScore || 1} / 5
             </span>
           </div>
           <Slider
@@ -1603,6 +1713,9 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
+          <div className="text-xs text-gray-600">
+            1 = Low Impact (minor setback) → 5 = High Impact (major failure risk)
+          </div>
           <Textarea
             value={data.impactRationale || ''}
             onChange={(e) => onFieldChange('template.impactRationale', e.target.value)}
@@ -1614,7 +1727,10 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
       </div>
 
       <div className="pt-2 border-t text-xs text-gray-600">
-        <strong>Calculation:</strong> {data.evidenceScore || 1} × {data.impactScore || 1} = <strong>{calculatedScore}</strong>
+        <div className="space-y-1">
+          <div><strong>Logic:</strong> Strong Evidence + High Impact = Low Priority (already proven)</div>
+          <div><strong>Target:</strong> Focus on High Priority (risky but important assumptions)</div>
+        </div>
       </div>
     </div>
   );
