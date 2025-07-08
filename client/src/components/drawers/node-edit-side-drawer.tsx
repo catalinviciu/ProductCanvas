@@ -1282,10 +1282,10 @@ function MetricTemplate({ data, onFieldChange }: {
         id="baseline"
         label="Current Value"
         value={data.baseline || ''}
-        placeholder={TEMPLATE_GUIDANCE.outcome.baseline.placeholder}
-        tooltip={TEMPLATE_GUIDANCE.outcome.baseline.tooltip}
+        placeholder="e.g., 42.5, 1250, 0.85"
+        tooltip="The current numerical value of this metric"
         onChange={(value) => onFieldChange('template.baseline', value)}
-        type="text"
+        type="number"
       />
       <TemplateField
         id="metricType"
@@ -1763,7 +1763,7 @@ function TemplateField({
   placeholder: string;
   tooltip?: string;
   onChange: (value: string) => void;
-  type?: 'text' | 'textarea';
+  type?: 'text' | 'textarea' | 'number';
   rows?: number;
 }) {
   return (
@@ -1796,6 +1796,7 @@ function TemplateField({
         ) : (
           <Input
             id={id}
+            type={type}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
