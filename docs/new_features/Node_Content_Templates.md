@@ -291,6 +291,10 @@ TemplateField.tsx - Reusable field component
 
 ## 🔗 **Related Documentation**
 
+### **Implementation**
+- **Implementation Plan**: [Node Content Templates Implementation Plan](../implementation_plans/25_Node_Content_Templates_Implementation_Plan.md)
+- **Workflow Guide**: [Documentation Workflow Guide](../workflow_guide.md)
+
 ### **Dependencies**
 - **Existing Component**: [NodeEditSideDrawer](rag://rag_source_0)
 - **Schema Updates**: Node model extensions for template data
