@@ -1,0 +1,59 @@
+1. Solution Rationale
+Explain specifically how this solution will solve the customer's problem as stated in the Parent Opportunity. This is the core logic connecting the problem to your proposed solution.
+
+e.g., "By proactively displaying universally recognized symbols of digital security, we can address the user's fear, uncertainty, and doubt at the exact moment they are asked to trust us with their financial data. This increased feeling of safety will make them more likely to complete the bank connection process."
+
+2. Solution Description
+A summary of what the solution is and how users will interact with it.
+
+High-Level Summary:
+
+e.g., "A new module on the bank connection page that displays security information and credentials to build user trust."
+
+Key Use Cases / User Stories:
+
+e.g., "As a new user, when I am asked to connect my bank account, I want to see proof of security so that I can feel confident my data is safe."
+
+e.g., "As a security-conscious user, I want to be able to learn more about the specific security protocols used before I grant access."
+
+Core Features:
+
+e.g.,
+
+Display a row of third-party security logos (e.g., Norton, McAfee, Plaid).
+
+Include a "Learn More" link that opens a modal with details on encryption and data policies.
+
+Add a brief testimonial about security from a current customer.
+
+3. Dependencies
+List any technical, legal, or cross-functional teams or resources required to implement this solution.
+
+e.g.,
+
+Technical: Access to the Plaid API for their official security marks.
+
+Cross-functional: Legal team review of all security claims made in the "Learn More" modal.
+
+Cross-functional: Marketing approval on logo usage and customer testimonial selection.
+
+4. RICE Prioritization Score
+This score helps compare this solution against others in a data-informed way.
+
+Formula: Score = (Reach x Impact x Confidence) / Effort
+
+Reach (R): How many users will this solution affect over a specific time period (e.g., a quarter)?
+
+e.g., 5,000 new freelancers per quarter.
+
+Impact (I): How much will this solution contribute to the Parent Outcome? (Use a scaled score: 3 = Massive, 2 = High, 1 = Medium, 0.5 = Low).
+
+e.g., 2 (High)
+
+Confidence (C): How confident are we in our estimates for reach and impact? (Expressed as a percentage).
+
+e.g., 80%
+
+Effort (E): What is the estimated total work required from all teams? (Use a standard unit like "person-months").
+
+e.g., 0.5 person-months
