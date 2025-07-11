@@ -1,18 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserProfileMenu } from "@/components/user-profile-menu";
+import { TreeListItem } from "@/components/tree-list-item";
 import { TreePine, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { ImpactTree } from "@shared/schema";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
-  const { data: trees = [], isLoading: treesLoading } = useQuery<ImpactTree[]>({
+  const [, navigate] = useLocation();
+  
+  const { data: trees = [], isLoading: treesLoading } = useQuery<(ImpactTree & { nodeCount: number })[]>({
     queryKey: ["/api/impact-trees"],
     enabled: !!user,
   });
+
+  const handleNavigateToTree = (treeId: number) => {
+    navigate(`/canvas/${treeId}`);
+  };
 
   if (authLoading) {
     return (
@@ -86,26 +93,11 @@ export default function Home() {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {trees.map((tree) => (
-                    <Link key={tree.id} href={`/canvas/${tree.id}`}>
-                      <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg">{tree.name}</CardTitle>
-                          {tree.description && (
-                            <CardDescription>{tree.description}</CardDescription>
-                          )}
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                            <span>
-                              Updated {new Date(tree.updatedAt).toLocaleDateString()}
-                            </span>
-                            <span>
-                              {Array.isArray(tree.nodes) ? tree.nodes.length : 0} nodes
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                    <TreeListItem
+                      key={tree.id}
+                      tree={tree}
+                      onNavigate={handleNavigateToTree}
+                    />
                   ))}
                 </div>
               )}

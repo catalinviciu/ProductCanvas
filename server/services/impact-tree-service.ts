@@ -121,16 +121,172 @@ export class ImpactTreeService {
     return updatedTree || null;
   }
 
-  async deleteTree(treeId: number, userId: string): Promise<boolean> {
-    const result = await db
-      .delete(impactTrees)
-      .where(and(
-        eq(impactTrees.id, treeId),
-        eq(impactTrees.user_id, userId)
-      ))
+  /**
+   * Rename an impact tree
+   * @param treeId - Tree ID to rename
+   * @param userId - User ID for authorization
+   * @param newName - New tree name
+   * @returns Updated tree or null if not found
+   */
+  async renameTree(
+    treeId: number, 
+    userId: string, 
+    newName: string
+  ): Promise<ImpactTree | null> {
+    // Validate input
+    if (!newName || newName.trim().length === 0) {
+      throw new Error('Tree name cannot be empty');
+    }
+
+    if (newName.length > 100) {
+      throw new Error('Tree name cannot exceed 100 characters');
+    }
+
+    // Check for duplicate names
+    const existingTree = await db
+      .select()
+      .from(impactTrees)
+      .where(
+        and(
+          eq(impactTrees.user_id, userId),
+          eq(impactTrees.name, newName.trim())
+        )
+      )
+      .limit(1);
+
+    if (existingTree.length > 0 && existingTree[0].id !== treeId) {
+      throw new Error('A tree with this name already exists');
+    }
+
+    // Update tree name
+    const [updatedTree] = await db
+      .update(impactTrees)
+      .set({
+        name: newName.trim(),
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(impactTrees.id, treeId),
+          eq(impactTrees.user_id, userId)
+        )
+      )
       .returning();
 
-    return result.length > 0;
+    if (!updatedTree) {
+      throw new Error('Tree not found or access denied');
+    }
+
+    // Log activity
+    await this.logActivity(userId, treeId, null, 'tree_renamed', {
+      newName: newName.trim(),
+    });
+
+    return updatedTree;
+  }
+
+  /**
+   * Delete an impact tree and all associated data
+   * @param treeId - Tree ID to delete
+   * @param userId - User ID for authorization
+   * @returns Success status and deletion summary
+   */
+  async deleteTree(treeId: number, userId: string): Promise<{ success: boolean; deletedNodes: number; treeName: string }> {
+    // Start transaction for atomic operation
+    return await db.transaction(async (tx) => {
+      // Verify tree ownership
+      const tree = await tx
+        .select()
+        .from(impactTrees)
+        .where(
+          and(
+            eq(impactTrees.id, treeId),
+            eq(impactTrees.user_id, userId)
+          )
+        )
+        .limit(1);
+
+      if (!tree.length) {
+        throw new Error('Tree not found or access denied');
+      }
+
+      const treeName = tree[0].name;
+
+      // Count nodes for summary
+      const nodeCount = await tx
+        .select({ count: count() })
+        .from(treeNodes)
+        .where(eq(treeNodes.treeId, treeId));
+
+      const deletedNodes = nodeCount[0]?.count || 0;
+
+      // Delete tree (cascade will handle nodes)
+      await tx
+        .delete(impactTrees)
+        .where(eq(impactTrees.id, treeId));
+
+      // Log activity
+      await this.logActivity(
+        userId,
+        treeId,
+        null,
+        'tree_deleted',
+        { treeName, deletedNodes }
+      );
+
+      return {
+        success: true,
+        deletedNodes,
+        treeName
+      };
+    });
+  }
+
+  /**
+   * Get tree deletion preview
+   * @param treeId - Tree ID to preview
+   * @param userId - User ID for authorization
+   * @returns Preview information for confirmation
+   */
+  async getTreeDeletionPreview(
+    treeId: number, 
+    userId: string
+  ): Promise<{ treeName: string; nodeCount: number; connectionCount: number }> {
+    // Verify tree ownership
+    const tree = await db
+      .select()
+      .from(impactTrees)
+      .where(
+        and(
+          eq(impactTrees.id, treeId),
+          eq(impactTrees.user_id, userId)
+        )
+      )
+      .limit(1);
+
+    if (!tree.length) {
+      throw new Error('Tree not found or access denied');
+    }
+
+    // Count associated data
+    const nodeCount = await db
+      .select({ count: count() })
+      .from(treeNodes)
+      .where(eq(treeNodes.treeId, treeId));
+
+    // Calculate connection count from nodes
+    const nodes = await db
+      .select()
+      .from(treeNodes)
+      .where(eq(treeNodes.treeId, treeId));
+
+    const connectionCount = nodes.filter(node => node.parentId !== null).length;
+
+    return {
+      treeName: tree[0].name,
+      nodeCount: nodeCount[0]?.count || 0,
+      connectionCount
+    };
   }
 
   // Node operations

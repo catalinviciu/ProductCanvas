@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { UserProfileMenu } from "@/components/user-profile-menu";
+import { InlineRename } from "@/components/inline-rename";
+import { useTreeManagement } from "@/hooks/use-tree-management";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { ImpactTree } from "@shared/schema";
@@ -12,6 +14,14 @@ interface CanvasHeaderProps {
 }
 
 export function CanvasHeader({ impactTree, isNew, isVisible = true, magneticZoneRef }: CanvasHeaderProps) {
+  const { renameTree, isRenaming } = useTreeManagement();
+
+  const handleRename = (newName: string) => {
+    if (impactTree) {
+      renameTree({ treeId: impactTree.id, name: newName });
+    }
+  };
+
   return (
     <>
       {/* Invisible magnetic zone for nav return - full top strip */}
@@ -46,9 +56,23 @@ export function CanvasHeader({ impactTree, isNew, isVisible = true, magneticZone
           </Link>
           
           <div>
-            <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {isNew ? "New Impact Tree" : impactTree?.name || "Impact Tree"}
-            </h1>
+            {isNew ? (
+              <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                New Impact Tree
+              </h1>
+            ) : impactTree ? (
+              <InlineRename
+                value={impactTree.name}
+                onSave={handleRename}
+                isLoading={isRenaming}
+                placeholder="Enter tree name..."
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              />
+            ) : (
+              <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Impact Tree
+              </h1>
+            )}
           </div>
         </div>
 

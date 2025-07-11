@@ -149,24 +149,145 @@ router.put('/api/impact-trees/:id', isAuthenticated, async (req: any, res) => {
   }
 });
 
+// Rename tree endpoint
+router.put('/api/impact-trees/:id/rename', isAuthenticated, async (req: any, res) => {
+  try {
+    const treeId = parseInt(req.params.id);
+    const userId = req.user.claims.sub;
+    
+    if (isNaN(treeId)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid tree ID',
+        code: 'INVALID_TREE_ID'
+      });
+    }
+    
+    // Validate request body
+    const renameSchema = z.object({
+      name: z.string().trim().min(1).max(100)
+    });
+    
+    const { name } = renameSchema.parse(req.body);
+    
+    const updatedTree = await treeService.renameTree(treeId, userId, name);
+    
+    res.json({
+      success: true,
+      data: updatedTree,
+      message: 'Tree renamed successfully'
+    });
+  } catch (error) {
+    console.error('Error renaming tree:', error);
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid tree name',
+        code: 'VALIDATION_ERROR',
+        details: error.errors
+      });
+    }
+    
+    if (error.message.includes('already exists')) {
+      return res.status(409).json({
+        success: false,
+        error: error.message,
+        code: 'DUPLICATE_NAME'
+      });
+    }
+    
+    if (error.message.includes('not found') || error.message.includes('access denied')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tree not found',
+        code: 'TREE_NOT_FOUND'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to rename tree',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+// Get deletion preview endpoint
+router.get('/api/impact-trees/:id/delete-preview', isAuthenticated, async (req: any, res) => {
+  try {
+    const treeId = parseInt(req.params.id);
+    const userId = req.user.claims.sub;
+    
+    if (isNaN(treeId)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid tree ID',
+        code: 'INVALID_TREE_ID'
+      });
+    }
+    
+    const preview = await treeService.getTreeDeletionPreview(treeId, userId);
+    
+    res.json({
+      success: true,
+      data: preview
+    });
+  } catch (error) {
+    console.error('Error getting deletion preview:', error);
+    
+    if (error.message.includes('not found') || error.message.includes('access denied')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tree not found',
+        code: 'TREE_NOT_FOUND'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get deletion preview',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
 router.delete('/api/impact-trees/:id', isAuthenticated, async (req: any, res) => {
   try {
     const treeId = parseInt(req.params.id);
     const userId = req.user.claims.sub;
     
     if (isNaN(treeId)) {
-      return res.status(400).json({ message: 'Invalid tree ID' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid tree ID',
+        code: 'INVALID_TREE_ID'
+      });
     }
 
-    const deleted = await treeService.deleteTree(treeId, userId);
-    if (!deleted) {
-      return res.status(404).json({ message: 'Tree not found' });
-    }
-
-    res.json({ message: 'Tree deleted successfully' });
+    const result = await treeService.deleteTree(treeId, userId);
+    
+    res.json({
+      success: true,
+      data: result,
+      message: `Tree "${result.treeName}" deleted successfully`
+    });
   } catch (error) {
     console.error('Error deleting tree:', error);
-    res.status(500).json({ message: 'Failed to delete tree' });
+    
+    if (error.message.includes('not found') || error.message.includes('access denied')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tree not found',
+        code: 'TREE_NOT_FOUND'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete tree',
+      code: 'INTERNAL_ERROR'
+    });
   }
 });
 
