@@ -474,12 +474,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(undefined, undefined, updatedCanvasState);
   }, [canvasState, saveTree]);
 
-  // Flush pending updates when doing major operations
+  // Major operation handler (no longer needed without optimistic updates)
   const handleMajorOperation = useCallback(async (operation: () => void) => {
-    // Flush any pending position updates before major changes
-    await optimisticUpdates.flushPendingUpdates();
     operation();
-  }, [optimisticUpdates]);
+  }, []);
 
   const closeEditDrawer = useCallback(() => {
     setEditDrawer({ isOpen: false });
