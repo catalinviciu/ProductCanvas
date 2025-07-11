@@ -30,16 +30,10 @@ export function useOptimisticUpdates({
   const bulkUpdateMutation = useMutation({
     mutationFn: async (updates: Array<{ nodeId: string; updates: any }>) => {
       console.log('Processing bulk update for', updates.length, 'nodes');
-      const response = await apiRequest('PUT', `/api/impact-trees/${treeId}/nodes/bulk-update`, { 
-        nodeUpdates: updates.map(u => ({ id: u.nodeId, updates: u.updates }))
+      return await apiRequest(`/api/impact-trees/${treeId}/nodes/bulk-update`, { 
+        method: 'PUT',
+        body: { nodeUpdates: updates.map(u => ({ id: u.nodeId, updates: u.updates })) }
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`Bulk update failed: ${error.message}`);
-      }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       console.log('Bulk update completed successfully:', data);
