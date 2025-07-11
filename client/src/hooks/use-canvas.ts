@@ -132,7 +132,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const updateTreeMutation = useMutation({
     mutationFn: async (updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {
       if (!impactTree?.id) throw new Error('No impact tree loaded');
-      return apiRequest('PUT', `/api/impact-trees/${impactTree.id}`, updates);
+      return apiRequest(`/api/impact-trees/${impactTree.id}`, { method: 'PUT', body: updates });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/impact-trees'] });
@@ -156,7 +156,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         console.error('No impact tree loaded when trying to create node');
         throw new Error('No impact tree loaded');
       }
-      return apiRequest('POST', `/api/impact-trees/${impactTree.id}/nodes`, nodeData);
+      return apiRequest(`/api/impact-trees/${impactTree.id}/nodes`, { method: 'POST', body: nodeData });
     },
     onSuccess: () => {
       console.log('Node created successfully');
@@ -171,7 +171,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     mutationFn: async ({ nodeId, updates }: { nodeId: string; updates: any }) => {
       console.log('Updating node - Tree ID:', impactTree?.id, 'Node ID:', nodeId, 'Updates:', updates);
       if (!impactTree?.id) throw new Error('No impact tree loaded');
-      return apiRequest('PUT', `/api/impact-trees/${impactTree.id}/nodes/${nodeId}`, updates);
+      return apiRequest(`/api/impact-trees/${impactTree.id}/nodes/${nodeId}`, { method: 'PUT', body: updates });
     },
     onSuccess: () => {
       console.log('Node updated successfully');
@@ -185,7 +185,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const deleteNodeMutation = useMutation({
     mutationFn: async (nodeId: string) => {
       if (!impactTree?.id) throw new Error('No impact tree loaded');
-      return apiRequest('DELETE', `/api/impact-trees/${impactTree.id}/nodes/${nodeId}`);
+      return apiRequest(`/api/impact-trees/${impactTree.id}/nodes/${nodeId}`, { method: 'DELETE' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${impactTree?.id}`] });
