@@ -154,6 +154,9 @@ Environment variables required:
 - January 11, 2025. **RESOLVED**: Fixed bulk node update 404 errors by correcting API endpoint path from `/nodes/bulk` to `/nodes/bulk-update`
 - January 11, 2025. **RESOLVED**: Fixed React infinite render loops in dropdown menus by replacing Link component with useLocation hook and useCallback optimization
 - January 11, 2025. **PERFORMANCE**: Enhanced canvas performance with viewport culling for large trees (>100 nodes) and optimized visible node calculations
+- January 11, 2025. **CRITICAL FIX**: Fixed bulk update endpoint infinite 404 error loop by reordering Express.js routes - specific `/bulk-update` route now comes before generic `/:nodeId` route to prevent route parameter conflicts
+- January 11, 2025. **RESOLVED**: Implemented comprehensive canvas error boundaries with CanvasErrorBoundary component for graceful error recovery
+- January 11, 2025. **PERFORMANCE**: Enhanced optimistic updates hook with improved error handling and user-friendly toast notifications
 
 ## User Preferences
 

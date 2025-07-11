@@ -217,6 +217,43 @@ router.post('/api/impact-trees/:id/nodes', isAuthenticated, async (req: any, res
   }
 });
 
+// Bulk update nodes endpoint (must come before :nodeId route)
+router.put('/api/impact-trees/:id/nodes/bulk-update', isAuthenticated, async (req: any, res) => {
+  try {
+    const treeId = parseInt(req.params.id);
+    const userId = req.user.claims.sub;
+    
+    if (isNaN(treeId)) {
+      return res.status(400).json({ message: 'Invalid tree ID' });
+    }
+
+    console.log('Bulk update request:', { treeId, userId, body: req.body });
+    
+    const validatedData = bulkUpdateNodesSchema.parse(req.body);
+    console.log('Validated data:', validatedData);
+    
+    const updatedNodes = await treeService.bulkUpdateNodes(treeId, userId, validatedData.nodeUpdates);
+    console.log('Updated nodes count:', updatedNodes.length);
+    
+    // Return success even if no nodes were updated (may be normal for optimistic updates)
+    res.json({
+      message: 'Bulk update processed successfully',
+      updatedCount: updatedNodes.length,
+      nodes: updatedNodes,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
+      return res.status(400).json({ 
+        message: 'Invalid data', 
+        errors: error.errors 
+      });
+    }
+    console.error('Error bulk updating nodes:', error);
+    res.status(500).json({ message: 'Failed to bulk update nodes' });
+  }
+});
+
 router.put('/api/impact-trees/:id/nodes/:nodeId', isAuthenticated, async (req: any, res) => {
   try {
     const treeId = parseInt(req.params.id);
@@ -266,43 +303,6 @@ router.delete('/api/impact-trees/:id/nodes/:nodeId', isAuthenticated, async (req
   } catch (error) {
     console.error('Error deleting node:', error);
     res.status(500).json({ message: 'Failed to delete node' });
-  }
-});
-
-// Bulk update nodes endpoint
-router.put('/api/impact-trees/:id/nodes/bulk-update', isAuthenticated, async (req: any, res) => {
-  try {
-    const treeId = parseInt(req.params.id);
-    const userId = req.user.claims.sub;
-    
-    if (isNaN(treeId)) {
-      return res.status(400).json({ message: 'Invalid tree ID' });
-    }
-
-    console.log('Bulk update request:', { treeId, userId, body: req.body });
-    
-    const validatedData = bulkUpdateNodesSchema.parse(req.body);
-    console.log('Validated data:', validatedData);
-    
-    const updatedNodes = await treeService.bulkUpdateNodes(treeId, userId, validatedData.nodeUpdates);
-    console.log('Updated nodes count:', updatedNodes.length);
-    
-    // Return success even if no nodes were updated (may be normal for optimistic updates)
-    res.json({
-      message: 'Bulk update processed successfully',
-      updatedCount: updatedNodes.length,
-      nodes: updatedNodes,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('Validation error:', error.errors);
-      return res.status(400).json({ 
-        message: 'Invalid data', 
-        errors: error.errors 
-      });
-    }
-    console.error('Error bulk updating nodes:', error);
-    res.status(500).json({ message: 'Failed to bulk update nodes' });
   }
 });
 

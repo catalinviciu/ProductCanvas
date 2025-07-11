@@ -1,4 +1,4 @@
-import { eq, and, desc, inArray, count } from "drizzle-orm";
+import { eq, and, desc, inArray, count, sql } from "drizzle-orm";
 import { db } from "../db";
 import { impactTrees, treeNodes, userActivities } from "@shared/schema";
 import type { ImpactTree, TreeNode, TreeNodeRecord, InsertTreeNode } from "@shared/schema";
@@ -356,41 +356,63 @@ export class ImpactTreeService {
       throw new Error('Tree not found or access denied');
     }
 
+    // If no updates provided, return empty array (normal for optimistic updates)
+    if (nodeUpdates.length === 0) {
+      console.log('No node updates provided - returning empty array');
+      return [];
+    }
+
     const updatedNodes: TreeNodeRecord[] = [];
 
-    // Process updates in transaction
-    await db.transaction(async (tx) => {
-      for (const nodeUpdate of nodeUpdates) {
-        console.log('Updating node:', nodeUpdate.id, 'with:', nodeUpdate.updates);
-        
-        const [updatedNode] = await tx
-          .update(treeNodes)
-          .set({
-            ...nodeUpdate.updates,
-            updatedAt: new Date(),
-          })
-          .where(and(
-            eq(treeNodes.id, nodeUpdate.id),
-            eq(treeNodes.treeId, treeId)
-          ))
-          .returning();
+    // First, check which nodes exist in the database
+    const existingNodeIds = await db
+      .select({ id: treeNodes.id })
+      .from(treeNodes)
+      .where(and(
+        eq(treeNodes.treeId, treeId),
+        inArray(treeNodes.id, nodeUpdates.map(n => n.id))
+      ));
 
-        if (updatedNode) {
-          console.log('Successfully updated node:', updatedNode.id);
-          updatedNodes.push(updatedNode);
-        } else {
-          console.log('Node not found for update:', nodeUpdate.id);
+    const existingIds = new Set(existingNodeIds.map(n => n.id));
+    const validUpdates = nodeUpdates.filter(update => existingIds.has(update.id));
+
+    console.log('Existing nodes:', existingIds.size, 'Valid updates:', validUpdates.length);
+
+    // Process updates in transaction only for existing nodes
+    if (validUpdates.length > 0) {
+      await db.transaction(async (tx) => {
+        for (const nodeUpdate of validUpdates) {
+          console.log('Updating node:', nodeUpdate.id, 'with:', nodeUpdate.updates);
+          
+          const [updatedNode] = await tx
+            .update(treeNodes)
+            .set({
+              ...nodeUpdate.updates,
+              updatedAt: new Date(),
+            })
+            .where(and(
+              eq(treeNodes.id, nodeUpdate.id),
+              eq(treeNodes.treeId, treeId)
+            ))
+            .returning();
+
+          if (updatedNode) {
+            console.log('Successfully updated node:', updatedNode.id);
+            updatedNodes.push(updatedNode);
+          }
         }
-      }
-    });
+      });
+    }
 
     console.log('Bulk update completed. Updated nodes:', updatedNodes.length);
 
-    // Log bulk update activity
-    await this.logActivity(userId, treeId, null, 'bulk_node_update', {
-      updatedCount: updatedNodes.length,
-      nodeIds: nodeUpdates.map(n => n.id),
-    });
+    // Log bulk update activity only if we actually updated something
+    if (updatedNodes.length > 0) {
+      await this.logActivity(userId, treeId, null, 'bulk_node_update', {
+        updatedCount: updatedNodes.length,
+        nodeIds: updatedNodes.map(n => n.id),
+      });
+    }
 
     return updatedNodes;
   }
