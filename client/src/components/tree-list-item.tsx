@@ -45,6 +45,7 @@ export function TreeListItem({ tree, onNavigate }: TreeListItemProps) {
 
   const handleDeleteConfirm = async () => {
     try {
+      console.log('Attempting to delete tree:', tree.id);
       await deleteTree(tree.id);
       setShowDeleteModal(false);
     } catch (error) {
