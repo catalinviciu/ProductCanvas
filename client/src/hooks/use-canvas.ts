@@ -116,7 +116,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/impact-trees'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${impactTree?.id}`] });
     },
   });
 
@@ -132,12 +132,15 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       metadata?: any;
     }) => {
       console.log('Creating node - Tree ID:', impactTree?.id, 'Node data:', nodeData);
-      if (!impactTree?.id) throw new Error('No impact tree loaded');
+      if (!impactTree?.id) {
+        console.error('No impact tree loaded when trying to create node');
+        throw new Error('No impact tree loaded');
+      }
       return apiRequest('POST', `/api/impact-trees/${impactTree.id}/nodes`, nodeData);
     },
     onSuccess: () => {
       console.log('Node created successfully');
-      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${impactTree?.id}`] });
     },
     onError: (error) => {
       console.error('Error creating node:', error);
@@ -152,7 +155,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     },
     onSuccess: () => {
       console.log('Node updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${impactTree?.id}`] });
     },
     onError: (error) => {
       console.error('Error updating node:', error);
@@ -165,7 +168,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       return apiRequest('DELETE', `/api/impact-trees/${impactTree.id}/nodes/${nodeId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${impactTree?.id}`] });
     },
   });
 
@@ -186,6 +189,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [nodes, connections, canvasState, enhancedPersistence, impactTree?.id]);
 
   const handleNodeCreate = useCallback((type: NodeType, testCategory?: TestCategory, parentNode?: TreeNode, customPosition?: { x: number; y: number }) => {
+    if (!impactTree?.id) {
+      console.error('Cannot create node: No impact tree loaded');
+      return;
+    }
+    
     const nodeId = generateNodeId(type);
     
     // Use enhanced smart positioning with comprehensive collision detection
@@ -233,7 +241,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         createdAt: new Date().toISOString(),
       }
     });
-  }, [nodes, connections, canvasState.orientation, createNodeMutation]);
+  }, [nodes, connections, canvasState.orientation, createNodeMutation, impactTree]);
 
   const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
     setContextMenu({

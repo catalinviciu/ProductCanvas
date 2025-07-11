@@ -63,7 +63,7 @@ export default function CanvasPage() {
   }, [isNewTree, isAuthenticated, authLoading, createTreeMutation]);
 
   const { data: impactTree, isLoading, error } = useQuery<ImpactTree>({
-    queryKey: treeId ? ["/api/impact-trees", treeId] : ["/api/impact-trees", "new"],
+    queryKey: treeId ? [`/api/impact-trees/${treeId}`] : ["/api/impact-trees/new"],
     enabled: !!isAuthenticated && !authLoading && !!treeId, // Only load if we have a valid tree ID
     retry: (failureCount, error) => {
       if (error && isUnauthorizedError(error as Error)) {
