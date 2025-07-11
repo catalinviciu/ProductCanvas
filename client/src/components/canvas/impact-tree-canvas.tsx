@@ -56,9 +56,37 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [draggedOverNodeId, setDraggedOverNodeId] = useState<string | null>(null);
 
-  // Memoize visible nodes and connections for performance
-  const visibleNodes = useMemo(() => getVisibleNodes(nodes), [nodes]);
-  const visibleConnections = useMemo(() => getVisibleConnections(nodes, connections), [nodes, connections]);
+  // Memoize visible nodes and connections for performance with viewport culling
+  const visibleNodes = useMemo(() => {
+    const baseVisibleNodes = getVisibleNodes(nodes);
+    
+    // Apply viewport culling for performance with large trees (>100 nodes)
+    if (baseVisibleNodes.length > 100 && canvasRef.current) {
+      const viewport = {
+        x: -canvasState.pan.x / canvasState.zoom,
+        y: -canvasState.pan.y / canvasState.zoom,
+        width: canvasRef.current.clientWidth / canvasState.zoom,
+        height: canvasRef.current.clientHeight / canvasState.zoom,
+      };
+      
+      return baseVisibleNodes.filter(node => {
+        const nodeRight = node.position.x + NODE_DIMENSIONS.WIDTH;
+        const nodeBottom = node.position.y + NODE_DIMENSIONS.HEIGHT;
+        const margin = 200; // Render margin for smooth scrolling
+        
+        return !(
+          node.position.x > viewport.x + viewport.width + margin ||
+          nodeRight < viewport.x - margin ||
+          node.position.y > viewport.y + viewport.height + margin ||
+          nodeBottom < viewport.y - margin
+        );
+      });
+    }
+    
+    return baseVisibleNodes;
+  }, [nodes, canvasState.pan.x, canvasState.pan.y, canvasState.zoom]);
+  
+  const visibleConnections = useMemo(() => getVisibleConnections(visibleNodes, connections), [visibleNodes, connections]);
 
   // Calculate dynamic canvas bounds based on nodes with memoization
   const canvasBounds = useMemo(() => {

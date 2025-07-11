@@ -151,7 +151,9 @@ Environment variables required:
 - January 11, 2025. **RESOLVED**: Converted all documentation framework templates from React + Java to React + Node.js + PostgreSQL
 - January 11, 2025. Updated implementation guidelines to use Express.js and Drizzle ORM patterns instead of Spring Boot and JPA/Hibernate
 - January 11, 2025. Fixed coding standards to reflect actual Node.js/Express technology stack
-- January 11, 2025. Current API issues: Bulk node update 404 errors and React infinite render loops in dropdown menus need resolution
+- January 11, 2025. **RESOLVED**: Fixed bulk node update 404 errors by correcting API endpoint path from `/nodes/bulk` to `/nodes/bulk-update`
+- January 11, 2025. **RESOLVED**: Fixed React infinite render loops in dropdown menus by replacing Link component with useLocation hook and useCallback optimization
+- January 11, 2025. **PERFORMANCE**: Enhanced canvas performance with viewport culling for large trees (>100 nodes) and optimized visible node calculations
 
 ## User Preferences
 

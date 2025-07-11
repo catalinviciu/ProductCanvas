@@ -9,14 +9,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, Home } from "lucide-react";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
+import { useCallback, useMemo } from "react";
 
 export function UserProfileMenu() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   if (!user) return null;
 
-  const getInitials = (firstName?: string, lastName?: string, email?: string) => {
+  const getInitials = useCallback((firstName?: string, lastName?: string, email?: string) => {
     if (firstName || lastName) {
       return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
     }
@@ -24,11 +26,21 @@ export function UserProfileMenu() {
       return email[0].toUpperCase();
     }
     return "U";
-  };
+  }, []);
 
-  const displayName = user.firstName && user.lastName 
-    ? `${user.firstName} ${user.lastName}`
-    : user.firstName || user.email || "User";
+  const displayName = useMemo(() => {
+    return user.firstName && user.lastName 
+      ? `${user.firstName} ${user.lastName}`
+      : user.firstName || user.email || "User";
+  }, [user.firstName, user.lastName, user.email]);
+
+  const handleHomeClick = useCallback(() => {
+    setLocation("/");
+  }, [setLocation]);
+
+  const handleLogoutClick = useCallback(() => {
+    window.location.href = '/api/logout';
+  }, []);
 
   return (
     <DropdownMenu>
@@ -55,16 +67,14 @@ export function UserProfileMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <Link href="/">
-          <DropdownMenuItem className="cursor-pointer">
-            <Home className="mr-2 h-4 w-4" />
-            <span>Home</span>
-          </DropdownMenuItem>
-        </Link>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleHomeClick}>
+          <Home className="mr-2 h-4 w-4" />
+          <span>Home</span>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
-          onClick={() => window.location.href = '/api/logout'}
+          onClick={handleLogoutClick}
         >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sign out</span>
