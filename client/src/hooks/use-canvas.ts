@@ -131,21 +131,31 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       parentId?: string;
       metadata?: any;
     }) => {
+      console.log('Creating node - Tree ID:', impactTree?.id, 'Node data:', nodeData);
       if (!impactTree?.id) throw new Error('No impact tree loaded');
       return apiRequest('POST', `/api/impact-trees/${impactTree.id}/nodes`, nodeData);
     },
     onSuccess: () => {
+      console.log('Node created successfully');
       queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+    },
+    onError: (error) => {
+      console.error('Error creating node:', error);
     },
   });
 
   const updateNodeMutation = useMutation({
     mutationFn: async ({ nodeId, updates }: { nodeId: string; updates: any }) => {
+      console.log('Updating node - Tree ID:', impactTree?.id, 'Node ID:', nodeId, 'Updates:', updates);
       if (!impactTree?.id) throw new Error('No impact tree loaded');
       return apiRequest('PUT', `/api/impact-trees/${impactTree.id}/nodes/${nodeId}`, updates);
     },
     onSuccess: () => {
+      console.log('Node updated successfully');
       queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+    },
+    onError: (error) => {
+      console.error('Error updating node:', error);
     },
   });
 
