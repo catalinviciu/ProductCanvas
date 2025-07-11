@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { treeNodes } from '../../shared/schema';
+import { treeNodes, userActivities } from '../../shared/schema';
 import { eq, inArray, and } from 'drizzle-orm';
 import { isAuthenticated } from '../replitAuth';
 

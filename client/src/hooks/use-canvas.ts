@@ -308,15 +308,17 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     } else {
       // For content updates, use immediate API call
       updateNodeMutation.mutate({
-        id: updatedNode.id,
-        title: updatedNode.title,
-        description: updatedNode.description,
-        templateData: updatedNode.templateData,
-        position: updatedNode.position,
-        parentId: updatedNode.parentId,
-        metadata: {
-          testCategory: updatedNode.testCategory,
-          lastModified: new Date().toISOString(),
+        nodeId: updatedNode.id,
+        updates: {
+          title: updatedNode.title,
+          description: updatedNode.description,
+          templateData: updatedNode.templateData,
+          position: updatedNode.position,
+          parentId: updatedNode.parentId,
+          metadata: {
+            testCategory: updatedNode.testCategory,
+            lastModified: new Date().toISOString(),
+          }
         }
       });
     }

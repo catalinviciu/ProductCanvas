@@ -152,6 +152,10 @@ Environment variables required:
 - January 11, 2025. Updated all documentation templates to reflect React + Node.js architecture instead of Java
 - January 11, 2025. Enhanced templates with Impact Tree Canvas-specific patterns and PM discovery workflow context
 - January 11, 2025. Updated initial prompt and analysis instructions to match actual project technology stack
+- January 11, 2025. CRITICAL BUG FIX: Resolved browser freezing issue when moving tree nodes by properly importing batch update routes
+- January 11, 2025. Fixed API request format in optimistic updates hook to use correct apiRequest syntax
+- January 11, 2025. Removed duplicate batch update endpoints causing routing conflicts
+- January 11, 2025. Enhanced authentication flow with proper loading states to prevent 404 errors during initialization
 
 ## User Preferences
 

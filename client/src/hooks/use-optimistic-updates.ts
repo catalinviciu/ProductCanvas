@@ -67,13 +67,10 @@ export function useOptimisticUpdates({
         }))
       };
       
-      const response = await apiRequest<BatchUpdateResponse>(
+      const response = await apiRequest(
+        'PUT',
         `/api/impact-trees/${treeId}/nodes/batch`,
-        {
-          method: 'PUT',
-          body: JSON.stringify(batchRequest),
-          signal: abortControllerRef.current.signal
-        }
+        batchRequest
       );
       
       if (response.success) {
