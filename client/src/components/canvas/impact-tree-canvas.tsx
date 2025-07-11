@@ -7,7 +7,6 @@ import { TreeProvider } from "@/contexts/tree-context";
 import { getVisibleNodes, getVisibleConnections, moveNodeWithChildren, snapToGrid } from "@/lib/canvas-utils";
 import { throttle, debounce } from "@/lib/performance-utils";
 import { NODE_DIMENSIONS, CANVAS_CONSTANTS } from "@/lib/node-constants";
-import { OptimisticUpdatesIndicator } from "./optimistic-updates-indicator";
 import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 
 interface ImpactTreeCanvasProps {
@@ -27,16 +26,6 @@ interface ImpactTreeCanvasProps {
   onResetToHome: () => void;
   onFitToScreen: () => void;
   onOrientationToggle: () => void;
-  onNodeDrag?: (nodeId: string, newPosition: { x: number; y: number }) => void;
-  onSubtreeDrag?: (nodeId: string, newPosition: { x: number; y: number }) => void;
-  optimisticUpdates?: {
-    pendingCount: number;
-    errorCount: number;
-    isSaving: boolean;
-    lastSaved: Date | null;
-    forceSave: () => void;
-    clearPending: () => void;
-  };
 }
 
 const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
@@ -56,9 +45,6 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   onResetToHome,
   onFitToScreen,
   onOrientationToggle,
-  onNodeDrag,
-  onSubtreeDrag,
-  optimisticUpdates,
 }: ImpactTreeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -286,42 +272,35 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   }, [canvasState.zoom, debouncedCanvasUpdate]);
 
   const handleNodeDrag = useCallback((nodeId: string, newPosition: { x: number; y: number }) => {
-    // Use optimistic drag handler if available, otherwise fall back to original
-    if (onNodeDrag) {
-      onNodeDrag(nodeId, newPosition);
-    } else if (onSubtreeDrag) {
-      onSubtreeDrag(nodeId, newPosition);
-    } else {
-      const node = nodes.find(n => n.id === nodeId);
-      if (node) {
-        // Snap the new position to grid
-        const snappedPosition = snapToGrid(newPosition);
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      // Snap the new position to grid
+      const snappedPosition = snapToGrid(newPosition);
+      
+      // Check if the node has children
+      if (node.children && node.children.length > 0) {
+        // Use moveNodeWithChildren to move the node and all its children
+        const updatedNodes = moveNodeWithChildren(nodes, nodeId, snappedPosition, canvasState.orientation);
         
-        // Check if the node has children
-        if (node.children && node.children.length > 0) {
-          // Use moveNodeWithChildren to move the node and all its children
-          const updatedNodes = moveNodeWithChildren(nodes, nodeId, snappedPosition, canvasState.orientation);
-          
-          // Find all nodes that actually moved
-          const movedNodes = updatedNodes.filter(updatedNode => {
-            const originalNode = nodes.find(n => n.id === updatedNode.id);
-            return originalNode && (
-              originalNode.position.x !== updatedNode.position.x || 
-              originalNode.position.y !== updatedNode.position.y
-            );
-          });
-          
-          // Update all moved nodes with optimistic updates
-          movedNodes.forEach(movedNode => {
-            onNodeUpdate(movedNode);
-          });
-        } else {
-          // Single node without children - simple update
-          onNodeUpdate({ ...node, position: snappedPosition });
-        }
+        // Find all nodes that actually moved
+        const movedNodes = updatedNodes.filter(updatedNode => {
+          const originalNode = nodes.find(n => n.id === updatedNode.id);
+          return originalNode && (
+            originalNode.position.x !== updatedNode.position.x || 
+            originalNode.position.y !== updatedNode.position.y
+          );
+        });
+        
+        // Update all moved nodes with optimistic updates
+        movedNodes.forEach(movedNode => {
+          onNodeUpdate(movedNode);
+        });
+      } else {
+        // Single node without children - simple update
+        onNodeUpdate({ ...node, position: snappedPosition });
       }
     }
-  }, [nodes, onNodeUpdate, canvasState.orientation, onNodeDrag, onSubtreeDrag]);
+  }, [nodes, onNodeUpdate, canvasState.orientation]);
 
   // Global mouse event handlers for mini map dragging with performance optimization
   useEffect(() => {
@@ -607,17 +586,6 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
         onClose={() => setCanvasContextMenu(null)}
         onNodeCreate={handleCanvasNodeCreate}
       />
-
-      {/* Optimistic Updates Indicator */}
-      {optimisticUpdates && (
-        <OptimisticUpdatesIndicator
-          pendingCount={optimisticUpdates.pendingCount}
-          errorCount={optimisticUpdates.errorCount}
-          isSaving={optimisticUpdates.isSaving}
-          lastSaved={optimisticUpdates.lastSaved}
-          className="fixed bottom-4 right-4 z-50"
-        />
-      )}
     </div>
   );
 });
