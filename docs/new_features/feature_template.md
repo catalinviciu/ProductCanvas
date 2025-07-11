@@ -12,16 +12,17 @@
 
 ### **Feature Type**
 - [ ] **⚛️ React Component** (Tree nodes, canvas controls, modals)
-- [ ] **🌐 Backend API Endpoint** (Express.js REST endpoints)
-- [ ] **🗄️ Database Entity/Schema** (PostgreSQL/Drizzle ORM)
+- [ ] **🟢 Backend API Endpoint** (Express.js REST endpoints)
+- [ ] **🗄️ Database Schema** (PostgreSQL/Drizzle ORM)
 - [ ] **🔗 Frontend-Backend Integration** (Canvas state sync, real-time updates)
-- [ ] **🔒 Authentication/Security** (User management, tree permissions)
+- [ ] **🔒 Authentication/Security** (Replit Auth, tree permissions)
 - [ ] **📊 AI Integration** (Vertex AI discovery insights)
-- [ ] **🎨 Canvas/UI Enhancement** (Tree visualization, interactions)
+- [ ] **🎨 Canvas/UI Enhancement** (HTML5 canvas, tree visualization)
 - [ ] **📱 Responsive Design** (Mobile canvas experience)
-- [ ] **⚡ Performance Optimization** (Canvas rendering, state management)
+- [ ] **⚡ Performance Optimization** (Canvas rendering, optimistic updates)
 - [ ] **🧪 Testing Infrastructure** (Component/API testing)
 - [ ] **🔧 Discovery Feature** (Continuous discovery support)
+- [ ] **📊 Analytics/Tracking** (User activity, tree metrics)
 - [ ] **Other**: _______________
 
 ---
@@ -53,14 +54,15 @@
 ## 🔧 **Technical Specification**
 
 ### **Components Affected**
-- [ ] **⚛️ React Frontend** (Canvas components, modals, state management)
+- [ ] **⚛️ React Frontend** (Canvas components, modals, Zustand state management)
 - [ ] **🟢 Node.js Backend** (Express.js services, API endpoints)
 - [ ] **🗄️ Database** (PostgreSQL schema, Drizzle ORM entities)
 - [ ] **🌐 REST API** (Impact tree endpoints, canvas state sync)
-- [ ] **🔒 Security** (Session-based auth, tree permissions)
-- [ ] **🎨 Canvas System** (SVG rendering, drag-drop, zoom/pan)
+- [ ] **🔒 Security** (Replit Auth, session management, tree permissions)
+- [ ] **🎨 Canvas System** (HTML5 canvas, SVG rendering, drag-drop, zoom/pan)
 - [ ] **📦 Build System** (Vite, TypeScript compilation)
-- [ ] **🚀 Replit Deployment** (Production deployment configuration)
+- [ ] **🚀 Replit Deployment** (Autoscale deployment configuration)
+- [ ] **📊 Analytics** (User activity tracking, tree metrics)
 
 ### **Effort Estimate**
 - [ ] **🟢 Small** (1-2 days)
@@ -70,9 +72,12 @@
 
 ### **Dependencies**
 [List any features, services, or external systems this depends on]
-- Canvas rendering system
+- HTML5 canvas rendering system
 - Tree state management (Zustand)
-- Impact tree API endpoints
+- Server state management (TanStack Query)
+- Impact tree API endpoints (Express.js)
+- PostgreSQL database with Drizzle ORM
+- Replit Auth system
 - Vertex AI integration (for AI features)
 
 ### **API Changes**
@@ -86,22 +91,24 @@
 ## 📝 **Detailed Requirements**
 
 ### **Frontend Requirements (React + TypeScript)**
-1. **Component Structure**: [Canvas components, modals, tree nodes]
+1. **Component Structure**: [Canvas components, modals, tree nodes, drawer interfaces]
 2. **State Management**: [Zustand for tree state, TanStack Query for server state]
-3. **User Interface**: [Canvas interactions, node editing, discovery workflows]
+3. **User Interface**: [HTML5 canvas interactions, node editing, discovery workflows]
 4. **Routing**: [Wouter navigation between trees and discovery views]
+5. **Performance**: [Optimistic updates, debounced saves, canvas optimization]
 
 ### **Backend Requirements (Node.js + Express)**
-1. **API Endpoints**: [Impact tree CRUD, canvas state persistence]
+1. **API Endpoints**: [Impact tree CRUD, canvas state persistence, bulk operations]
 2. **Business Logic**: [Tree validation, node relationships, discovery workflows]
-3. **Data Access**: [Drizzle ORM operations, PostgreSQL queries]
+3. **Data Access**: [Drizzle ORM operations, PostgreSQL queries, batch processing]
 4. **AI Integration**: [Vertex AI API calls for discovery insights]
+5. **Authentication**: [Replit Auth integration, session management]
 
 ### **Database Requirements**
-1. **Schema Changes**: [impact_trees table modifications, new discovery tables]
-2. **Relationships**: [Node hierarchies, assumption tracking, research artifacts]
-3. **Migrations**: [Drizzle migrations for schema changes]
-4. **Performance**: [Indexes for tree queries, JSONB optimizations]
+1. **Schema Changes**: [impact_trees, tree_nodes, user_activities tables]
+2. **Relationships**: [Node hierarchies, parent-child relationships, user tracking]
+3. **Migrations**: [Drizzle migrations with npm run db:push]
+4. **Performance**: [GIN indexes for JSONB, adjacency list optimization]
 
 ### **Canvas Integration Requirements**
 1. **Node Rendering**: [SVG-based node visualization and interactions]

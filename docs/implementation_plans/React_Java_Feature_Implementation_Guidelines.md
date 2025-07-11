@@ -1,6 +1,6 @@
-# 🚀 React + Java Feature Implementation Guidelines
+# 🚀 React + Node.js Feature Implementation Guidelines
 
-> **Comprehensive guide for implementing new features in React + Java projects**
+> **Comprehensive guide for implementing new features in React + Node.js projects**
 > **Based on full-stack development best practices and lessons learned**
 > **Status**: Production Guidelines
 
@@ -9,7 +9,7 @@
 ## 📋 **Table of Contents**
 
 1. [Pre-Implementation Discovery](#pre-implementation-discovery)
-2. [React + Java-Specific Patterns](#react--java-specific-patterns)
+2. [React + Node.js-Specific Patterns](#react--nodejs-specific-patterns)
 3. [Database Management](#database-management)
 4. [API Design Best Practices](#api-design-best-practices)
 5. [Frontend Integration](#frontend-integration)
@@ -25,9 +25,9 @@
 
 ### **🗄️ Database Discovery**
 ```sql
--- 1. Identify database schema
-SHOW TABLES;
-DESCRIBE table_name;
+-- 1. Identify database schema (PostgreSQL)
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public';
 
 -- 2. Verify data availability
 SELECT COUNT(*) FROM target_table;
@@ -36,29 +36,39 @@ SELECT COUNT(*) FROM target_table;
 SELECT * FROM table WHERE condition LIMIT 5;
 
 -- 4. Check for existing relationships
-SELECT * FROM information_schema.KEY_COLUMN_USAGE 
-WHERE TABLE_NAME = 'your_table';
+SELECT 
+    tc.table_name, 
+    kcu.column_name, 
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name 
+FROM information_schema.table_constraints AS tc 
+JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+JOIN information_schema.constraint_column_usage AS ccu
+    ON ccu.constraint_name = tc.constraint_name
+WHERE tc.constraint_type = 'FOREIGN KEY';
 ```
 
 ### **🏗️ Architecture Analysis**
-```java
-// 1. Review existing entities
-@Entity
-public class ExistingEntity {
-    // Check for relationship patterns
-}
+```typescript
+// 1. Review existing schema definitions
+// shared/schema.ts
+export const existingTable = pgTable("existing_table", {
+  id: serial("id").primaryKey(),
+  // Check for existing patterns
+});
 
 // 2. Check for service patterns
-@Service
-public class ExistingService {
-    // Analyze dependency injection patterns
+// server/services/existing-service.ts
+export class ExistingService {
+  // Analyze service layer patterns
 }
 
-// 3. Review controller patterns
-@RestController
-public class ExistingController {
-    // Check API design patterns
-}
+// 3. Review API patterns
+// server/routes.ts
+router.get('/api/existing', async (req, res) => {
+  // Check existing API design patterns
+});
 ```
 
 ### **⚛️ Frontend Analysis**
@@ -81,108 +91,170 @@ const routes = [
 
 ---
 
-## 🏢 **React + Java-Specific Patterns**
+## 🏢 **React + Node.js-Specific Patterns**
 
-### **🗄️ Database Management (JPA/Hibernate)**
-```java
-// ✅ RECOMMENDED: Entity Pattern
-@Entity
-@Table(name = "feature_entity")
-public class FeatureEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, length = 255)
-    private String name;
-    
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-    
-    // Always include proper constructors
-    public FeatureEntity() {}
-    
-    public FeatureEntity(String name) {
-        this.name = name;
-    }
-    
-    // Getters and setters
-}
+### **🗄️ Database Management (Drizzle ORM + PostgreSQL)**
+```typescript
+// ✅ RECOMMENDED: Schema Definition Pattern
+import { pgTable, text, serial, integer, jsonb, timestamp, varchar, index } from "drizzle-orm/pg-core";
+
+export const featureEntity = pgTable("feature_entity", {
+  id: serial("id").primaryKey(),
+  user_id: varchar("user_id", { length: 255 }),
+  name: text("name").notNull(),
+  description: text("description"),
+  data: jsonb("data").notNull().default('{}'),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_feature_user").on(table.user_id),
+  dataGin: index("idx_feature_data").using("gin", table.data),
+}));
+
+// Type definitions for type safety
+export type FeatureEntity = typeof featureEntity.$inferSelect;
+export type InsertFeatureEntity = typeof featureEntity.$inferInsert;
 ```
 
 ### **🔧 Service Architecture**
-```java
-// ✅ React + Java Service Pattern
-@Service
-@Transactional
-public class FeatureService {
-    
-    private final FeatureRepository featureRepository;
-    
-    // Constructor injection (preferred over @Autowired)
-    public FeatureService(FeatureRepository featureRepository) {
-        this.featureRepository = featureRepository;
+```typescript
+// ✅ React + Node.js Service Pattern
+import { eq, and, desc } from "drizzle-orm";
+import { db } from "../db";
+import { featureEntity } from "@shared/schema";
+
+export class FeatureService {
+  async createFeature(userId: string, request: {
+    name: string;
+    description?: string;
+  }): Promise<FeatureEntity> {
+    // Validate input
+    if (!request.name || request.name.trim() === "") {
+      throw new Error("Feature name cannot be empty");
     }
     
-    public FeatureEntity createFeature(CreateFeatureRequest request) {
-        // Validate input
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Feature name cannot be empty");
-        }
-        
-        // Business logic
-        FeatureEntity entity = new FeatureEntity(request.getName().trim());
-        return featureRepository.save(entity);
-    }
+    // Business logic
+    const [feature] = await db
+      .insert(featureEntity)
+      .values({
+        user_id: userId,
+        name: request.name.trim(),
+        description: request.description,
+      })
+      .returning();
     
-    @Transactional(readOnly = true)
-    public List<FeatureEntity> getAllFeatures() {
-        return featureRepository.findAll();
-    }
+    return feature;
+  }
+  
+  async getUserFeatures(userId: string): Promise<FeatureEntity[]> {
+    return await db
+      .select()
+      .from(featureEntity)
+      .where(eq(featureEntity.user_id, userId))
+      .orderBy(desc(featureEntity.updatedAt));
+  }
+  
+  async updateFeature(id: number, userId: string, updates: Partial<InsertFeatureEntity>): Promise<FeatureEntity | null> {
+    const [updated] = await db
+      .update(featureEntity)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(featureEntity.id, id),
+        eq(featureEntity.user_id, userId)
+      ))
+      .returning();
+    
+    return updated || null;
+  }
+  
+  async deleteFeature(id: number, userId: string): Promise<boolean> {
+    const [deleted] = await db
+      .delete(featureEntity)
+      .where(and(
+        eq(featureEntity.id, id),
+        eq(featureEntity.user_id, userId)
+      ))
+      .returning();
+    
+    return !!deleted;
+  }
 }
 ```
 
 ### **🌐 API Controller Pattern**
-```java
-// ✅ RESTful Controller Pattern
-@RestController
-@RequestMapping("/api/features")
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
-@Validated
-public class FeatureController {
+```typescript
+// ✅ Express.js RESTful Controller Pattern
+import express, { Request, Response } from 'express';
+import { FeatureService } from '../services/feature-service';
+import { isAuthenticated } from '../replitAuth';
+import { z } from 'zod';
+
+const router = express.Router();
+const featureService = new FeatureService();
+
+// Apply authentication middleware
+router.use(isAuthenticated);
+
+// Validation schemas
+const createFeatureSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().optional(),
+});
+
+const updateFeatureSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  description: z.string().optional(),
+});
+
+// Create feature
+router.post('/api/features', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const validatedData = createFeatureSchema.parse(req.body);
     
-    private final FeatureService featureService;
+    const feature = await featureService.createFeature(userId, validatedData);
+    res.status(201).json(feature);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", errors: error.errors });
+    }
+    res.status(500).json({ message: "Failed to create feature" });
+  }
+});
+
+// Get user's features
+router.get('/api/features', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const features = await featureService.getUserFeatures(userId);
+    res.json(features);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch features" });
+  }
+});
+
+// Update feature
+router.put('/api/features/:id', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const userId = req.user!.id;
+    const updates = updateFeatureSchema.parse(req.body);
     
-    public FeatureController(FeatureService featureService) {
-        this.featureService = featureService;
+    const updated = await featureService.updateFeature(id, userId, updates);
+    if (!updated) {
+      return res.status(404).json({ message: "Feature not found" });
     }
     
-    @PostMapping
-    public ResponseEntity<FeatureResponse> createFeature(
-            @Valid @RequestBody CreateFeatureRequest request) {
-        try {
-            FeatureEntity entity = featureService.createFeature(request);
-            FeatureResponse response = FeatureMapper.toResponse(entity);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping
-    public ResponseEntity<List<FeatureResponse>> getAllFeatures() {
-        List<FeatureEntity> entities = featureService.getAllFeatures();
-        List<FeatureResponse> responses = entities.stream()
-            .map(FeatureMapper::toResponse)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(responses);
-    }
-}
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update feature" });
+  }
+});
+
+export default router;
 ```
 
 ### **⚛️ React Component Pattern**

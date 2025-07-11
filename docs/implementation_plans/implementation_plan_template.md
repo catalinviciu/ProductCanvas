@@ -46,69 +46,127 @@
 
 #### **Database Layer (Drizzle ORM + PostgreSQL)**
 ```typescript
-// Schema definition for impact trees
-import { pgTable, text, serial, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+// Schema definition for impact trees (following existing patterns)
+import { pgTable, text, serial, integer, jsonb, timestamp, varchar, index } from "drizzle-orm/pg-core";
 
 export const impactTrees = pgTable("impact_trees", {
   id: serial("id").primaryKey(),
+  user_id: varchar("user_id", { length: 255 }),
   name: text("name").notNull(),
   description: text("description"),
   nodes: jsonb("nodes").notNull().default('[]'),
   connections: jsonb("connections").notNull().default('[]'),
-  canvasState: jsonb("canvas_state").notNull().default('{"zoom": 1, "pan": {"x": 0, "y": 0}}'),
+  canvasState: jsonb("canvas_state").notNull().default('{"zoom": 1, "pan": {"x": 0, "y": 0}, "orientation": "vertical"}'),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userUpdatedIdx: index("idx_trees_user_updated").on(table.user_id, table.updatedAt.desc()),
+}));
 
-// Migration for new features
-export const discoveryArtifacts = pgTable("discovery_artifacts", {
-  id: serial("id").primaryKey(),
-  treeId: integer("tree_id").references(() => impactTrees.id),
-  nodeId: text("node_id").notNull(),
-  artifactType: text("artifact_type").notNull(), // research, assumption, metric
-  content: jsonb("content").notNull(),
+// Individual tree nodes table (adjacency list model)
+export const treeNodes = pgTable("tree_nodes", {
+  id: text("id").primaryKey(),
+  treeId: integer("tree_id").notNull().references(() => impactTrees.id, { onDelete: "cascade" }),
+  parentId: text("parent_id").references(() => treeNodes.id, { onDelete: "cascade" }),
+  nodeType: text("node_type").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  templateData: jsonb("template_data").default('{}'),
+  position: jsonb("position").notNull().default('{"x": 0, "y": 0}'),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  treeIdIdx: index("idx_tree_nodes_tree_id").on(table.treeId),
+  parentIdIdx: index("idx_tree_nodes_parent_id").on(table.parentId),
+}));
 ```
 
-#### **Storage Layer**
+#### **Service Layer**
 ```typescript
-// Impact tree service with discovery support
-export class ImpactTreeService {
-  private db: DrizzleDB;
+// Impact tree service with discovery support (following existing patterns)
+import { eq, and, desc } from "drizzle-orm";
+import { db } from "../db";
+import { impactTrees, treeNodes } from "@shared/schema";
 
-  async createImpactTree(data: InsertImpactTree): Promise<ImpactTree> {
-    const [tree] = await this.db.insert(impactTrees).values(data).returning();
+export class ImpactTreeService {
+  async createImpactTree(userId: string, data: {
+    name: string;
+    description?: string;
+    canvasState?: any;
+  }): Promise<ImpactTree> {
+    const [tree] = await db
+      .insert(impactTrees)
+      .values({
+        user_id: userId,
+        name: data.name,
+        description: data.description,
+        canvasState: data.canvasState || {
+          zoom: 1,
+          pan: { x: 0, y: 0 },
+          orientation: "vertical"
+        }
+      })
+      .returning();
+    
     return tree;
   }
 
-  async updateTreeCanvas(id: number, updates: {
-    nodes: TreeNode[];
-    connections: NodeConnection[];
-    canvasState: CanvasState;
-  }): Promise<ImpactTree | undefined> {
-    const [updated] = await this.db
+  async updateTree(treeId: number, userId: string, updates: {
+    name?: string;
+    description?: string;
+    canvasState?: any;
+    nodes?: TreeNode[];
+    connections?: any[];
+  }): Promise<ImpactTree | null> {
+    const [updated] = await db
       .update(impactTrees)
       .set({
-        nodes: updates.nodes,
-        connections: updates.connections,
-        canvasState: updates.canvasState,
+        ...updates,
         updatedAt: new Date()
       })
-      .where(eq(impactTrees.id, id))
+      .where(and(
+        eq(impactTrees.id, treeId),
+        eq(impactTrees.user_id, userId)
+      ))
       .returning();
     
-    return updated;
+    return updated || null;
   }
 
-  async addDiscoveryArtifact(treeId: number, nodeId: string, artifact: DiscoveryArtifact) {
-    // Support for PM discovery workflows
-    return await this.db.insert(discoveryArtifacts).values({
-      treeId,
-      nodeId,
-      artifactType: artifact.type,
-      content: artifact.content
+  async createNode(treeId: number, userId: string, nodeData: {
+    id: string;
+    parentId?: string;
+    type: string;
+    title: string;
+    description?: string;
+    position: { x: number; y: number };
+    templateData?: any;
+  }): Promise<TreeNodeRecord | null> {
+    // Verify tree ownership first
+    const tree = await db.query.impactTrees.findFirst({
+      where: and(
+        eq(impactTrees.id, treeId),
+        eq(impactTrees.user_id, userId)
+      )
     });
+    
+    if (!tree) return null;
+    
+    const [node] = await db
+      .insert(treeNodes)
+      .values({
+        id: nodeData.id,
+        treeId,
+        parentId: nodeData.parentId,
+        nodeType: nodeData.type,
+        title: nodeData.title,
+        description: nodeData.description,
+        templateData: nodeData.templateData || {},
+        position: nodeData.position,
+      })
+      .returning();
+    
+    return node;
   }
 }
 ```
@@ -117,18 +175,25 @@ export class ImpactTreeService {
 
 #### **Express API Endpoints**
 ```typescript
-// Impact tree REST API with discovery support
-import express from 'express';
-import { ImpactTreeService } from './services/impact-tree-service';
+// Impact tree REST API with discovery support (following existing patterns)
+import express, { Request, Response } from 'express';
+import { ImpactTreeService } from '../services/impact-tree-service';
+import { isAuthenticated } from '../replitAuth';
+import { z } from 'zod';
 
 const router = express.Router();
 const treeService = new ImpactTreeService();
 
+// Apply authentication middleware
+router.use(isAuthenticated);
+
 // Core impact tree operations
-router.post('/api/impact-trees', async (req, res) => {
+router.post('/api/impact-trees', async (req: Request, res: Response) => {
   try {
-    const validatedData = insertImpactTreeSchema.parse(req.body);
-    const tree = await treeService.createImpactTree(validatedData);
+    const userId = req.user!.id;
+    const validatedData = createTreeSchema.parse(req.body);
+    
+    const tree = await treeService.createTree(userId, validatedData);
     res.status(201).json(tree);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -138,59 +203,73 @@ router.post('/api/impact-trees', async (req, res) => {
   }
 });
 
-// Canvas state persistence for PM workflow
-router.put('/api/impact-trees/:id/canvas', async (req, res) => {
+// Get user's trees
+router.get('/api/impact-trees', async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
-    const validatedData = updateCanvasSchema.parse(req.body);
-    
-    const updatedTree = await treeService.updateTreeCanvas(id, validatedData);
-    if (!updatedTree) {
-      return res.status(404).json({ message: "Impact tree not found" });
-    }
-
-    res.json(updatedTree);
+    const userId = req.user!.id;
+    const trees = await treeService.getUserTrees(userId);
+    res.json(trees);
   } catch (error) {
-    res.status(500).json({ message: "Failed to update canvas state" });
+    res.status(500).json({ message: "Failed to fetch trees" });
   }
 });
 
-// Discovery artifacts for continuous discovery
-router.post('/api/impact-trees/:id/artifacts', async (req, res) => {
+// Get specific tree with nodes
+router.get('/api/impact-trees/:id', async (req: Request, res: Response) => {
   try {
     const treeId = parseInt(req.params.id);
-    const { nodeId, artifact } = req.body;
+    const userId = req.user!.id;
     
-    await treeService.addDiscoveryArtifact(treeId, nodeId, artifact);
-    res.status(201).json({ message: "Discovery artifact added" });
+    const tree = await treeService.getTreeWithNodes(treeId, userId);
+    if (!tree) {
+      return res.status(404).json({ message: "Tree not found" });
+    }
+    
+    res.json(tree);
   } catch (error) {
-    res.status(500).json({ message: "Failed to add discovery artifact" });
+    res.status(500).json({ message: "Failed to fetch tree" });
+  }
+});
+
+// Update tree (canvas state, nodes, connections)
+router.put('/api/impact-trees/:id', async (req: Request, res: Response) => {
+  try {
+    const treeId = parseInt(req.params.id);
+    const userId = req.user!.id;
+    const updates = updateTreeSchema.parse(req.body);
+    
+    const updatedTree = await treeService.updateTree(treeId, userId, updates);
+    if (!updatedTree) {
+      return res.status(404).json({ message: "Tree not found" });
+    }
+    
+    res.json(updatedTree);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update tree" });
+  }
+});
+
+// Bulk update nodes for optimistic updates
+router.put('/api/impact-trees/:id/nodes/bulk', async (req: Request, res: Response) => {
+  try {
+    const treeId = parseInt(req.params.id);
+    const userId = req.user!.id;
+    const { nodeUpdates } = req.body;
+    
+    const result = await treeService.bulkUpdateNodes(treeId, userId, nodeUpdates);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to bulk update nodes" });
   }
 });
 ```
 
 #### **Validation Schemas**
 ```typescript
-// Zod schemas for impact tree validation
-export const treeNodeSchema = z.object({
-  id: z.string(),
-  type: z.enum(['objective', 'outcome', 'opportunity', 'solution', 'assumption', 'metric', 'research']),
-  title: z.string().min(1).max(255),
+// Zod schemas for impact tree validation (following existing patterns)
+export const createTreeSchema = z.object({
+  name: z.string().min(1).max(255),
   description: z.string().optional(),
-  position: z.object({
-    x: z.number(),
-    y: z.number()
-  }),
-  metadata: z.record(z.any()).optional()
-});
-
-export const updateCanvasSchema = z.object({
-  nodes: z.array(treeNodeSchema),
-  connections: z.array(z.object({
-    id: z.string(),
-    sourceId: z.string(),
-    targetId: z.string()
-  })),
   canvasState: z.object({
     zoom: z.number(),
     pan: z.object({
@@ -198,7 +277,54 @@ export const updateCanvasSchema = z.object({
       y: z.number()
     }),
     orientation: z.enum(['vertical', 'horizontal']).optional()
-  })
+  }).optional()
+});
+
+export const updateTreeSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  description: z.string().optional(),
+  nodes: z.array(z.object({
+    id: z.string(),
+    type: z.enum(['objective', 'outcome', 'opportunity', 'solution', 'assumption', 'metric', 'research']),
+    title: z.string().min(1).max(255),
+    description: z.string().optional(),
+    position: z.object({
+      x: z.number(),
+      y: z.number()
+    }),
+    parentId: z.string().optional(),
+    testCategory: z.enum(['viability', 'value', 'feasibility', 'usability']).optional(),
+    children: z.array(z.string()).default([]),
+    isCollapsed: z.boolean().optional(),
+    hiddenChildren: z.array(z.string()).optional(),
+    templateData: z.record(z.any()).optional()
+  })).optional(),
+  connections: z.array(z.object({
+    id: z.string(),
+    fromNodeId: z.string(),
+    toNodeId: z.string()
+  })).optional(),
+  canvasState: z.object({
+    zoom: z.number(),
+    pan: z.object({
+      x: z.number(),
+      y: z.number()
+    }),
+    orientation: z.enum(['vertical', 'horizontal']).optional()
+  }).optional()
+});
+
+export const bulkNodeUpdateSchema = z.object({
+  nodeUpdates: z.array(z.object({
+    id: z.string(),
+    position: z.object({
+      x: z.number(),
+      y: z.number()
+    }).optional(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    templateData: z.record(z.any()).optional()
+  }))
 });
 ```
 
@@ -206,81 +332,112 @@ export const updateCanvasSchema = z.object({
 
 #### **Canvas State Management**
 ```tsx
-// Tree state management with Zustand
-import { create } from 'zustand';
-import { TreeNode, NodeConnection, CanvasState } from '../types/canvas';
+// Tree state management with hooks and context (following existing patterns)
+import { useCanvas } from '@/hooks/use-canvas';
+import { useOptimisticUpdates } from '@/hooks/use-optimistic-updates';
+import { TreeProvider } from '@/contexts/tree-context';
 
-interface TreeStore {
-  nodes: TreeNode[];
-  connections: NodeConnection[];
-  canvasState: CanvasState;
-  selectedNode: TreeNode | null;
+// The project uses a hooks-based approach with the useCanvas hook
+// This provides comprehensive canvas state management including:
+// - Node creation, updating, deletion
+// - Canvas state (zoom, pan, orientation)
+// - Context menus and drawers
+// - Auto-layout and fit-to-screen functionality
+
+export function CanvasPage() {
+  const { id } = useParams();
+  const treeId = id === "new" ? null : parseInt(id, 10);
   
-  // Actions for PM discovery workflow
-  addNode: (node: TreeNode) => void;
-  updateNode: (id: string, updates: Partial<TreeNode>) => void;
-  deleteNode: (id: string) => void;
-  addConnection: (connection: NodeConnection) => void;
-  updateCanvasState: (state: Partial<CanvasState>) => void;
-  selectNode: (node: TreeNode | null) => void;
+  // Main canvas hook providing all state management
+  const {
+    selectedNode,
+    contextMenu,
+    editDrawer,
+    createFirstNodeModal,
+    canvasState,
+    nodes,
+    connections,
+    handleNodeCreate,
+    handleNodeUpdate,
+    handleNodeDelete,
+    handleNodeSelect,
+    handleCanvasUpdate,
+    handleContextMenu,
+    handleAddChildFromContext,
+    handleNodeReattach,
+    handleToggleCollapse,
+    handleToggleChildVisibility,
+    handleAutoLayout,
+    handleOrientationToggle,
+    handleFitToScreen,
+    openEditDrawer,
+    closeEditDrawer,
+    closeContextMenu,
+    closeCreateFirstNodeModal,
+    handleCreateFirstNode
+  } = useCanvas(impactTree);
+
+  // Optimistic updates for performance
+  const { saveTree, isSaving } = useOptimisticUpdates(treeId);
+
+  return (
+    <TreeProvider nodes={nodes}>
+      <div className="relative h-full w-full overflow-hidden">
+        {/* Canvas implementation */}
+        <ImpactTreeCanvas
+          nodes={nodes}
+          connections={connections}
+          canvasState={canvasState}
+          selectedNode={selectedNode}
+          onNodeSelect={handleNodeSelect}
+          onNodeUpdate={handleNodeUpdate}
+          onCanvasUpdate={handleCanvasUpdate}
+          onContextMenu={handleContextMenu}
+          onNodeReattach={handleNodeReattach}
+        />
+      </div>
+    </TreeProvider>
+  );
 }
-
-export const useTreeStore = create<TreeStore>((set, get) => ({
-  nodes: [],
-  connections: [],
-  canvasState: { zoom: 1, pan: { x: 0, y: 0 }, orientation: 'vertical' },
-  selectedNode: null,
-  
-  addNode: (node) => set((state) => ({
-    nodes: [...state.nodes, node]
-  })),
-  
-  updateNode: (id, updates) => set((state) => ({
-    nodes: state.nodes.map(node => 
-      node.id === id ? { ...node, ...updates } : node
-    )
-  })),
-  
-  deleteNode: (id) => set((state) => ({
-    nodes: state.nodes.filter(node => node.id !== id),
-    connections: state.connections.filter(conn => 
-      conn.sourceId !== id && conn.targetId !== id
-    )
-  })),
-  
-  addConnection: (connection) => set((state) => ({
-    connections: [...state.connections, connection]
-  })),
-  
-  updateCanvasState: (newState) => set((state) => ({
-    canvasState: { ...state.canvasState, ...newState }
-  })),
-  
-  selectNode: (node) => set({ selectedNode: node })
-}));
 ```
 
 #### **Canvas Components**
 ```tsx
-// Main impact tree canvas component
-import React, { useEffect, useRef, useCallback } from 'react';
-import { useTreeStore } from '../stores/tree-store';
+// Main impact tree canvas component (following existing patterns)
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { TreeNode } from './tree-node';
 import { NodeConnections } from './node-connections';
 import { CanvasToolbar } from './canvas-toolbar';
+import { useDragDrop } from '@/hooks/use-drag-drop';
+import { useTreeContext } from '@/contexts/tree-context';
+import { NODE_DIMENSIONS } from '@/lib/node-constants';
 
 export const ImpactTreeCanvas: React.FC<{
-  treeId: number;
-}> = ({ treeId }) => {
+  nodes: TreeNode[];
+  connections: NodeConnection[];
+  canvasState: CanvasState;
+  selectedNode: TreeNode | null;
+  onNodeSelect: (node: TreeNode | null) => void;
+  onNodeUpdate: (node: TreeNode) => void;
+  onCanvasUpdate: (state: Partial<CanvasState>) => void;
+  onContextMenu: (node: TreeNode, position: { x: number; y: number }) => void;
+  onNodeReattach: (nodeId: string, newParentId: string | null) => void;
+}> = ({ 
+  nodes, 
+  connections, 
+  canvasState, 
+  selectedNode, 
+  onNodeSelect, 
+  onNodeUpdate, 
+  onCanvasUpdate, 
+  onContextMenu,
+  onNodeReattach 
+}) => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const {
-    nodes,
-    connections,
-    canvasState,
-    updateCanvasState,
-    selectedNode,
-    selectNode
-  } = useTreeStore();
+  const { getNodeById } = useTreeContext();
+  
+  // Drag and drop functionality
+  const { dragState, handleMouseDown, handleMouseMove, handleMouseUp } = useDragDrop();
 
   // Canvas pan and zoom handling
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -288,15 +445,23 @@ export const ImpactTreeCanvas: React.FC<{
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newZoom = Math.max(0.1, Math.min(3, canvasState.zoom * delta));
     
-    updateCanvasState({ zoom: newZoom });
-  }, [canvasState.zoom, updateCanvasState]);
+    onCanvasUpdate({ zoom: newZoom });
+  }, [canvasState.zoom, onCanvasUpdate]);
 
-  // Canvas click handling for discovery workflow
+  // Canvas click handling
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      selectNode(null); // Deselect when clicking empty canvas
+      onNodeSelect(null);
     }
-  }, [selectNode]);
+  }, [onNodeSelect]);
+
+  // Visible nodes calculation for performance
+  const visibleNodes = useMemo(() => {
+    return nodes.filter(node => {
+      const parent = node.parentId ? getNodeById(node.parentId) : null;
+      return !parent || (!parent.isCollapsed && !parent.hiddenChildren?.includes(node.id));
+    });
+  }, [nodes, getNodeById]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -307,8 +472,8 @@ export const ImpactTreeCanvas: React.FC<{
   }, [handleWheel]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-gray-50">
-      <CanvasToolbar treeId={treeId} />
+    <div className="relative h-full w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <CanvasToolbar />
       
       <div
         ref={canvasRef}
@@ -317,22 +482,30 @@ export const ImpactTreeCanvas: React.FC<{
           transform: `scale(${canvasState.zoom}) translate(${canvasState.pan.x}px, ${canvasState.pan.y}px)`
         }}
         onClick={handleCanvasClick}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
       >
         {/* SVG connections layer */}
         <NodeConnections
           connections={connections}
-          nodes={nodes}
+          nodes={visibleNodes}
           zoom={canvasState.zoom}
+          orientation={canvasState.orientation}
         />
         
-        {/* Nodes layer for PM discovery */}
-        {nodes.map(node => (
+        {/* Nodes layer */}
+        {visibleNodes.map(node => (
           <TreeNode
             key={node.id}
             node={node}
             isSelected={selectedNode?.id === node.id}
-            onSelect={() => selectNode(node)}
-            onUpdate={(updates) => updateNode(node.id, updates)}
+            onSelect={() => onNodeSelect(node)}
+            onUpdate={onNodeUpdate}
+            onContextMenu={onContextMenu}
+            onReattach={onNodeReattach}
+            dragState={dragState}
+            zoom={canvasState.zoom}
           />
         ))}
       </div>
@@ -343,40 +516,74 @@ export const ImpactTreeCanvas: React.FC<{
 
 #### **API Integration with TanStack Query**
 ```tsx
-// API service for impact trees
+// API service for impact trees (following existing patterns)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export const useImpactTree = (treeId: number) => {
   return useQuery({
-    queryKey: ['impact-tree', treeId],
-    queryFn: async () => {
-      const response = await fetch(`/api/impact-trees/${treeId}`);
-      if (!response.ok) throw new Error('Failed to fetch tree');
-      return response.json();
-    }
+    queryKey: [`/api/impact-trees/${treeId}`],
+    enabled: !!treeId && !isNaN(treeId),
+    retry: (failureCount, error) => {
+      if (error && isUnauthorizedError(error as Error)) {
+        // Handle auth errors
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 
-export const useUpdateTreeCanvas = () => {
+export const useUpdateTree = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ treeId, updates }: {
       treeId: number;
-      updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState };
+      updates: { nodes?: TreeNode[]; connections?: NodeConnection[]; canvasState?: CanvasState };
     }) => {
-      const response = await fetch(`/api/impact-trees/${treeId}/canvas`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-      if (!response.ok) throw new Error('Failed to update canvas');
+      const response = await apiRequest('PUT', `/api/impact-trees/${treeId}`, updates);
       return response.json();
     },
     onSuccess: (_, { treeId }) => {
-      queryClient.invalidateQueries({ queryKey: ['impact-tree', treeId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${treeId}`] });
     }
   });
+};
+
+// Optimistic updates hook for performance
+export const useOptimisticUpdates = (treeId: number | null) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [pendingUpdates, setPendingUpdates] = useState<any[]>([]);
+  
+  const saveTree = useCallback(async (
+    nodes: TreeNode[],
+    connections: NodeConnection[],
+    canvasState: CanvasState
+  ) => {
+    if (!treeId) return;
+    
+    setIsSaving(true);
+    try {
+      await apiRequest('PUT', `/api/impact-trees/${treeId}`, {
+        nodes,
+        connections,
+        canvasState
+      });
+    } catch (error) {
+      console.error('Failed to save tree:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [treeId]);
+
+  // Debounced save with 500ms delay
+  const debouncedSave = useCallback(
+    debounce(saveTree, 500),
+    [saveTree]
+  );
+
+  return { saveTree: debouncedSave, isSaving };
 };
 ```
 

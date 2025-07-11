@@ -144,6 +144,10 @@ Environment variables required:
 - January 11, 2025. Created bulk update API endpoint for efficient database operations during drag and drop
 - January 11, 2025. Added OptimisticUpdatesIndicator component to show real-time save status to users
 - January 11, 2025. Fixed autolayout and position snapping issues caused by slow individual database calls
+- January 11, 2025. Updated documentation framework templates to accurately reflect React + Node.js + PostgreSQL architecture
+- January 11, 2025. Aligned all feature, implementation, and issue templates with actual technology stack (Express.js, Drizzle ORM)
+- January 11, 2025. Enhanced workflow guide with Node.js-specific patterns and canvas-aware development practices
+- January 11, 2025. Updated implementation guidelines to reflect Replit Auth, optimistic updates, and HTML5 canvas architecture
 
 ## User Preferences
 
