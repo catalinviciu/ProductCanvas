@@ -1,4 +1,4 @@
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, count } from "drizzle-orm";
 import { db } from "../db";
 import { impactTrees, treeNodes, userActivities } from "@shared/schema";
 import type { ImpactTree, TreeNode, TreeNodeRecord, InsertTreeNode } from "@shared/schema";
@@ -32,7 +32,7 @@ export class ImpactTreeService {
     const treeWithCounts = await Promise.all(
       trees.map(async (tree) => {
         const nodeCount = await db
-          .select({ count: db.count() })
+          .select({ count: count() })
           .from(treeNodes)
           .where(eq(treeNodes.treeId, tree.id));
         
