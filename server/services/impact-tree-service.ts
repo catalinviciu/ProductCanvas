@@ -192,8 +192,12 @@ export class ImpactTreeService {
    * @returns Success status and deletion summary
    */
   async deleteTree(treeId: number, userId: string): Promise<{ success: boolean; deletedNodes: number; treeName: string }> {
+    console.log('Starting deleteTree transaction for treeId:', treeId);
+    
     // Start transaction for atomic operation
     return await db.transaction(async (tx) => {
+      console.log('Inside transaction, verifying tree ownership...');
+      
       // Verify tree ownership
       const tree = await tx
         .select()
@@ -207,10 +211,12 @@ export class ImpactTreeService {
         .limit(1);
 
       if (!tree.length) {
+        console.log('Tree not found or access denied');
         throw new Error('Tree not found or access denied');
       }
 
       const treeName = tree[0].name;
+      console.log('Tree found:', treeName);
 
       // Count nodes for summary
       const nodeCount = await tx
@@ -219,21 +225,30 @@ export class ImpactTreeService {
         .where(eq(treeNodes.treeId, treeId));
 
       const deletedNodes = nodeCount[0]?.count || 0;
+      console.log('Nodes to delete:', deletedNodes);
 
       // Delete tree (cascade will handle nodes)
-      await tx
+      console.log('Deleting tree...');
+      const deleteResult = await tx
         .delete(impactTrees)
         .where(eq(impactTrees.id, treeId));
 
-      // Log activity
-      await this.logActivity(
-        userId,
-        treeId,
-        null,
-        'tree_deleted',
-        { treeName, deletedNodes }
-      );
+      console.log('Delete result:', deleteResult);
 
+      // Log activity (but don't let it fail the transaction)
+      try {
+        await this.logActivity(
+          userId,
+          treeId,
+          null,
+          'tree_deleted',
+          { treeName, deletedNodes }
+        );
+      } catch (error) {
+        console.error('Failed to log activity, but continuing:', error);
+      }
+
+      console.log('Transaction completed successfully');
       return {
         success: true,
         deletedNodes,
