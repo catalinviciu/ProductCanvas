@@ -93,6 +93,46 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/impact-trees'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+    },
+  });
+
+  const createNodeMutation = useMutation({
+    mutationFn: async (nodeData: {
+      id: string;
+      type: string;
+      title: string;
+      description?: string;
+      templateData?: any;
+      position: { x: number; y: number };
+      parentId?: string;
+      metadata?: any;
+    }) => {
+      if (!impactTree?.id) throw new Error('No impact tree loaded');
+      return apiRequest('POST', `/api/impact-trees/${impactTree.id}/nodes`, nodeData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+    },
+  });
+
+  const updateNodeMutation = useMutation({
+    mutationFn: async ({ nodeId, updates }: { nodeId: string; updates: any }) => {
+      if (!impactTree?.id) throw new Error('No impact tree loaded');
+      return apiRequest('PUT', `/api/impact-trees/${impactTree.id}/nodes/${nodeId}`, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
+    },
+  });
+
+  const deleteNodeMutation = useMutation({
+    mutationFn: async (nodeId: string) => {
+      if (!impactTree?.id) throw new Error('No impact tree loaded');
+      return apiRequest('DELETE', `/api/impact-trees/${impactTree.id}/nodes/${nodeId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', impactTree?.id] });
     },
   });
 
@@ -120,8 +160,23 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const snappedPosition = snapToGrid(position);
 
     const newNode = createNode(nodeId, type, snappedPosition, testCategory, parentNode?.id);
-    let updatedNodes = [...nodes, newNode];
     
+    // Save node to database using the new API
+    createNodeMutation.mutate({
+      id: nodeId,
+      type: type,
+      title: newNode.title,
+      description: newNode.description,
+      templateData: newNode.templateData,
+      position: snappedPosition,
+      parentId: parentNode?.id,
+      metadata: {
+        testCategory: testCategory,
+        createdAt: new Date().toISOString(),
+      }
+    });
+    
+    let updatedNodes = [...nodes, newNode];
     let updatedConnections = connections;
     
     // Create connection if there's a parent
@@ -138,16 +193,16 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     }
 
     // After adding the new node, reorganize the parent's subtree if it has children
-    // This ensures the new branch fits perfectly without overlaps
     if (parentNode && parentNode.children && parentNode.children.length > 0) {
-      // Use the same reorganization system as drag operations
       updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id, canvasState.orientation);
     }
 
     setNodes(updatedNodes);
     setConnections(updatedConnections);
+    
+    // Also save the tree structure for backward compatibility
     saveTree(updatedNodes, updatedConnections, undefined, 'node_created');
-  }, [nodes, connections, canvasState.orientation, saveTree]);
+  }, [nodes, connections, canvasState.orientation, saveTree, createNodeMutation]);
 
   const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
     setContextMenu({
@@ -183,14 +238,29 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       setNodes(updatedNodes);
       saveTree(updatedNodes);
     } else {
-      // For other updates (title, description, etc.), apply changes normally
+      // For other updates (title, description, etc.), save to database via API
+      updateNodeMutation.mutate({
+        nodeId: updatedNode.id,
+        updates: {
+          title: updatedNode.title,
+          description: updatedNode.description,
+          templateData: updatedNode.templateData,
+          position: updatedNode.position,
+          parentId: updatedNode.parentId,
+          metadata: {
+            ...updatedNode.templateData,
+            lastModified: new Date().toISOString(),
+          }
+        }
+      });
+
       const updatedNodes = nodes.map(node => 
         node.id === updatedNode.id ? updatedNode : node
       );
       setNodes(updatedNodes);
       saveTree(updatedNodes);
     }
-  }, [nodes, canvasState.orientation, saveTree]);
+  }, [nodes, canvasState.orientation, saveTree, updateNodeMutation]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
@@ -325,6 +395,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
     if (!nodeToDelete) return;
 
+    // Delete node from database using the new API
+    deleteNodeMutation.mutate(nodeId);
+
     // Remove node and all its descendants
     const nodesToDelete = new Set<string>();
     const findDescendants = (id: string) => {
@@ -356,7 +429,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setConnections(updatedConnections);
     setSelectedNode(null);
     saveTree(updatedNodes, updatedConnections);
-  }, [nodes, connections, saveTree]);
+  }, [nodes, connections, saveTree, deleteNodeMutation]);
 
   const handleNodeSelect = useCallback((node: TreeNode | null) => {
     setSelectedNode(node);

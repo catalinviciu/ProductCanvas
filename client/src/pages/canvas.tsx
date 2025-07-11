@@ -1,5 +1,5 @@
-import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { ImpactTreeCanvas } from "@/components/canvas/impact-tree-canvas";
 import { NodeEditSideDrawer } from "@/components/drawers/node-edit-side-drawer";
@@ -12,18 +12,59 @@ import { useNavAutoHide } from "@/hooks/use-nav-auto-hide";
 import { type ImpactTree } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function CanvasPage() {
   const { id } = useParams();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Handle new tree creation or existing tree ID
   const treeId = id === "new" ? null : id ? parseInt(id) : 1;
+  const isNewTree = id === "new";
+
+  // Create new tree mutation
+  const createTreeMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('POST', '/api/impact-trees', {
+        name: 'New Impact Tree',
+        description: 'A new strategic planning canvas',
+        canvasState: {
+          zoom: 1,
+          pan: { x: 0, y: 0 },
+          orientation: 'vertical'
+        }
+      });
+    },
+    onSuccess: (newTree) => {
+      toast({
+        title: "Tree created",
+        description: "Your new impact tree has been created successfully.",
+      });
+      // Redirect to the new tree
+      setLocation(`/canvas/${newTree.id}`);
+    },
+    onError: (error) => {
+      console.error('Error creating tree:', error);
+      toast({
+        title: "Creation failed",
+        description: "Failed to create new tree. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Create new tree automatically when accessing /canvas/new
+  useEffect(() => {
+    if (isNewTree && isAuthenticated && !authLoading && !createTreeMutation.isPending) {
+      createTreeMutation.mutate();
+    }
+  }, [isNewTree, isAuthenticated, authLoading, createTreeMutation]);
 
   const { data: impactTree, isLoading, error } = useQuery<ImpactTree>({
     queryKey: treeId ? ["/api/impact-trees", treeId] : ["/api/impact-trees", "new"],
-    enabled: !!isAuthenticated && !authLoading,
+    enabled: !!isAuthenticated && !authLoading && !isNewTree,
     retry: (failureCount, error) => {
       if (error && isUnauthorizedError(error as Error)) {
         toast({
@@ -109,8 +150,6 @@ export default function CanvasPage() {
   if (!isAuthenticated) {
     return null; // Redirect handled in useEffect
   }
-
-  const isNewTree = id === "new";
 
   return (
     <div className="h-screen bg-white dark:bg-gray-900 relative overflow-hidden">
