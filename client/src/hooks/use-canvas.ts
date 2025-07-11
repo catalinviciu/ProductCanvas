@@ -233,10 +233,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       }
     }
 
-    // After adding the new node, reorganize the parent's subtree if it has children
-    if (parentNode && parentNode.children && parentNode.children.length > 0) {
-      updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id, canvasState.orientation);
-    }
+    // Don't reorganize during node creation - let smart positioning handle layout
+    // The getSmartNodePosition function already handles proper positioning
 
     setNodes(updatedNodes);
     setConnections(updatedConnections);

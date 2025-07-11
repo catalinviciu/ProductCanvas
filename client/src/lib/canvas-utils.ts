@@ -817,7 +817,7 @@ export function handleBranchDrag(
   }
 }
 
-// Move parent and reorganize all children in a clean layout
+// Move parent and all children maintaining their relative positions
 export function moveNodeWithChildren(
   nodes: TreeNode[], 
   nodeId: string, 
@@ -830,23 +830,20 @@ export function moveNodeWithChildren(
   const movedNode = nodeMap.get(nodeId);
   if (!movedNode) return nodes;
 
-  // Find collision-free position
-  const collisionFreePosition = findCollisionFreePosition(nodes, nodeId, newPosition);
-  
-  // Calculate position delta from collision-free position
-  const deltaX = collisionFreePosition.x - movedNode.position.x;
-  const deltaY = collisionFreePosition.y - movedNode.position.y;
+  // Calculate position delta from the new position (don't use collision-free position for dragging)
+  const deltaX = newPosition.x - movedNode.position.x;
+  const deltaY = newPosition.y - movedNode.position.y;
 
   // Get all descendants
   const descendantIds = getAllDescendants(nodes, nodeId);
   
-  // Update positions maintaining relative layout but preventing collisions
+  // Update positions maintaining relative layout
   const updatedNodes = nodes.map(node => {
     if (node.id === nodeId) {
-      // Move the parent to the collision-free position
+      // Move the parent to the new position
       return {
         ...node,
-        position: collisionFreePosition
+        position: snapToGrid(newPosition)
       };
     } else if (descendantIds.includes(node.id)) {
       // Move children maintaining their relative positions
@@ -862,8 +859,8 @@ export function moveNodeWithChildren(
     return node;
   });
 
-  // Apply smart reorganization to the moved subtree
-  return reorganizeSubtree(updatedNodes, nodeId, orientation);
+  // Don't reorganize during dragging - maintain relative positions
+  return updatedNodes;
 }
 
 // Calculate the height needed for a subtree
