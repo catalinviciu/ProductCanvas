@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserProfileMenu } from "@/components/user-profile-menu";
-import { ProgressAnalytics } from "@/components/progress-analytics";
 import { TreePine, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -34,7 +33,7 @@ export default function Home() {
             <TreePine className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-3" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Impact Tree Canvas
+                Product Canvas
               </h1>
               <p className="text-gray-600 dark:text-gray-300">
                 Welcome back, {user?.firstName || 'User'}!
@@ -45,14 +44,12 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6">
-          {trees.length > 0 && (
-            <ProgressAnalytics />
-          )}
+          {trees.length > 0}
           
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                Your Impact Trees
+                Your Product Canvases
                 <Link href="/canvas/new">
                   <Button className="flex items-center">
                     <Plus className="h-4 w-4 mr-2" />
@@ -61,7 +58,7 @@ export default function Home() {
                 </Link>
               </CardTitle>
               <CardDescription>
-                Manage your strategic planning canvases
+                Manage your strategic planning canvases using impact trees
               </CardDescription>
             </CardHeader>
             <CardContent>
