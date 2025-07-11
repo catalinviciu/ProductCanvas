@@ -1,125 +1,228 @@
-import { useCallback, useRef, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback, useMemo, useRef } from 'react';
+import { debounce } from '@/lib/performance-utils';
 import { apiRequest } from '@/lib/queryClient';
-import { type TreeNode } from '@shared/schema';
+import { TreeNode } from '@/types/canvas';
 
-interface PendingUpdate {
+interface OptimisticUpdate {
   nodeId: string;
-  updates: any;
+  position: { x: number; y: number };
   timestamp: number;
+  retryCount?: number;
 }
 
-interface OptimisticUpdatesConfig {
+interface BatchUpdateRequest {
+  nodes: Array<{
+    id: string;
+    position: { x: number; y: number };
+  }>;
+}
+
+interface BatchUpdateResponse {
+  success: boolean;
+  updated: number;
+  timestamp: string;
+  failed?: string[];
+}
+
+interface UseOptimisticUpdatesOptions {
   treeId: number;
   debounceMs?: number;
-  batchSize?: number;
+  maxRetries?: number;
+  onError?: (error: Error) => void;
+  onSuccess?: (response: BatchUpdateResponse) => void;
 }
 
 export function useOptimisticUpdates({
   treeId,
   debounceMs = 500,
-  batchSize = 10
-}: OptimisticUpdatesConfig) {
-  const queryClient = useQueryClient();
-  const [pendingUpdates, setPendingUpdates] = useState<Map<string, PendingUpdate>>(new Map());
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  maxRetries = 3,
+  onError,
+  onSuccess
+}: UseOptimisticUpdatesOptions) {
+  const [pendingUpdates, setPendingUpdates] = useState<Map<string, OptimisticUpdate>>(new Map());
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [errorNodes, setErrorNodes] = useState<Set<string>>(new Set());
+  
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Bulk update mutation for batching multiple node updates
-  const bulkUpdateMutation = useMutation({
-    mutationFn: async (updates: Array<{ nodeId: string; updates: any }>) => {
-      console.log('Processing bulk update for', updates.length, 'nodes');
-      return apiRequest('PUT', `/api/impact-trees/${treeId}/nodes/bulk`, { updates });
-    },
-    onSuccess: () => {
-      console.log('Bulk update completed successfully');
-      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${treeId}`] });
-    },
-    onError: (error) => {
-      console.error('Bulk update failed:', error);
+  // Enhanced batch save with retry logic and error handling
+  const performBatchSave = useCallback(async (updates: Map<string, OptimisticUpdate>) => {
+    if (updates.size === 0) return;
+    
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
-  });
-
-  // Process pending updates in batches
-  const processPendingUpdates = useCallback(async () => {
-    if (pendingUpdates.size === 0 || isProcessing) return;
-
-    setIsProcessing(true);
+    
+    abortControllerRef.current = new AbortController();
+    setIsSaving(true);
+    setErrorNodes(new Set());
     
     try {
-      const updates = Array.from(pendingUpdates.values()).map(pending => ({
-        nodeId: pending.nodeId,
-        updates: pending.updates
-      }));
-
-      // Process in batches
-      const batches = [];
-      for (let i = 0; i < updates.length; i += batchSize) {
-        batches.push(updates.slice(i, i + batchSize));
+      const batchRequest: BatchUpdateRequest = {
+        nodes: Array.from(updates.entries()).map(([nodeId, data]) => ({
+          id: nodeId,
+          position: data.position
+        }))
+      };
+      
+      const response = await apiRequest<BatchUpdateResponse>(
+        `/api/impact-trees/${treeId}/nodes/batch`,
+        {
+          method: 'PUT',
+          body: JSON.stringify(batchRequest),
+          signal: abortControllerRef.current.signal
+        }
+      );
+      
+      if (response.success) {
+        // Clear successfully saved updates
+        setPendingUpdates(prev => {
+          const updated = new Map(prev);
+          batchRequest.nodes.forEach(node => updated.delete(node.id));
+          return updated;
+        });
+        
+        setLastSaved(new Date());
+        onSuccess?.(response);
+      } else {
+        // Handle partial failures
+        if (response.failed) {
+          setErrorNodes(new Set(response.failed));
+          
+          // Retry failed updates
+          const failedUpdates = new Map();
+          response.failed.forEach(nodeId => {
+            const update = updates.get(nodeId);
+            if (update && (update.retryCount || 0) < maxRetries) {
+              failedUpdates.set(nodeId, {
+                ...update,
+                retryCount: (update.retryCount || 0) + 1
+              });
+            }
+          });
+          
+          if (failedUpdates.size > 0) {
+            setPendingUpdates(prev => new Map([...prev, ...failedUpdates]));
+            // Retry after exponential backoff
+            setTimeout(() => performBatchSave(failedUpdates), 
+              Math.pow(2, (Array.from(failedUpdates.values())[0].retryCount || 0)) * 1000);
+          }
+        }
       }
-
-      // Process all batches
-      for (const batch of batches) {
-        await bulkUpdateMutation.mutateAsync(batch);
-      }
-
-      // Clear processed updates
-      setPendingUpdates(new Map());
     } catch (error) {
-      console.error('Error processing pending updates:', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [pendingUpdates, isProcessing, batchSize, bulkUpdateMutation]);
-
-  // Debounced update function
-  const scheduleUpdate = useCallback(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    debounceTimeoutRef.current = setTimeout(() => {
-      processPendingUpdates();
-    }, debounceMs);
-  }, [processPendingUpdates, debounceMs]);
-
-  // Add or update a pending update
-  const addPendingUpdate = useCallback((nodeId: string, updates: any) => {
-    setPendingUpdates(prev => {
-      const newMap = new Map(prev);
-      newMap.set(nodeId, {
-        nodeId,
-        updates,
-        timestamp: Date.now()
+      if (error.name === 'AbortError') {
+        return; // Request was cancelled, ignore
+      }
+      
+      console.error('Batch save failed:', error);
+      onError?.(error as Error);
+      
+      // Mark nodes as having errors
+      setErrorNodes(new Set(Array.from(updates.keys())));
+      
+      // Retry logic for network errors
+      const retriableUpdates = new Map();
+      updates.forEach((update, nodeId) => {
+        if ((update.retryCount || 0) < maxRetries) {
+          retriableUpdates.set(nodeId, {
+            ...update,
+            retryCount: (update.retryCount || 0) + 1
+          });
+        }
       });
-      return newMap;
-    });
-    
-    scheduleUpdate();
-  }, [scheduleUpdate]);
-
-  // Optimistic update function - updates local state immediately and schedules persistence
-  const optimisticUpdate = useCallback((nodeId: string, updates: any) => {
-    // Add to pending updates for persistence
-    addPendingUpdate(nodeId, updates);
-    
-    // Return success immediately for optimistic UI updates
-    return Promise.resolve();
-  }, [addPendingUpdate]);
-
-  // Force flush all pending updates immediately
-  const flushPendingUpdates = useCallback(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
+      
+      if (retriableUpdates.size > 0) {
+        setPendingUpdates(prev => new Map([...prev, ...retriableUpdates]));
+        // Retry with exponential backoff
+        setTimeout(() => performBatchSave(retriableUpdates), 
+          Math.pow(2, (Array.from(retriableUpdates.values())[0].retryCount || 0)) * 1000);
+      }
+    } finally {
+      setIsSaving(false);
+      abortControllerRef.current = null;
     }
-    return processPendingUpdates();
-  }, [processPendingUpdates]);
+  }, [treeId, maxRetries, onError, onSuccess]);
+
+  // Debounced save function
+  const debouncedSave = useMemo(
+    () => debounce(async () => {
+      await performBatchSave(pendingUpdates);
+    }, debounceMs),
+    [performBatchSave, pendingUpdates, debounceMs]
+  );
+
+  // Queue an update for batching
+  const queueUpdate = useCallback((nodeId: string, position: { x: number; y: number }) => {
+    setPendingUpdates(prev => new Map(prev).set(nodeId, {
+      nodeId,
+      position,
+      timestamp: Date.now(),
+      retryCount: 0
+    }));
+    debouncedSave();
+  }, [debouncedSave]);
+
+  // Queue multiple updates (for subtree operations)
+  const queueMultipleUpdates = useCallback((updates: Array<{ nodeId: string; position: { x: number; y: number } }>) => {
+    setPendingUpdates(prev => {
+      const newUpdates = new Map(prev);
+      updates.forEach(({ nodeId, position }) => {
+        newUpdates.set(nodeId, {
+          nodeId,
+          position,
+          timestamp: Date.now(),
+          retryCount: 0
+        });
+      });
+      return newUpdates;
+    });
+    debouncedSave();
+  }, [debouncedSave]);
+
+  // Force immediate save (for critical operations)
+  const forceSave = useCallback(async () => {
+    debouncedSave.cancel();
+    await performBatchSave(pendingUpdates);
+  }, [debouncedSave, performBatchSave, pendingUpdates]);
+
+  // Clear pending updates (for errors or cancellation)
+  const clearPending = useCallback(() => {
+    debouncedSave.cancel();
+    setPendingUpdates(new Map());
+    setErrorNodes(new Set());
+  }, [debouncedSave]);
+
+  // Check if a node has pending updates
+  const hasPendingUpdate = useCallback((nodeId: string) => {
+    return pendingUpdates.has(nodeId);
+  }, [pendingUpdates]);
+
+  // Check if a node has errors
+  const hasError = useCallback((nodeId: string) => {
+    return errorNodes.has(nodeId);
+  }, [errorNodes]);
 
   return {
-    optimisticUpdate,
-    flushPendingUpdates,
-    pendingUpdatesCount: pendingUpdates.size,
-    isProcessing,
-    addPendingUpdate
+    // Core functions
+    queueUpdate,
+    queueMultipleUpdates,
+    forceSave,
+    clearPending,
+    
+    // Status checks
+    hasPendingUpdate,
+    hasError,
+    
+    // State
+    pendingCount: pendingUpdates.size,
+    isSaving,
+    lastSaved,
+    errorCount: errorNodes.size,
+    
+    // Advanced features
+    pendingNodeIds: Array.from(pendingUpdates.keys()),
+    errorNodeIds: Array.from(errorNodes)
   };
 }

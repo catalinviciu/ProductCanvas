@@ -27,7 +27,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const optimisticUpdates = useOptimisticUpdates({ 
     treeId: impactTree?.id || 0,
     debounceMs: 500,
-    batchSize: 10
+    onError: (error) => {
+      console.error('Optimistic update error:', error);
+    },
+    onSuccess: (response) => {
+      console.log('Batch update successful:', response);
+    }
   });
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
@@ -297,19 +302,25 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     );
     setNodes(updatedNodes);
     
-    // Use optimistic updates for batched persistence
-    optimisticUpdates.optimisticUpdate(updatedNode.id, {
-      title: updatedNode.title,
-      description: updatedNode.description,
-      templateData: updatedNode.templateData,
-      position: updatedNode.position,
-      parentId: updatedNode.parentId,
-      metadata: {
-        testCategory: updatedNode.testCategory,
-        lastModified: new Date().toISOString(),
-      }
-    });
-  }, [nodes, optimisticUpdates]);
+    // For position-only updates, use optimistic batching
+    if (isPositionOnlyUpdate) {
+      optimisticUpdates.queueUpdate(updatedNode.id, updatedNode.position);
+    } else {
+      // For content updates, use immediate API call
+      updateNodeMutation.mutate({
+        id: updatedNode.id,
+        title: updatedNode.title,
+        description: updatedNode.description,
+        templateData: updatedNode.templateData,
+        position: updatedNode.position,
+        parentId: updatedNode.parentId,
+        metadata: {
+          testCategory: updatedNode.testCategory,
+          lastModified: new Date().toISOString(),
+        }
+      });
+    }
+  }, [nodes, optimisticUpdates, updateNodeMutation]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
@@ -567,10 +578,48 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     closeCreateFirstNodeModal();
   }, [handleNodeCreate]);
 
+  // Optimized drag handlers for performance
+  const handleNodeDrag = useCallback((nodeId: string, newPosition: { x: number; y: number }) => {
+    // Apply grid snapping
+    const snappedPosition = snapToGrid(newPosition);
+
+    // Update local state immediately (optimistic update)
+    setNodes(prev => prev.map(node => 
+      node.id === nodeId 
+        ? { ...node, position: snappedPosition }
+        : node
+    ));
+
+    // Queue for batch save
+    optimisticUpdates.queueUpdate(nodeId, snappedPosition);
+  }, [optimisticUpdates]);
+
+  // Handle subtree dragging with batch updates
+  const handleSubtreeDrag = useCallback((nodeId: string, newPosition: { x: number; y: number }) => {
+    // Calculate all positions for the subtree
+    const updatedNodes = moveNodeWithChildren(nodes, nodeId, newPosition, canvasState.orientation);
+    
+    // Update UI immediately for all nodes
+    setNodes(updatedNodes);
+    
+    // Queue all position updates for batch save
+    const positionUpdates = updatedNodes
+      .filter(node => {
+        const originalNode = nodes.find(n => n.id === node.id);
+        return originalNode && (
+          originalNode.position.x !== node.position.x || 
+          originalNode.position.y !== node.position.y
+        );
+      })
+      .map(node => ({ nodeId: node.id, position: node.position }));
+    
+    optimisticUpdates.queueMultipleUpdates(positionUpdates);
+  }, [nodes, canvasState.orientation, optimisticUpdates]);
+
   // Cleanup function to flush pending updates when component unmounts
   useEffect(() => {
     return () => {
-      optimisticUpdates.flushPendingUpdates();
+      optimisticUpdates.forceSave();
     };
   }, [optimisticUpdates]);
 
@@ -601,9 +650,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
+    // Optimized drag handlers
+    handleNodeDrag,
+    handleSubtreeDrag,
     // Optimistic updates status
-    pendingUpdatesCount: optimisticUpdates.pendingUpdatesCount,
-    isProcessingUpdates: optimisticUpdates.isProcessing,
-    flushPendingUpdates: optimisticUpdates.flushPendingUpdates,
+    optimisticUpdates,
   };
 }

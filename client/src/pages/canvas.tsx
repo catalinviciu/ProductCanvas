@@ -130,9 +130,9 @@ export default function CanvasPage() {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
-    pendingUpdatesCount,
-    isProcessingUpdates,
-    flushPendingUpdates,
+    handleNodeDrag,
+    handleSubtreeDrag,
+    optimisticUpdates,
   } = useCanvas(impactTree);
 
   // Debug tree loading
@@ -203,6 +203,9 @@ export default function CanvasPage() {
           onResetToHome={resetToHome}
           onFitToScreen={fitToScreen}
           onOrientationToggle={handleOrientationToggle}
+          onNodeDrag={handleNodeDrag}
+          onSubtreeDrag={handleSubtreeDrag}
+          optimisticUpdates={optimisticUpdates}
         />
       </main>
 
@@ -232,10 +235,7 @@ export default function CanvasPage() {
         onNodeCreate={handleCreateFirstNode}
       />
 
-      <OptimisticUpdatesIndicator
-        pendingUpdatesCount={pendingUpdatesCount}
-        isProcessingUpdates={isProcessingUpdates}
-      />
+      {/* Optimistic Updates Indicator is now inside the canvas */}
     </div>
   );
 }
