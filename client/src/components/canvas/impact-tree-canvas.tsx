@@ -4,7 +4,7 @@ import { NodeConnections } from "./node-connections";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { CanvasContextMenu } from "../modals/canvas-context-menu";
 import { TreeProvider } from "@/contexts/tree-context";
-import { getVisibleNodes, getVisibleConnections } from "@/lib/canvas-utils";
+import { getVisibleNodes, getVisibleConnections, moveNodeWithChildren, snapToGrid } from "@/lib/canvas-utils";
 import { throttle, debounce } from "@/lib/performance-utils";
 import { NODE_DIMENSIONS, CANVAS_CONSTANTS } from "@/lib/node-constants";
 import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
@@ -274,9 +274,33 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   const handleNodeDrag = useCallback((nodeId: string, newPosition: { x: number; y: number }) => {
     const node = nodes.find(n => n.id === nodeId);
     if (node) {
-      onNodeUpdate({ ...node, position: newPosition });
+      // Snap the new position to grid
+      const snappedPosition = snapToGrid(newPosition);
+      
+      // Check if the node has children
+      if (node.children && node.children.length > 0) {
+        // Use moveNodeWithChildren to move the node and all its children
+        const updatedNodes = moveNodeWithChildren(nodes, nodeId, snappedPosition, canvasState.orientation);
+        
+        // Find all nodes that actually moved
+        const movedNodes = updatedNodes.filter(updatedNode => {
+          const originalNode = nodes.find(n => n.id === updatedNode.id);
+          return originalNode && (
+            originalNode.position.x !== updatedNode.position.x || 
+            originalNode.position.y !== updatedNode.position.y
+          );
+        });
+        
+        // Update all moved nodes
+        movedNodes.forEach(movedNode => {
+          onNodeUpdate(movedNode);
+        });
+      } else {
+        // Single node without children - simple update
+        onNodeUpdate({ ...node, position: snappedPosition });
+      }
     }
-  }, [nodes, onNodeUpdate]);
+  }, [nodes, onNodeUpdate, canvasState.orientation]);
 
   // Global mouse event handlers for mini map dragging with performance optimization
   useEffect(() => {
