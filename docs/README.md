@@ -1,13 +1,13 @@
-# 📚 React + Node.js Documentation Framework
+# 📚 React + Java Documentation Framework
 
-> **Complete documentation-driven development framework for React + Node.js projects**
-> **Adapted from proven workflow patterns for Impact Tree Canvas applications**
+> **Complete documentation-driven development framework for React + Java projects**
+> **Adapted from proven workflow patterns**
 
 ---
 
 ## 🎯 **Overview**
 
-This documentation framework provides a comprehensive, AI-assistant-ready documentation structure for React + Node.js full-stack projects. It's based on a successful documentation-driven development workflow, adapted specifically for React frontend and Node.js backend development with HTML5 canvas integration.
+This documentation framework provides a comprehensive, AI-assistant-ready documentation structure for React + Java full-stack projects. It's based on a successful documentation-driven development workflow, adapted specifically for React frontend and Java backend development.
 
 ---
 
@@ -19,10 +19,10 @@ This documentation framework provides a comprehensive, AI-assistant-ready docume
 3. **Use the templates**: Always use appropriate templates for consistency
 
 ### **For Developers**
-1. **Copy this entire `docs` folder** to your React + Node.js project root
-2. **Customize templates**: Update templates with your project-specific information
-3. **Start documenting**: Use the workflow guide to create your first feature documentation
-4. **Canvas Integration**: Leverage templates designed for HTML5 canvas and tree visualization
+1. **Copy this entire `docs_node_java` folder** to your React + Java project root
+2. **Rename to `docs`**: `mv docs_node_java docs`
+3. **Customize templates**: Update templates with your project-specific information
+4. **Start documenting**: Use the workflow guide to create your first feature documentation
 
 ---
 
@@ -88,10 +88,9 @@ docs/
 - **Quality tracking**: Post-implementation reports and metrics
 - **Continuous improvement**: Lessons learned and best practices
 
-### **⚛️ React + Node.js Specific**
+### **⚛️ React + Java Specific**
 - **Full-stack patterns**: Frontend and backend development patterns
-- **Technology-specific templates**: React and Node.js-specific templates
-- **Canvas Integration**: HTML5 canvas and tree visualization patterns
+- **Technology-specific templates**: React and Java-specific templates
 - **Integration guidelines**: Frontend-backend integration best practices
 - **Testing strategies**: Comprehensive testing approaches for both layers
 
