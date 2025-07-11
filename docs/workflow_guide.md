@@ -97,6 +97,8 @@ Before marking any implementation complete:
 - [ ] Check server logs for any errors or warnings
 - [ ] Test authentication and authorization flows
 - [ ] Validate input sanitization and error handling
+- [ ] **CRITICAL**: Verify database transactions complete successfully (check rowCount and transaction logs)
+- [ ] **CRITICAL**: Ensure activity logging doesn't break main operations (use try/catch)
 
 #### **Frontend Testing**
 - [ ] Test all user interactions manually
@@ -104,12 +106,16 @@ Before marking any implementation complete:
 - [ ] Confirm success/error messages display correctly
 - [ ] Test loading states and disabled buttons
 - [ ] Validate form submissions and data persistence
+- [ ] **CRITICAL**: Test async operations use correct patterns (mutateAsync vs mutate)
+- [ ] **CRITICAL**: Verify proper query cache invalidation after mutations
 
 #### **Integration Testing**
 - [ ] Test complete user workflows end-to-end
 - [ ] Verify data consistency between frontend and backend
 - [ ] Test error scenarios and recovery flows
 - [ ] Confirm proper cache invalidation
+- [ ] **CRITICAL**: Test that DOM validation passes (no nesting errors)
+- [ ] **CRITICAL**: Verify foreign key constraints don't break related operations
 
 ---
 
