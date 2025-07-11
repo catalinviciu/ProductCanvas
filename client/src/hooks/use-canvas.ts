@@ -308,17 +308,15 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     } else {
       // For content updates, use immediate API call
       updateNodeMutation.mutate({
-        nodeId: updatedNode.id,
-        updates: {
-          title: updatedNode.title,
-          description: updatedNode.description,
-          templateData: updatedNode.templateData,
-          position: updatedNode.position,
-          parentId: updatedNode.parentId,
-          metadata: {
-            testCategory: updatedNode.testCategory,
-            lastModified: new Date().toISOString(),
-          }
+        id: updatedNode.id,
+        title: updatedNode.title,
+        description: updatedNode.description,
+        templateData: updatedNode.templateData,
+        position: updatedNode.position,
+        parentId: updatedNode.parentId,
+        metadata: {
+          testCategory: updatedNode.testCategory,
+          lastModified: new Date().toISOString(),
         }
       });
     }
@@ -592,7 +590,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         : node
     ));
 
-    // Queue for batch save with optimistic updates
+    // Queue for batch save
     optimisticUpdates.queueUpdate(nodeId, snappedPosition);
   }, [optimisticUpdates]);
 
@@ -621,9 +619,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   // Cleanup function to flush pending updates when component unmounts
   useEffect(() => {
     return () => {
-      if (optimisticUpdates.forceSave) {
-        optimisticUpdates.forceSave();
-      }
+      optimisticUpdates.forceSave();
     };
   }, [optimisticUpdates]);
 

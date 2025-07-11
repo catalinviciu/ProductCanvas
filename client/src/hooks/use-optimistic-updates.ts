@@ -46,7 +46,7 @@ export function useOptimisticUpdates({
   
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Enhanced batch save with retry logic and error handling - FIXED
+  // Enhanced batch save with retry logic and error handling
   const performBatchSave = useCallback(async (updates: Map<string, OptimisticUpdate>) => {
     if (updates.size === 0) return;
     
@@ -60,27 +60,27 @@ export function useOptimisticUpdates({
     setErrorNodes(new Set());
     
     try {
-      // Use the correct format for bulk-update endpoint
-      const batchRequest = {
-        nodeUpdates: Array.from(updates.entries()).map(([nodeId, data]) => ({
+      const batchRequest: BatchUpdateRequest = {
+        nodes: Array.from(updates.entries()).map(([nodeId, data]) => ({
           id: nodeId,
-          updates: {
-            position: data.position
-          }
+          position: data.position
         }))
       };
       
-      const response = await apiRequest(
-        'PUT',
-        `/api/impact-trees/${treeId}/nodes/bulk-update`,
-        batchRequest
+      const response = await apiRequest<BatchUpdateResponse>(
+        `/api/impact-trees/${treeId}/nodes/batch`,
+        {
+          method: 'PUT',
+          body: JSON.stringify(batchRequest),
+          signal: abortControllerRef.current.signal
+        }
       );
       
       if (response.success) {
         // Clear successfully saved updates
         setPendingUpdates(prev => {
           const updated = new Map(prev);
-          batchRequest.nodeUpdates.forEach(node => updated.delete(node.id));
+          batchRequest.nodes.forEach(node => updated.delete(node.id));
           return updated;
         });
         
@@ -145,40 +145,27 @@ export function useOptimisticUpdates({
     }
   }, [treeId, maxRetries, onError, onSuccess]);
 
-  // Debounced save function - FIXED
+  // Debounced save function
   const debouncedSave = useMemo(
     () => debounce(async () => {
-      if (pendingUpdates.size > 0) {
-        await performBatchSave(pendingUpdates);
-      }
+      await performBatchSave(pendingUpdates);
     }, debounceMs),
     [performBatchSave, pendingUpdates, debounceMs]
   );
 
-  // Queue an update for batching - FIXED
+  // Queue an update for batching
   const queueUpdate = useCallback((nodeId: string, position: { x: number; y: number }) => {
-    
-    // Only queue if we don't already have a pending update for this node or if the position changed
-    setPendingUpdates(prev => {
-      const existing = prev.get(nodeId);
-      if (existing && existing.position.x === position.x && existing.position.y === position.y) {
-        return prev; // Don't queue duplicate updates
-      }
-      const updated = new Map(prev);
-      updated.set(nodeId, {
-        nodeId,
-        position,
-        timestamp: Date.now(),
-        retryCount: 0
-      });
-      return updated;
-    });
+    setPendingUpdates(prev => new Map(prev).set(nodeId, {
+      nodeId,
+      position,
+      timestamp: Date.now(),
+      retryCount: 0
+    }));
     debouncedSave();
   }, [debouncedSave]);
 
-  // Queue multiple updates (for subtree operations) - FIXED
+  // Queue multiple updates (for subtree operations)
   const queueMultipleUpdates = useCallback((updates: Array<{ nodeId: string; position: { x: number; y: number } }>) => {
-    
     setPendingUpdates(prev => {
       const newUpdates = new Map(prev);
       updates.forEach(({ nodeId, position }) => {

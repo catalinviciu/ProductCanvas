@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { treeNodes, userActivities } from '../../shared/schema';
+import { treeNodes } from '../../shared/schema';
 import { eq, inArray, and } from 'drizzle-orm';
 import { isAuthenticated } from '../replitAuth';
 
@@ -67,11 +67,9 @@ router.put('/api/impact-trees/:treeId/nodes/batch', isAuthenticated, async (req,
     const invalidNodes = nodeIds.filter(id => !existingNodeIds.has(id));
 
     if (invalidNodes.length > 0) {
-      console.log('Invalid nodes found:', invalidNodes, 'Valid nodes:', Array.from(existingNodeIds));
       return res.status(400).json({ 
         error: 'Invalid nodes',
-        invalid: invalidNodes,
-        message: 'Node not found'
+        invalid: invalidNodes
       });
     }
 
