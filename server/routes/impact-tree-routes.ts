@@ -62,8 +62,8 @@ const updateNodeSchema = z.object({
 });
 
 const bulkUpdateNodesSchema = z.object({
-  nodeUpdates: z.array(z.object({
-    id: z.string(),
+  updates: z.array(z.object({
+    nodeId: z.string(),
     updates: updateNodeSchema,
   })),
 });
@@ -275,6 +275,13 @@ router.put('/api/impact-trees/:id/nodes/bulk', isAuthenticated, async (req: any,
     const treeId = parseInt(req.params.id);
     const userId = req.user.claims.sub;
     
+    console.log('Bulk update request:', {
+      treeId,
+      userId,
+      bodyKeys: Object.keys(req.body),
+      updates: req.body.updates?.length || 0
+    });
+    
     if (isNaN(treeId)) {
       return res.status(400).json({ message: 'Invalid tree ID' });
     }
@@ -285,15 +292,25 @@ router.put('/api/impact-trees/:id/nodes/bulk', isAuthenticated, async (req: any,
       return res.status(400).json({ message: 'Updates must be an array' });
     }
 
+    console.log('Processing', updates.length, 'updates for tree', treeId);
+    console.log('Sample update:', updates[0]);
+
     const validatedUpdates = updates.map(update => ({
       id: update.nodeId,
       updates: updateNodeSchema.parse(update.updates)
     }));
 
     const updatedNodes = await treeService.bulkUpdateNodes(treeId, userId, validatedUpdates);
+    
+    console.log('Bulk update result:', {
+      updatedCount: updatedNodes.length,
+      requestedCount: updates.length
+    });
+    
     res.json({ updatedNodes, count: updatedNodes.length });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
       return res.status(400).json({ 
         message: 'Invalid data', 
         errors: error.errors 

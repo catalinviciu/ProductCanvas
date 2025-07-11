@@ -29,6 +29,7 @@ export function useOptimisticUpdates({
   const bulkUpdateMutation = useMutation({
     mutationFn: async (updates: Array<{ nodeId: string; updates: any }>) => {
       console.log('Processing bulk update for', updates.length, 'nodes');
+      console.log('Updates payload:', updates);
       return apiRequest('PUT', `/api/impact-trees/${treeId}/nodes/bulk`, { updates });
     },
     onSuccess: () => {
@@ -37,6 +38,8 @@ export function useOptimisticUpdates({
     },
     onError: (error) => {
       console.error('Bulk update failed:', error);
+      // Don't retry on errors for now to prevent infinite loops
+      setPendingUpdates(new Map());
     }
   });
 
@@ -60,13 +63,20 @@ export function useOptimisticUpdates({
 
       // Process all batches
       for (const batch of batches) {
-        await bulkUpdateMutation.mutateAsync(batch);
+        try {
+          await bulkUpdateMutation.mutateAsync(batch);
+        } catch (error) {
+          console.error('Batch update failed:', error);
+          // Continue with other batches even if one fails
+        }
       }
 
-      // Clear processed updates
+      // Clear processed updates regardless of success/failure
       setPendingUpdates(new Map());
     } catch (error) {
       console.error('Error processing pending updates:', error);
+      // Clear pending updates to prevent infinite loops
+      setPendingUpdates(new Map());
     } finally {
       setIsProcessing(false);
     }
