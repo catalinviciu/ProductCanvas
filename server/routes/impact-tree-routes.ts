@@ -269,6 +269,41 @@ router.delete('/api/impact-trees/:id/nodes/:nodeId', isAuthenticated, async (req
   }
 });
 
+// Bulk update nodes endpoint
+router.put('/api/impact-trees/:id/nodes/bulk', isAuthenticated, async (req: any, res) => {
+  try {
+    const treeId = parseInt(req.params.id);
+    const userId = req.user.claims.sub;
+    
+    if (isNaN(treeId)) {
+      return res.status(400).json({ message: 'Invalid tree ID' });
+    }
+
+    const { updates } = req.body;
+    
+    if (!Array.isArray(updates)) {
+      return res.status(400).json({ message: 'Updates must be an array' });
+    }
+
+    const validatedUpdates = updates.map(update => ({
+      id: update.nodeId,
+      updates: updateNodeSchema.parse(update.updates)
+    }));
+
+    const updatedNodes = await treeService.bulkUpdateNodes(treeId, userId, validatedUpdates);
+    res.json({ updatedNodes, count: updatedNodes.length });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        message: 'Invalid data', 
+        errors: error.errors 
+      });
+    }
+    console.error('Error bulk updating nodes:', error);
+    res.status(500).json({ message: 'Failed to bulk update nodes' });
+  }
+});
+
 router.get('/api/impact-trees/:id/nodes/:nodeId/children', isAuthenticated, async (req: any, res) => {
   try {
     const treeId = parseInt(req.params.id);

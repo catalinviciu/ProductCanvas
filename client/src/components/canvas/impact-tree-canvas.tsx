@@ -291,7 +291,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
           );
         });
         
-        // Update all moved nodes
+        // Update all moved nodes with optimistic updates
         movedNodes.forEach(movedNode => {
           onNodeUpdate(movedNode);
         });

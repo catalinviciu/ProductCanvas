@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop } from "@/lib/canvas-utils";
 import { useEnhancedTreePersistence } from "./use-enhanced-tree-persistence";
+import { useOptimisticUpdates } from "./use-optimistic-updates";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -23,6 +24,11 @@ interface CreateFirstNodeModalState {
 export function useCanvas(impactTree: ImpactTree | undefined) {
   const queryClient = useQueryClient();
   const enhancedPersistence = useEnhancedTreePersistence(impactTree?.id || 0);
+  const optimisticUpdates = useOptimisticUpdates({ 
+    treeId: impactTree?.id || 0,
+    debounceMs: 500,
+    batchSize: 10
+  });
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     isOpen: false,
@@ -291,22 +297,19 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     );
     setNodes(updatedNodes);
     
-    // Save to database via API
-    updateNodeMutation.mutate({
-      nodeId: updatedNode.id,
-      updates: {
-        title: updatedNode.title,
-        description: updatedNode.description,
-        templateData: updatedNode.templateData,
-        position: updatedNode.position,
-        parentId: updatedNode.parentId,
-        metadata: {
-          testCategory: updatedNode.testCategory,
-          lastModified: new Date().toISOString(),
-        }
+    // Use optimistic updates for batched persistence
+    optimisticUpdates.optimisticUpdate(updatedNode.id, {
+      title: updatedNode.title,
+      description: updatedNode.description,
+      templateData: updatedNode.templateData,
+      position: updatedNode.position,
+      parentId: updatedNode.parentId,
+      metadata: {
+        testCategory: updatedNode.testCategory,
+        lastModified: new Date().toISOString(),
       }
     });
-  }, [nodes, updateNodeMutation]);
+  }, [nodes, optimisticUpdates]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
@@ -487,6 +490,13 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(undefined, undefined, updatedCanvasState);
   }, [canvasState, saveTree]);
 
+  // Flush pending updates when doing major operations
+  const handleMajorOperation = useCallback(async (operation: () => void) => {
+    // Flush any pending position updates before major changes
+    await optimisticUpdates.flushPendingUpdates();
+    operation();
+  }, [optimisticUpdates]);
+
   const closeEditDrawer = useCallback(() => {
     setEditDrawer({ isOpen: false });
   }, []);
@@ -557,6 +567,13 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     closeCreateFirstNodeModal();
   }, [handleNodeCreate]);
 
+  // Cleanup function to flush pending updates when component unmounts
+  useEffect(() => {
+    return () => {
+      optimisticUpdates.flushPendingUpdates();
+    };
+  }, [optimisticUpdates]);
+
   return {
     selectedNode,
     contextMenu,
@@ -584,5 +601,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
+    // Optimistic updates status
+    pendingUpdatesCount: optimisticUpdates.pendingUpdatesCount,
+    isProcessingUpdates: optimisticUpdates.isProcessing,
+    flushPendingUpdates: optimisticUpdates.flushPendingUpdates,
   };
 }

@@ -6,6 +6,7 @@ import { NodeEditSideDrawer } from "@/components/drawers/node-edit-side-drawer";
 import { ContextMenu } from "@/components/modals/context-menu";
 import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
 import { CanvasHeader } from "@/components/canvas-header";
+import { OptimisticUpdatesIndicator } from "@/components/canvas/optimistic-updates-indicator";
 import { useCanvas } from "@/hooks/use-canvas";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavAutoHide } from "@/hooks/use-nav-auto-hide";
@@ -129,6 +130,9 @@ export default function CanvasPage() {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
+    pendingUpdatesCount,
+    isProcessingUpdates,
+    flushPendingUpdates,
   } = useCanvas(impactTree);
 
   // Debug tree loading
@@ -226,6 +230,11 @@ export default function CanvasPage() {
         isOpen={createFirstNodeModal.isOpen}
         onClose={closeCreateFirstNodeModal}
         onNodeCreate={handleCreateFirstNode}
+      />
+
+      <OptimisticUpdatesIndicator
+        pendingUpdatesCount={pendingUpdatesCount}
+        isProcessingUpdates={isProcessingUpdates}
       />
     </div>
   );
