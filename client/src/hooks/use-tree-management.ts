@@ -21,8 +21,8 @@ export function useTreeManagement() {
     },
     onSuccess: (data) => {
       // Invalidate tree queries
-      queryClient.invalidateQueries({ queryKey: ['impact-trees'] });
-      queryClient.invalidateQueries({ queryKey: ['impact-tree', data.data.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees', data.data.id] });
       
       toast({
         title: 'Tree renamed',
@@ -46,7 +46,7 @@ export function useTreeManagement() {
     },
     onSuccess: (data) => {
       // Invalidate tree queries
-      queryClient.invalidateQueries({ queryKey: ['impact-trees'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/impact-trees'] });
       
       toast({
         title: 'Tree deleted',
