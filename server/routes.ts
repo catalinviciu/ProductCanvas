@@ -41,6 +41,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Register new tree and node routes FIRST (before old routes to avoid conflicts)
+  app.use(impactTreeRoutes);
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
@@ -168,9 +171,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register enhanced routes for AI and user progress tracking
   registerEnhancedRoutes(app);
-
-  // Register new tree and node routes
-  app.use(impactTreeRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
