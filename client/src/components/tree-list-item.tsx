@@ -43,9 +43,14 @@ export function TreeListItem({ tree, onNavigate }: TreeListItemProps) {
     }
   };
 
-  const handleDeleteConfirm = () => {
-    deleteTree(tree.id);
-    setShowDeleteModal(false);
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteTree(tree.id);
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Failed to delete tree:', error);
+      // Keep modal open if deletion fails
+    }
   };
 
   return (

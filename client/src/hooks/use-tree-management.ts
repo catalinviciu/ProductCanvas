@@ -50,7 +50,7 @@ export function useTreeManagement() {
       
       toast({
         title: 'Tree deleted',
-        description: `"${data.data.treeName}" and ${data.data.deletedNodes} nodes deleted`,
+        description: `"${data.treeName}" and ${data.deletedNodes} nodes deleted`,
       });
     },
     onError: (error: any) => {
@@ -69,7 +69,7 @@ export function useTreeManagement() {
 
   return {
     renameTree: renameTreeMutation.mutate,
-    deleteTree: deleteTreeMutation.mutate,
+    deleteTree: deleteTreeMutation.mutateAsync,
     getDeletionPreview,
     isRenaming: renameTreeMutation.isPending,
     isDeleting: deleteTreeMutation.isPending

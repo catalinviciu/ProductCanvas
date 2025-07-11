@@ -1,0 +1,52 @@
+hook.js:608 Warning: validateDOMNesting(...): <div> cannot appear as a descendant of <p>. Error Component Stack
+    at div (<anonymous>)
+    at p (<anonymous>)
+    at chunk-AXMZZQ2X.js?v=82a4f765:42:13
+    at @radix-ui_react-alert-dialog.js?v=82a4f765:290:13
+    at @radix-ui_react-alert-dialog.js?v=82a4f765:450:11
+    at _c9 (alert-dialog.tsx:89:6)
+    at div (<anonymous>)
+    at AlertDialogHeader (alert-dialog.tsx:47:3)
+    at Slottable2 (chunk-2K77HOHX.js?v=82a4f765:95:25)
+    at div (<anonymous>)
+    at chunk-AXMZZQ2X.js?v=82a4f765:42:13
+    at chunk-AFLIZ4FI.js?v=82a4f765:61:7
+    at chunk-2K77HOHX.js?v=82a4f765:79:13
+    at chunk-2K77HOHX.js?v=82a4f765:56:13
+    at chunk-AXMZZQ2X.js?v=82a4f765:42:13
+    at chunk-HG7P5XMB.js?v=82a4f765:29:5
+    at @radix-ui_react-alert-dialog.js?v=82a4f765:242:13
+    at @radix-ui_react-alert-dialog.js?v=82a4f765:165:58
+    at Presence (chunk-LUE5KDWX.js?v=82a4f765:24:11)
+    at @radix-ui_react-alert-dialog.js?v=82a4f765:156:64
+    at Provider (chunk-OXZDJRWN.js?v=82a4f765:38:15)
+    at Provider (chunk-OXZDJRWN.js?v=82a4f765:17:13)
+    at @radix-ui_react-alert-dialog.js?v=82a4f765:403:13
+    at chunk-2K77HOHX.js?v=82a4f765:79:13
+    at chunk-2K77HOHX.js?v=82a4f765:56:13
+    at chunk-AXMZZQ2X.js?v=82a4f765:42:13
+    at chunk-AFLIZ4FI.js?v=82a4f765:260:22
+    at Presence (chunk-LUE5KDWX.js?v=82a4f765:24:11)
+    at Provider (chunk-OXZDJRWN.js?v=82a4f765:38:15)
+    at DialogPortal (@radix-ui_react-alert-dialog.js?v=82a4f765:118:11)
+    at AlertDialogPortal (@radix-ui_react-alert-dialog.js?v=82a4f765:384:11)
+    at _c3 (alert-dialog.tsx:31:6)
+    at Provider (chunk-OXZDJRWN.js?v=82a4f765:38:15)
+    at Dialog (@radix-ui_react-alert-dialog.js?v=82a4f765:59:5)
+    at AlertDialog (@radix-ui_react-alert-dialog.js?v=82a4f765:368:11)
+    at DeleteConfirmationModal (delete-confirmation-modal.tsx:25:3)
+    at div (<anonymous>)
+    at _c (card.tsx:8:6)
+    at TreeListItem (tree-list-item.tsx:16:32)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at _c9 (card.tsx:62:6)
+    at div (<anonymous>)
+    at _c (card.tsx:8:6)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Home (home.tsx:12:44)
+    at Route (wouter.js?v=82a4f765:323:16)
+    at Switch (wouter.js?v=82a4f765:379:17)
+    at Router (App.tsx:13:42)
