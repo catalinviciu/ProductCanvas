@@ -44,7 +44,30 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   // Initialize state from impactTree
   useEffect(() => {
     if (impactTree) {
-      const treeNodes = (impactTree.nodes as TreeNode[]) || [];
+      // Convert nodeRecords to TreeNode format if available, otherwise use legacy nodes
+      let treeNodes: TreeNode[] = [];
+      
+      if ((impactTree as any).nodeRecords) {
+        // Convert database records to TreeNode format
+        const nodeRecords = (impactTree as any).nodeRecords;
+        treeNodes = nodeRecords.map((record: any) => ({
+          id: record.id,
+          type: record.nodeType,
+          title: record.title,
+          description: record.description || '',
+          position: record.position,
+          parentId: record.parentId,
+          children: nodeRecords.filter((r: any) => r.parentId === record.id).map((r: any) => r.id),
+          templateData: record.templateData || {},
+          testCategory: record.metadata?.testCategory,
+          isCollapsed: false,
+          hiddenChildren: [],
+        }));
+      } else {
+        // Use legacy nodes structure for backward compatibility
+        treeNodes = (impactTree.nodes as TreeNode[]) || [];
+      }
+      
       setNodes(treeNodes);
       setConnections((impactTree.connections as NodeConnection[]) || []);
       
