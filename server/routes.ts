@@ -5,6 +5,7 @@ import { insertImpactTreeSchema, type TreeNode, type NodeConnection, type Canvas
 import { z } from "zod";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerEnhancedRoutes } from "./enhanced-routes";
+import impactTreeRoutes from "./routes/impact-tree-routes";
 
 const updateNodeSchema = z.object({
   id: z.string(),
@@ -167,6 +168,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register enhanced routes for AI and user progress tracking
   registerEnhancedRoutes(app);
+
+  // Register new tree and node routes
+  app.use(impactTreeRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

@@ -65,6 +65,26 @@ export const treeVersions = pgTable("tree_versions", {
   uniqueVersion: unique("unique_tree_version").on(table.treeId, table.versionNumber),
 }));
 
+// Individual tree nodes table with adjacency list model
+export const treeNodes = pgTable("tree_nodes", {
+  id: text("id").primaryKey(),
+  treeId: integer("tree_id").notNull().references(() => impactTrees.id, { onDelete: "cascade" }),
+  parentId: text("parent_id").references(() => treeNodes.id, { onDelete: "cascade" }),
+  nodeType: text("node_type").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  templateData: jsonb("template_data").default('{}'),
+  position: jsonb("position").notNull().default('{"x": 0, "y": 0}'),
+  metadata: jsonb("metadata").default('{}'),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  treeIdIdx: index("idx_tree_nodes_tree_id").on(table.treeId),
+  parentIdIdx: index("idx_tree_nodes_parent_id").on(table.parentId),
+  nodeTypeIdx: index("idx_tree_nodes_type").on(table.nodeType),
+  templateDataGin: index("idx_tree_nodes_template_data").using("gin", table.templateData),
+}));
+
 export const userActivities = pgTable("user_activities", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id", { length: 255 }).notNull(),
@@ -92,6 +112,8 @@ export type TreeVersion = typeof treeVersions.$inferSelect;
 export type UserActivity = typeof userActivities.$inferSelect;
 export type InsertTreeVersion = typeof treeVersions.$inferInsert;
 export type InsertUserActivity = typeof userActivities.$inferInsert;
+export type TreeNodeRecord = typeof treeNodes.$inferSelect;
+export type InsertTreeNode = typeof treeNodes.$inferInsert;
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
