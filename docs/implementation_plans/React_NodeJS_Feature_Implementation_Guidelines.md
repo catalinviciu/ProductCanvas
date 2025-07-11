@@ -320,64 +320,83 @@ export const FeatureList: React.FC<FeatureListProps> = ({ onFeatureSelect }) => 
 
 ## 🗄️ **Database Management**
 
-### **🎯 JPA/Hibernate Best Practices**
+### **🎯 Drizzle ORM Best Practices**
 
-#### **Entity Design**
-```java
-// ✅ RECOMMENDED: Proper Entity Design
-@Entity
-@Table(name = "users", indexes = {
-    @Index(name = "idx_user_email", columnList = "email"),
-    @Index(name = "idx_user_created_at", columnList = "createdAt")
-})
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, unique = true, length = 255)
-    private String email;
-    
-    @Column(nullable = false, length = 100)
-    private String firstName;
-    
-    @Column(nullable = false, length = 100)
-    private String lastName;
-    
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-    
-    // Relationships
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Feature> features = new ArrayList<>();
-    
-    // Constructors, getters, setters
-}
+#### **Schema Definition**
+```typescript
+// ✅ RECOMMENDED: Proper Schema Definition
+import { pgTable, text, serial, integer, timestamp, varchar, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  emailIdx: index("idx_user_email").on(table.email),
+  createdAtIdx: index("idx_user_created_at").on(table.createdAt),
+}));
+
+export const features = pgTable("features", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_feature_user").on(table.userId),
+}));
+
+// Type definitions for type safety
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type Feature = typeof features.$inferSelect;
+export type InsertFeature = typeof features.$inferInsert;
 ```
 
 #### **Repository Pattern**
-```java
+```typescript
 // ✅ RECOMMENDED: Repository with Custom Queries
-@Repository
-public interface FeatureRepository extends JpaRepository<FeatureEntity, Long> {
-    
-    // Query methods
-    List<FeatureEntity> findByNameContainingIgnoreCase(String name);
-    
-    Optional<FeatureEntity> findByName(String name);
-    
-    // Custom queries
-    @Query("SELECT f FROM FeatureEntity f WHERE f.createdAt >= :startDate")
-    List<FeatureEntity> findRecentFeatures(@Param("startDate") LocalDateTime startDate);
-    
-    // Native queries (use sparingly)
-    @Query(value = "SELECT COUNT(*) FROM feature_entity WHERE created_at >= ?1", nativeQuery = true)
-    long countRecentFeatures(LocalDateTime startDate);
+import { eq, like, gte, and, desc, sql } from "drizzle-orm";
+import { db } from "../db";
+import { features } from "../schema";
+
+export class FeatureRepository {
+  async findByNameContaining(name: string): Promise<Feature[]> {
+    return await db
+      .select()
+      .from(features)
+      .where(like(features.name, `%${name}%`));
+  }
+  
+  async findByName(name: string): Promise<Feature | undefined> {
+    const [feature] = await db
+      .select()
+      .from(features)
+      .where(eq(features.name, name))
+      .limit(1);
+    return feature;
+  }
+  
+  async findRecentFeatures(startDate: Date): Promise<Feature[]> {
+    return await db
+      .select()
+      .from(features)
+      .where(gte(features.createdAt, startDate))
+      .orderBy(desc(features.createdAt));
+  }
+  
+  async countRecentFeatures(startDate: Date): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(features)
+      .where(gte(features.createdAt, startDate));
+    return result[0].count;
+  }
 }
 ```
 
@@ -387,81 +406,110 @@ public interface FeatureRepository extends JpaRepository<FeatureEntity, Long> {
 
 ### **🎯 RESTful API Design**
 
-#### **Request/Response DTOs**
-```java
-// ✅ RECOMMENDED: Separate DTOs for Request/Response
-public class CreateFeatureRequest {
-    @NotBlank(message = "Name is required")
-    @Size(max = 255, message = "Name must not exceed 255 characters")
-    private String name;
-    
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
-    private String description;
-    
-    // Getters, setters, validation
-}
+#### **Request/Response Validation**
+```typescript
+// ✅ RECOMMENDED: Separate schemas for Request/Response with Zod
+import { z } from 'zod';
 
-public class FeatureResponse {
-    private Long id;
-    private String name;
-    private String description;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    
-    // Getters, setters
-}
+export const createFeatureSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255, "Name must not exceed 255 characters"),
+  description: z.string().max(1000, "Description must not exceed 1000 characters").optional(),
+});
 
-public class UpdateFeatureRequest {
-    @Size(max = 255, message = "Name must not exceed 255 characters")
-    private String name;
-    
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
-    private String description;
-    
-    // Getters, setters
-}
+export const updateFeatureSchema = z.object({
+  name: z.string().min(1).max(255, "Name must not exceed 255 characters").optional(),
+  description: z.string().max(1000, "Description must not exceed 1000 characters").optional(),
+});
+
+export const featureResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+// Type definitions from schemas
+export type CreateFeatureRequest = z.infer<typeof createFeatureSchema>;
+export type UpdateFeatureRequest = z.infer<typeof updateFeatureSchema>;
+export type FeatureResponse = z.infer<typeof featureResponseSchema>;
 ```
 
 #### **Error Handling**
-```java
-// ✅ RECOMMENDED: Global Exception Handler
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
-        ErrorResponse error = new ErrorResponse("INVALID_INPUT", e.getMessage());
-        return ResponseEntity.badRequest().body(error);
-    }
-    
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException e) {
-        ErrorResponse error = new ErrorResponse("NOT_FOUND", e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {
-        String message = e.getBindingResult().getFieldErrors().stream()
-            .map(FieldError::getDefaultMessage)
-            .collect(Collectors.joining(", "));
-        ErrorResponse error = new ErrorResponse("VALIDATION_ERROR", message);
-        return ResponseEntity.badRequest().body(error);
-    }
+```typescript
+// ✅ RECOMMENDED: Global Error Handler for Express
+import { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
+
+export class AppError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number = 500,
+    public code: string = 'INTERNAL_ERROR'
+  ) {
+    super(message);
+    this.name = 'AppError';
+  }
 }
 
-public class ErrorResponse {
-    private String code;
-    private String message;
-    private LocalDateTime timestamp;
-    
-    public ErrorResponse(String code, String message) {
-        this.code = code;
-        this.message = message;
-        this.timestamp = LocalDateTime.now();
-    }
-    
-    // Getters, setters
+export class ValidationError extends AppError {
+  constructor(message: string) {
+    super(message, 400, 'VALIDATION_ERROR');
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string) {
+    super(message, 404, 'NOT_FOUND');
+  }
+}
+
+// Global error handler middleware
+export const errorHandler = (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.error('Error:', error);
+
+  if (error instanceof ZodError) {
+    return res.status(400).json({
+      code: 'VALIDATION_ERROR',
+      message: 'Validation failed',
+      errors: error.errors.map(e => ({
+        field: e.path.join('.'),
+        message: e.message
+      })),
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  if (error instanceof AppError) {
+    return res.status(error.statusCode).json({
+      code: error.code,
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Default error response
+  res.status(500).json({
+    code: 'INTERNAL_ERROR',
+    message: 'Internal server error',
+    timestamp: new Date().toISOString()
+  });
+};
+
+// Error response type
+export interface ErrorResponse {
+  code: string;
+  message: string;
+  timestamp: string;
+  errors?: Array<{
+    field: string;
+    message: string;
+  }>;
 }
 ```
 
@@ -474,7 +522,7 @@ public class ErrorResponse {
 // ✅ RECOMMENDED: Typed API Service
 import axios, { AxiosResponse } from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 // Types
 export interface Feature {
@@ -563,22 +611,70 @@ export class FeatureService {
 ## 🧪 **Testing Strategy**
 
 ### **Backend Testing**
-```java
-// ✅ RECOMMENDED: Service Layer Test
-@ExtendWith(MockitoExtension.class)
-class FeatureServiceTest {
+```typescript
+// ✅ RECOMMENDED: Service Layer Test with Jest
+import { FeatureService } from '../services/feature-service';
+import { FeatureRepository } from '../repositories/feature-repository';
+import { CreateFeatureRequest } from '../types/feature-types';
+
+// Mock the repository
+jest.mock('../repositories/feature-repository');
+const mockFeatureRepository = FeatureRepository as jest.MockedClass<typeof FeatureRepository>;
+
+describe('FeatureService', () => {
+  let featureService: FeatureService;
+  let featureRepository: jest.Mocked<FeatureRepository>;
+
+  beforeEach(() => {
+    featureRepository = new mockFeatureRepository() as jest.Mocked<FeatureRepository>;
+    featureService = new FeatureService(featureRepository);
+  });
+
+  describe('createFeature', () => {
+    it('should create a feature successfully', async () => {
+      // Given
+      const request: CreateFeatureRequest = {
+        name: 'Test Feature',
+        description: 'Test Description'
+      };
+      
+      const expectedFeature = {
+        id: 1,
+        name: 'Test Feature',
+        description: 'Test Description',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      featureRepository.create.mockResolvedValue(expectedFeature);
+      
+      // When
+      const result = await featureService.createFeature('user123', request);
+      
+      // Then
+      expect(result).toEqual(expectedFeature);
+      expect(featureRepository.create).toHaveBeenCalledWith({
+        userId: 'user123',
+        name: 'Test Feature',
+        description: 'Test Description'
+      });
+    });
     
-    @Mock
-    private FeatureRepository featureRepository;
-    
-    @InjectMocks
-    private FeatureService featureService;
-    
-    @Test
-    void shouldCreateFeature() {
-        // Given
-        CreateFeatureRequest request = new CreateFeatureRequest();
-        request.setName("Test Feature");
+    it('should throw error for empty name', async () => {
+      // Given
+      const request: CreateFeatureRequest = {
+        name: '',
+        description: 'Test Description'
+      };
+      
+      // When & Then
+      await expect(featureService.createFeature('user123', request))
+        .rejects
+        .toThrow('Feature name cannot be empty');
+    });
+  });
+});
+```("Test Feature");
         
         FeatureEntity savedEntity = new FeatureEntity("Test Feature");
         savedEntity.setId(1L);
@@ -669,33 +765,54 @@ describe('CreateFeature', () => {
 ## ⚠️ **Common Pitfalls & Solutions**
 
 ### **Database Issues**
-```java
+```typescript
 // ❌ AVOID: N+1 Query Problem
-@OneToMany(mappedBy = "user", fetch = FetchType.EAGER) // Don't use EAGER
-private List<Feature> features;
+const getUsersWithFeatures = async () => {
+  const users = await db.select().from(usersTable);
+  
+  // This creates N+1 queries (one for each user)
+  for (const user of users) {
+    user.features = await db
+      .select()
+      .from(featuresTable)
+      .where(eq(featuresTable.userId, user.id));
+  }
+  return users;
+};
 
-// ✅ SOLUTION: Use LAZY loading with JOIN FETCH
-@Query("SELECT u FROM User u LEFT JOIN FETCH u.features WHERE u.id = :id")
-Optional<User> findByIdWithFeatures(@Param("id") Long id);
+// ✅ SOLUTION: Use JOIN to fetch related data in single query
+const getUsersWithFeatures = async () => {
+  return await db
+    .select({
+      user: usersTable,
+      features: sql<Feature[]>`json_agg(${featuresTable})`
+    })
+    .from(usersTable)
+    .leftJoin(featuresTable, eq(usersTable.id, featuresTable.userId))
+    .groupBy(usersTable.id);
+};
 ```
 
 ### **API Design Issues**
-```java
-// ❌ AVOID: Exposing entities directly
-@GetMapping
-public List<FeatureEntity> getAllFeatures() { // Don't return entities
-    return featureService.getAllFeatures();
-}
+```typescript
+// ❌ AVOID: Exposing database entities directly
+router.get('/api/features', async (req, res) => {
+  const features = await db.select().from(featuresTable); // Don't return raw DB data
+  res.json(features);
+});
 
-// ✅ SOLUTION: Use DTOs
-@GetMapping
-public ResponseEntity<List<FeatureResponse>> getAllFeatures() {
-    List<FeatureEntity> entities = featureService.getAllFeatures();
-    List<FeatureResponse> responses = entities.stream()
-        .map(FeatureMapper::toResponse)
-        .collect(Collectors.toList());
-    return ResponseEntity.ok(responses);
-}
+// ✅ SOLUTION: Use response transformation
+router.get('/api/features', async (req, res) => {
+  const features = await db.select().from(featuresTable);
+  const response = features.map(feature => ({
+    id: feature.id,
+    name: feature.name,
+    description: feature.description,
+    createdAt: feature.createdAt.toISOString(),
+    updatedAt: feature.updatedAt.toISOString()
+  }));
+  res.json(response);
+});
 ```
 
 ### **Frontend Issues**
@@ -751,10 +868,10 @@ const FeatureList = () => {
 - [ ] **Dependencies** identified and available
 
 ### **Backend Implementation**
-- [ ] **JPA entities** created with proper annotations
-- [ ] **Repository interfaces** implemented
+- [ ] **Drizzle schemas** created with proper types
+- [ ] **Repository classes** implemented
 - [ ] **Service layer** implemented with business logic
-- [ ] **REST controllers** implemented with proper error handling
+- [ ] **Express routes** implemented with proper error handling
 - [ ] **Unit tests** written and passing
 
 ### **Frontend Implementation**
@@ -779,6 +896,6 @@ const FeatureList = () => {
 ---
 
 **📝 Guidelines Version**: 1.0  
-**🎯 Project Type**: React + Java  
-**📅 Last Updated**: June 2025  
+**🎯 Project Type**: React + Node.js  
+**📅 Last Updated**: January 2025  
 **🚀 Status**: Production Ready

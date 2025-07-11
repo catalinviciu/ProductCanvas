@@ -1,13 +1,13 @@
-# 📚 React + Java Documentation Framework
+# 📚 React + Node.js Documentation Framework
 
-> **Complete documentation-driven development framework for React + Java projects**
+> **Complete documentation-driven development framework for React + Node.js projects**
 > **Adapted from proven workflow patterns**
 
 ---
 
 ## 🎯 **Overview**
 
-This documentation framework provides a comprehensive, AI-assistant-ready documentation structure for React + Java full-stack projects. It's based on a successful documentation-driven development workflow, adapted specifically for React frontend and Java backend development.
+This documentation framework provides a comprehensive, AI-assistant-ready documentation structure for React + Node.js full-stack projects. It's based on a successful documentation-driven development workflow, adapted specifically for React frontend and Node.js backend development.
 
 ---
 
@@ -19,7 +19,7 @@ This documentation framework provides a comprehensive, AI-assistant-ready docume
 3. **Use the templates**: Always use appropriate templates for consistency
 
 ### **For Developers**
-1. **Copy this entire `docs_node_java` folder** to your React + Java project root
+1. **Copy this entire `docs` folder** to your React + Node.js project root
 2. **Rename to `docs`**: `mv docs_node_java docs`
 3. **Customize templates**: Update templates with your project-specific information
 4. **Start documenting**: Use the workflow guide to create your first feature documentation
@@ -42,16 +42,16 @@ docs/
 │
 ├── 🔧 implementation_plans/                # Technical implementation guides
 │   ├── implementation_plan_template.md    # Template for implementation plans
-│   └── React_Java_Feature_Implementation_Guidelines.md
+│   └── React_NodeJS_Feature_Implementation_Guidelines.md
 │
 ├── 📊 implementation_reports/              # Post-implementation reports
 │   └── implementation_report_template.md  # Template for implementation reports
 │
 ├── 🛠️ development/                         # Development standards and guidelines
 │   ├── README.md                          # Development guidelines overview
-│   ├── coding_standards.md               # React + Java coding standards
+│   ├── coding_standards.md               # React + Node.js coding standards
 │   ├── api_design_guidelines.md          # RESTful API design principles
-│   ├── database_design_patterns.md       # JPA/Hibernate best practices
+│   ├── database_design_patterns.md       # Drizzle ORM best practices
 │   ├── testing_standards.md              # Testing strategies
 │   ├── security_implementation_standards.md
 │   ├── performance_optimization_guidelines.md
@@ -169,7 +169,7 @@ cp -r docs_node_java /path/to/your/project/docs
 ## 📚 **Template Usage**
 
 ### **Feature Template** (`new_features/feature_template.md`)
-- **Use for**: New React components, Java services, API endpoints, database entities
+- **Use for**: New React components, Node.js services, API endpoints, database entities
 - **Includes**: Business case, technical specification, testing strategy, learning guide
 - **Output**: Complete feature specification ready for implementation
 
@@ -181,16 +181,16 @@ cp -r docs_node_java /path/to/your/project/docs
 ### **Implementation Plan Template** (`implementation_plans/implementation_plan_template.md`)
 - **Use for**: Detailed technical implementation guides
 - **Includes**: Phase-by-phase implementation, code examples, testing strategy
-- **Output**: Step-by-step implementation guide with React + Java patterns
+- **Output**: Step-by-step implementation guide with React + Node.js patterns
 
 ---
 
 ## 🎓 **Learning Resources**
 
-### **React + Java Development**
-- **Coding Standards**: Comprehensive standards for both React and Java
+### **React + Node.js Development**
+- **Coding Standards**: Comprehensive standards for both React and Node.js
 - **API Design Guidelines**: RESTful API design principles
-- **Database Patterns**: JPA/Hibernate best practices
+- **Database Patterns**: Drizzle ORM best practices
 - **Testing Strategies**: Full-stack testing approaches
 
 ### **Architecture Guidance**
@@ -200,7 +200,7 @@ cp -r docs_node_java /path/to/your/project/docs
 
 ### **Development Process**
 - **Workflow Guide**: Complete development workflow
-- **Implementation Guidelines**: React + Java-specific implementation patterns
+- **Implementation Guidelines**: React + Node.js-specific implementation patterns
 - **Quality Standards**: Code quality and review standards
 
 ---
@@ -293,4 +293,4 @@ cp -r docs_node_java /path/to/your/project/docs
 **📅 Created**: June 2025  
 **📅 Creator**: Cristian D.  
 **🚀 Status**: Ready for Production Use  
-**👥 Target**: React + Java Full-Stack Projects
+**👥 Target**: React + Node.js Full-Stack Projects

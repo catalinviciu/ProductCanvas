@@ -18,14 +18,14 @@
 - **Autonomous Documentation**: Create proper documentation when given simple requests
 - **Template Usage**: Always use appropriate templates for consistency
 - **Cross-referencing**: Link related documents and maintain relationships
-- **Quality Assurance**: Ensure documentation follows React + Java patterns
+- **Quality Assurance**: Ensure documentation follows React + Node.js patterns
 - **🎓 MANDATORY**: Include comprehensive Developer Learning Guide sections in all documentation
 
 ### **🎓 MANDATORY: Developer Learning Guide Requirements**
-**ALL React + Java documentation MUST include a comprehensive Developer Learning Guide section**:
+**ALL React + Node.js documentation MUST include a comprehensive Developer Learning Guide section**:
 
 #### **Purpose**
-- Make React + Java documentation accessible to developers at all skill levels
+- Make React + Node.js documentation accessible to developers at all skill levels
 - Provide visual learning aids alongside technical specifications
 - Explain the "why" behind technical decisions, not just the "what"
 - Create a learning resource that grows with project complexity
@@ -413,5 +413,5 @@ example: Xissue_016_api_timeout_error.md
 ---
 
 **📝 Workflow Guide Version**: 1.0
-**🎯 Purpose**: Enable efficient AI-assisted documentation for React + Java projects
+**🎯 Purpose**: Enable efficient AI-assisted documentation for React + Node.js projects
 **📅 Last Updated**: June 2025
