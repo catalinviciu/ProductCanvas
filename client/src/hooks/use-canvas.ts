@@ -592,8 +592,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         : node
     ));
 
-    // Queue for batch save
-    optimisticUpdates.queueUpdate(nodeId, snappedPosition);
+    // TEMPORARILY DISABLED: Queue for batch save to prevent infinite loop
+    // optimisticUpdates.queueUpdate(nodeId, snappedPosition);
   }, [optimisticUpdates]);
 
   // Handle subtree dragging with batch updates
@@ -604,18 +604,18 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     // Update UI immediately for all nodes
     setNodes(updatedNodes);
     
-    // Queue all position updates for batch save
-    const positionUpdates = updatedNodes
-      .filter(node => {
-        const originalNode = nodes.find(n => n.id === node.id);
-        return originalNode && (
-          originalNode.position.x !== node.position.x || 
-          originalNode.position.y !== node.position.y
-        );
-      })
-      .map(node => ({ nodeId: node.id, position: node.position }));
-    
-    optimisticUpdates.queueMultipleUpdates(positionUpdates);
+    // TEMPORARILY DISABLED: Queue all position updates for batch save to prevent infinite loop
+    // const positionUpdates = updatedNodes
+    //   .filter(node => {
+    //     const originalNode = nodes.find(n => n.id === node.id);
+    //     return originalNode && (
+    //       originalNode.position.x !== node.position.x || 
+    //       originalNode.position.y !== node.position.y
+    //     );
+    //   })
+    //   .map(node => ({ nodeId: node.id, position: node.position }));
+    // 
+    // optimisticUpdates.queueMultipleUpdates(positionUpdates);
   }, [nodes, canvasState.orientation, optimisticUpdates]);
 
   // Cleanup function to flush pending updates when component unmounts

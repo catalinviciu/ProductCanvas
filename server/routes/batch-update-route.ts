@@ -67,9 +67,11 @@ router.put('/api/impact-trees/:treeId/nodes/batch', isAuthenticated, async (req,
     const invalidNodes = nodeIds.filter(id => !existingNodeIds.has(id));
 
     if (invalidNodes.length > 0) {
+      console.log('Invalid nodes found:', invalidNodes, 'Valid nodes:', Array.from(existingNodeIds));
       return res.status(400).json({ 
         error: 'Invalid nodes',
-        invalid: invalidNodes
+        invalid: invalidNodes,
+        message: 'Node not found'
       });
     }
 

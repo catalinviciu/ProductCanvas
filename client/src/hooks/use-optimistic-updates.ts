@@ -145,24 +145,43 @@ export function useOptimisticUpdates({
   // Debounced save function
   const debouncedSave = useMemo(
     () => debounce(async () => {
-      await performBatchSave(pendingUpdates);
+      if (pendingUpdates.size > 0) {
+        await performBatchSave(pendingUpdates);
+      }
     }, debounceMs),
     [performBatchSave, pendingUpdates, debounceMs]
   );
 
-  // Queue an update for batching
+  // Queue an update for batching - TEMPORARILY DISABLED
   const queueUpdate = useCallback((nodeId: string, position: { x: number; y: number }) => {
-    setPendingUpdates(prev => new Map(prev).set(nodeId, {
-      nodeId,
-      position,
-      timestamp: Date.now(),
-      retryCount: 0
-    }));
+    // DISABLED: Prevent infinite loop
+    console.warn('Optimistic updates temporarily disabled to prevent infinite loop');
+    return;
+    
+    // Only queue if we don't already have a pending update for this node or if the position changed
+    setPendingUpdates(prev => {
+      const existing = prev.get(nodeId);
+      if (existing && existing.position.x === position.x && existing.position.y === position.y) {
+        return prev; // Don't queue duplicate updates
+      }
+      const updated = new Map(prev);
+      updated.set(nodeId, {
+        nodeId,
+        position,
+        timestamp: Date.now(),
+        retryCount: 0
+      });
+      return updated;
+    });
     debouncedSave();
   }, [debouncedSave]);
 
-  // Queue multiple updates (for subtree operations)
+  // Queue multiple updates (for subtree operations) - TEMPORARILY DISABLED
   const queueMultipleUpdates = useCallback((updates: Array<{ nodeId: string; position: { x: number; y: number } }>) => {
+    // DISABLED: Prevent infinite loop
+    console.warn('Optimistic updates temporarily disabled to prevent infinite loop');
+    return;
+    
     setPendingUpdates(prev => {
       const newUpdates = new Map(prev);
       updates.forEach(({ nodeId, position }) => {
