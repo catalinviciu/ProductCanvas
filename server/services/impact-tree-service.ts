@@ -339,9 +339,9 @@ export class ImpactTreeService {
       metadata?: any;
     };
   }>): Promise<TreeNodeRecord[]> {
-    // Verify tree ownership and get tree data
-    const [treeData] = await db
-      .select({ id: impactTrees.id, nodes: impactTrees.nodes })
+    // Verify tree ownership
+    const treeOwnership = await db
+      .select({ id: impactTrees.id })
       .from(impactTrees)
       .where(and(
         eq(impactTrees.id, treeId),
@@ -349,22 +349,7 @@ export class ImpactTreeService {
       ))
       .limit(1);
 
-    if (!treeData) return [];
-
-    // Check if we have legacy nodes in JSON format
-    const legacyNodes = treeData.nodes ? JSON.parse(treeData.nodes) : [];
-    
-    // Check if nodes exist in the database
-    const existingNodes = await db
-      .select({ id: treeNodes.id })
-      .from(treeNodes)
-      .where(eq(treeNodes.treeId, treeId));
-
-    if (existingNodes.length === 0 && legacyNodes.length > 0) {
-      // Migrate legacy nodes to database format
-      console.log('Migrating legacy nodes to database format for tree', treeId);
-      await this.migrateLegacyNodes(treeId, userId, legacyNodes);
-    }
+    if (treeOwnership.length === 0) return [];
 
     const updatedNodes: TreeNodeRecord[] = [];
 
@@ -396,44 +381,6 @@ export class ImpactTreeService {
     });
 
     return updatedNodes;
-  }
-
-  private async migrateLegacyNodes(treeId: number, userId: string, legacyNodes: any[]): Promise<void> {
-    console.log('Starting migration of', legacyNodes.length, 'legacy nodes');
-    
-    // Convert legacy nodes to database format
-    const nodesToInsert = legacyNodes.map(node => ({
-      id: node.id,
-      treeId: treeId,
-      type: node.type,
-      title: node.title,
-      description: node.description || '',
-      templateData: node.templateData || {},
-      position: node.position,
-      parentId: node.parentId,
-      metadata: {
-        isCollapsed: node.isCollapsed || false,
-        hiddenChildren: node.hiddenChildren || [],
-        children: node.children || [],
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
-
-    // Insert nodes in batches to avoid database limits
-    const batchSize = 50;
-    for (let i = 0; i < nodesToInsert.length; i += batchSize) {
-      const batch = nodesToInsert.slice(i, i + batchSize);
-      await db.insert(treeNodes).values(batch);
-    }
-
-    // Clear legacy nodes from the tree after successful migration
-    await db
-      .update(impactTrees)
-      .set({ nodes: null })
-      .where(eq(impactTrees.id, treeId));
-
-    console.log('Migration completed successfully');
   }
 
   // Activity logging

@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop } from "@/lib/canvas-utils";
 import { useEnhancedTreePersistence } from "./use-enhanced-tree-persistence";
-// import { useOptimisticUpdates } from "./use-optimistic-updates"; // Temporarily disabled
+import { useOptimisticUpdates } from "./use-optimistic-updates";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -24,12 +24,11 @@ interface CreateFirstNodeModalState {
 export function useCanvas(impactTree: ImpactTree | undefined) {
   const queryClient = useQueryClient();
   const enhancedPersistence = useEnhancedTreePersistence(impactTree?.id || 0);
-  // Temporarily disable optimistic updates due to data mismatch issues
-  // const optimisticUpdates = useOptimisticUpdates({ 
-  //   treeId: impactTree?.id || 0,
-  //   debounceMs: 500,
-  //   batchSize: 10
-  // });
+  const optimisticUpdates = useOptimisticUpdates({ 
+    treeId: impactTree?.id || 0,
+    debounceMs: 500,
+    batchSize: 10
+  });
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     isOpen: false,
@@ -285,15 +284,32 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
+    // Check if this is just a position update (dragging) vs other changes
+    const existingNode = nodes.find(n => n.id === updatedNode.id);
+    const isPositionOnlyUpdate = existingNode && 
+      existingNode.title === updatedNode.title &&
+      existingNode.description === updatedNode.description &&
+      existingNode.type === updatedNode.type;
+
     // Update local state immediately for responsive UI
     const updatedNodes = nodes.map(node => 
       node.id === updatedNode.id ? updatedNode : node
     );
     setNodes(updatedNodes);
     
-    // Save to backend with the original mechanism
-    saveTree(updatedNodes, connections, canvasState, 'node_update');
-  }, [nodes, connections, canvasState, saveTree]);
+    // Use optimistic updates for batched persistence
+    optimisticUpdates.optimisticUpdate(updatedNode.id, {
+      title: updatedNode.title,
+      description: updatedNode.description,
+      templateData: updatedNode.templateData,
+      position: updatedNode.position,
+      parentId: updatedNode.parentId,
+      metadata: {
+        testCategory: updatedNode.testCategory,
+        lastModified: new Date().toISOString(),
+      }
+    });
+  }, [nodes, optimisticUpdates]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
@@ -474,10 +490,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     saveTree(undefined, undefined, updatedCanvasState);
   }, [canvasState, saveTree]);
 
-  // Major operation handler (no longer needed without optimistic updates)
+  // Flush pending updates when doing major operations
   const handleMajorOperation = useCallback(async (operation: () => void) => {
+    // Flush any pending position updates before major changes
+    await optimisticUpdates.flushPendingUpdates();
     operation();
-  }, []);
+  }, [optimisticUpdates]);
 
   const closeEditDrawer = useCallback(() => {
     setEditDrawer({ isOpen: false });
@@ -549,7 +567,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     closeCreateFirstNodeModal();
   }, [handleNodeCreate]);
 
-  // Cleanup function removed - no longer needed without optimistic updates
+  // Cleanup function to flush pending updates when component unmounts
+  useEffect(() => {
+    return () => {
+      optimisticUpdates.flushPendingUpdates();
+    };
+  }, [optimisticUpdates]);
 
   return {
     selectedNode,
@@ -578,9 +601,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
-    // Optimistic updates temporarily disabled
-    pendingUpdatesCount: 0,
-    isProcessingUpdates: false,
-    flushPendingUpdates: () => {},
+    // Optimistic updates status
+    pendingUpdatesCount: optimisticUpdates.pendingUpdatesCount,
+    isProcessingUpdates: optimisticUpdates.isProcessing,
+    flushPendingUpdates: optimisticUpdates.flushPendingUpdates,
   };
 }
