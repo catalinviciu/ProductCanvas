@@ -1,21 +1,22 @@
 # 🛠️ Development Guidelines
 
-> **Comprehensive development guidelines for React + Java projects**
+> **Comprehensive development guidelines for React + Node.js Impact Tree Canvas projects**
 
 ---
 
 ## 📋 **Overview**
 
-This directory contains all development guidelines, standards, and best practices for React + Java full-stack development. These guidelines ensure consistent, maintainable, and high-quality code across the entire project.
+This directory contains all development guidelines, standards, and best practices for React + Node.js full-stack development with HTML5 canvas integration. These guidelines ensure consistent, maintainable, and high-quality code across the entire Impact Tree Canvas project.
 
 ---
 
 ## 📚 **Documentation Structure**
 
 ### **Core Guidelines**
-- **[Coding Standards](coding_standards.md)** - Comprehensive coding standards for React, TypeScript, and Java
+- **[Coding Standards](coding_standards.md)** - Comprehensive coding standards for React, TypeScript, and Node.js
 - **[API Design Guidelines](api_design_guidelines.md)** - RESTful API design principles and patterns
-- **[Database Design Patterns](database_design_patterns.md)** - JPA/Hibernate best practices and patterns
+- **[Database Design Patterns](database_design_patterns.md)** - Drizzle ORM best practices and patterns
+- **[Canvas Performance Guidelines](canvas_performance_guidelines.md)** - HTML5 canvas optimization strategies
 - **[Testing Standards](testing_standards.md)** - Testing strategies for frontend and backend
 - **[Security Implementation Standards](security_implementation_standards.md)** - Security best practices
 - **[Performance Optimization Guidelines](performance_optimization_guidelines.md)** - Performance best practices
@@ -45,54 +46,39 @@ This directory contains all development guidelines, standards, and best practice
 
 ## 🏗️ **Project Structure**
 
-### **Backend Structure (Java/Spring Boot)**
+### **Backend Structure (Node.js/Express)**
 ```
-src/
-├── main/
-│   ├── java/
-│   │   └── com/company/project/
-│   │       ├── controller/          # REST API controllers
-│   │       ├── service/             # Business logic services
-│   │       ├── repository/          # Data access layer
-│   │       ├── entity/              # JPA entities
-│   │       ├── dto/                 # Data Transfer Objects
-│   │       ├── config/              # Configuration classes
-│   │       ├── exception/           # Custom exceptions
-│   │       ├── security/            # Security configuration
-│   │       └── util/                # Utility classes
-│   └── resources/
-│       ├── application.properties   # Application configuration
-│       ├── application-dev.properties
-│       ├── application-prod.properties
-│       └── db/migration/            # Database migration scripts
-└── test/
-    └── java/
-        └── com/company/project/
-            ├── controller/          # Controller tests
-            ├── service/             # Service tests
-            ├── repository/          # Repository tests
-            └── integration/         # Integration tests
+server/
+├── services/                        # Business logic services
+│   ├── impact-tree-service.ts       # Impact tree operations
+│   └── enhanced-storage.ts          # Enhanced storage with AI features
+├── routes/                          # Express.js API routes
+│   ├── impact-tree-routes.ts        # Impact tree endpoints
+│   └── enhanced-routes.ts           # Enhanced API endpoints
+├── storage.ts                       # Database operations
+├── db.ts                           # Database connection
+├── index.ts                        # Main server entry point
+├── replitAuth.ts                   # Authentication setup
+└── vite.ts                         # Vite integration
 ```
 
 ### **Frontend Structure (React/TypeScript)**
 ```
-src/
+client/src/
 ├── components/                      # Reusable React components
-│   ├── common/                      # Common/shared components
-│   ├── forms/                       # Form components
-│   └── layout/                      # Layout components
+│   ├── canvas/                      # Canvas-specific components
+│   ├── ui/                          # UI components (shadcn/ui)
+│   └── forms/                       # Form components
 ├── pages/                           # Page components
-├── services/                        # API service layer
+│   ├── canvas.tsx                   # Main canvas page
+│   └── home.tsx                     # Home page
+├── contexts/                        # React context providers
+│   └── tree-context.tsx            # Tree state context
 ├── hooks/                           # Custom React hooks
-├── utils/                           # Utility functions
-├── types/                           # TypeScript type definitions
-├── store/                           # State management (Redux/Context)
-├── styles/                          # CSS/SCSS files
-├── assets/                          # Static assets
-└── __tests__/                       # Test files
-    ├── components/                  # Component tests
-    ├── services/                    # Service tests
-    └── integration/                 # Integration tests
+│   ├── use-canvas.ts                # Canvas interaction hook
+│   └── use-drag-drop.ts             # Drag and drop hook
+├── lib/                             # Library utilities
+└── types/                           # TypeScript type definitions
 ```
 
 ---
