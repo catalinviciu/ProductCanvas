@@ -291,7 +291,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
           );
         });
         
-        // Update all moved nodes individually but only call onNodeUpdate once per node
+        // Update all moved nodes
         movedNodes.forEach(movedNode => {
           onNodeUpdate(movedNode);
         });

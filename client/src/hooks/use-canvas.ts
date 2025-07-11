@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
 import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop } from "@/lib/canvas-utils";
-import { debounce } from "@/lib/performance-utils";
 import { useEnhancedTreePersistence } from "./use-enhanced-tree-persistence";
 
 interface ContextMenuState {
@@ -276,51 +275,36 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null, menuType: 'full' });
   }, [contextMenu.node, handleNodeCreate]);
 
-  // Map to store pending node updates for batching
-  const [pendingUpdates, setPendingUpdates] = useState<Map<string, TreeNode>>(new Map());
-  
-  // Debounced function to batch database updates
-  const debouncedBatchUpdate = useCallback(
-    debounce((updates: Map<string, TreeNode>) => {
-      // Process all pending updates
-      updates.forEach((node) => {
-        updateNodeMutation.mutate({
-          nodeId: node.id,
-          updates: {
-            title: node.title,
-            description: node.description,
-            templateData: node.templateData,
-            position: node.position,
-            parentId: node.parentId,
-            metadata: {
-              testCategory: node.testCategory,
-              lastModified: new Date().toISOString(),
-            }
-          }
-        });
-      });
-      
-      // Clear pending updates
-      setPendingUpdates(new Map());
-    }, 200), // Batch updates every 200ms
-    [updateNodeMutation]
-  );
-
   const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
+    // Check if this is just a position update (dragging) vs other changes
+    const existingNode = nodes.find(n => n.id === updatedNode.id);
+    const isPositionOnlyUpdate = existingNode && 
+      existingNode.title === updatedNode.title &&
+      existingNode.description === updatedNode.description &&
+      existingNode.type === updatedNode.type;
+
     // Update local state immediately for responsive UI
     const updatedNodes = nodes.map(node => 
       node.id === updatedNode.id ? updatedNode : node
     );
     setNodes(updatedNodes);
     
-    // Add to pending updates for batching
-    const newPendingUpdates = new Map(pendingUpdates);
-    newPendingUpdates.set(updatedNode.id, updatedNode);
-    setPendingUpdates(newPendingUpdates);
-    
-    // Trigger debounced batch update
-    debouncedBatchUpdate(newPendingUpdates);
-  }, [nodes, pendingUpdates, debouncedBatchUpdate]);
+    // Save to database via API
+    updateNodeMutation.mutate({
+      nodeId: updatedNode.id,
+      updates: {
+        title: updatedNode.title,
+        description: updatedNode.description,
+        templateData: updatedNode.templateData,
+        position: updatedNode.position,
+        parentId: updatedNode.parentId,
+        metadata: {
+          testCategory: updatedNode.testCategory,
+          lastModified: new Date().toISOString(),
+        }
+      }
+    });
+  }, [nodes, updateNodeMutation]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
