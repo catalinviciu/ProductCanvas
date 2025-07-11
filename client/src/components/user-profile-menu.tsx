@@ -10,13 +10,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, Home } from "lucide-react";
 import { useLocation } from "wouter";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, memo } from "react";
 
-export function UserProfileMenu() {
+export const UserProfileMenu = memo(() => {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
-
-  if (!user) return null;
+  const [location, setLocation] = useLocation();
 
   const getInitials = useCallback((firstName?: string, lastName?: string, email?: string) => {
     if (firstName || lastName) {
@@ -29,18 +27,23 @@ export function UserProfileMenu() {
   }, []);
 
   const displayName = useMemo(() => {
+    if (!user) return "User";
     return user.firstName && user.lastName 
       ? `${user.firstName} ${user.lastName}`
       : user.firstName || user.email || "User";
-  }, [user.firstName, user.lastName, user.email]);
+  }, [user?.firstName, user?.lastName, user?.email]);
 
   const handleHomeClick = useCallback(() => {
-    setLocation("/");
-  }, [setLocation]);
+    if (location !== "/") {
+      setLocation("/");
+    }
+  }, [location, setLocation]);
 
   const handleLogoutClick = useCallback(() => {
     window.location.href = '/api/logout';
   }, []);
+
+  if (!user) return null;
 
   return (
     <DropdownMenu>
@@ -82,4 +85,6 @@ export function UserProfileMenu() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
+
+UserProfileMenu.displayName = 'UserProfileMenu';

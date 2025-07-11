@@ -30,16 +30,33 @@ export function useOptimisticUpdates({
   const bulkUpdateMutation = useMutation({
     mutationFn: async (updates: Array<{ nodeId: string; updates: any }>) => {
       console.log('Processing bulk update for', updates.length, 'nodes');
-      return apiRequest('PUT', `/api/impact-trees/${treeId}/nodes/bulk-update`, { 
+      const response = await apiRequest('PUT', `/api/impact-trees/${treeId}/nodes/bulk-update`, { 
         nodeUpdates: updates.map(u => ({ id: u.nodeId, updates: u.updates }))
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Bulk update failed: ${error.message}`);
+      }
+      
+      return response.json();
     },
-    onSuccess: () => {
-      console.log('Bulk update completed successfully');
+    onSuccess: (data) => {
+      console.log('Bulk update completed successfully:', data);
       queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${treeId}`] });
     },
     onError: (error) => {
       console.error('Bulk update failed:', error);
+      // Show user-friendly error message
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('show-toast', {
+          detail: {
+            title: "Update failed",
+            description: "Failed to save changes. Please try again.",
+            variant: "destructive",
+          }
+        }));
+      }
     }
   });
 

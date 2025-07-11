@@ -7,6 +7,7 @@ import { ContextMenu } from "@/components/modals/context-menu";
 import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
 import { CanvasHeader } from "@/components/canvas-header";
 import { OptimisticUpdatesIndicator } from "@/components/canvas/optimistic-updates-indicator";
+import { CanvasErrorBoundary } from "@/components/error-boundaries/canvas-error-boundary";
 import { useCanvas } from "@/hooks/use-canvas";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavAutoHide } from "@/hooks/use-nav-auto-hide";
@@ -186,24 +187,26 @@ export default function CanvasPage() {
       <main className={`relative canvas-background transition-all duration-500 ease-out ${
         isNavVisible ? 'h-full pt-14' : 'h-full'
       }`}>
-        <ImpactTreeCanvas
-          nodes={nodes}
-          connections={connections}
-          canvasState={canvasState}
-          selectedNode={selectedNode}
-          onNodeUpdate={handleNodeUpdate}
-          onNodeSelect={handleNodeSelect}
-          onNodeDelete={handleNodeDelete}
-          onCanvasUpdate={handleCanvasUpdate}
-          onContextMenu={handleContextMenu}
-          onNodeCreate={handleNodeCreate}
-          onNodeReattach={handleNodeReattach}
-          onToggleCollapse={handleToggleCollapse}
-          onToggleChildVisibility={handleToggleChildVisibility}
-          onResetToHome={resetToHome}
-          onFitToScreen={fitToScreen}
-          onOrientationToggle={handleOrientationToggle}
-        />
+        <CanvasErrorBoundary>
+          <ImpactTreeCanvas
+            nodes={nodes}
+            connections={connections}
+            canvasState={canvasState}
+            selectedNode={selectedNode}
+            onNodeUpdate={handleNodeUpdate}
+            onNodeSelect={handleNodeSelect}
+            onNodeDelete={handleNodeDelete}
+            onCanvasUpdate={handleCanvasUpdate}
+            onContextMenu={handleContextMenu}
+            onNodeCreate={handleNodeCreate}
+            onNodeReattach={handleNodeReattach}
+            onToggleCollapse={handleToggleCollapse}
+            onToggleChildVisibility={handleToggleChildVisibility}
+            onResetToHome={resetToHome}
+            onFitToScreen={fitToScreen}
+            onOrientationToggle={handleOrientationToggle}
+          />
+        </CanvasErrorBoundary>
       </main>
 
       <NodeEditSideDrawer

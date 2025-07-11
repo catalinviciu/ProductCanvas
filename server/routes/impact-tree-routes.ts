@@ -287,13 +287,9 @@ router.put('/api/impact-trees/:id/nodes/bulk-update', isAuthenticated, async (re
     const updatedNodes = await treeService.bulkUpdateNodes(treeId, userId, validatedData.nodeUpdates);
     console.log('Updated nodes count:', updatedNodes.length);
     
-    if (updatedNodes.length === 0) {
-      console.log('No nodes were updated - possibly none found');
-      return res.status(404).json({ message: 'Node not found' });
-    }
-    
+    // Return success even if no nodes were updated (may be normal for optimistic updates)
     res.json({
-      message: 'Nodes updated successfully',
+      message: 'Bulk update processed successfully',
       updatedCount: updatedNodes.length,
       nodes: updatedNodes,
     });

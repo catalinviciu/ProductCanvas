@@ -261,7 +261,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         createdAt: new Date().toISOString(),
       }
     });
-  }, [nodes, connections, canvasState.orientation, createNodeMutation, impactTree]);
+  }, [nodes, connections, canvasState.orientation, createNodeMutation, impactTree?.id]);
 
   const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
     setContextMenu({
