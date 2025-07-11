@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { type TreeNode } from '@shared/schema';
@@ -24,6 +24,7 @@ export function useOptimisticUpdates({
   const [pendingUpdates, setPendingUpdates] = useState<Map<string, PendingUpdate>>(new Map());
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const processingRef = useRef(false);
 
   // Bulk update mutation for batching multiple node updates
   const bulkUpdateMutation = useMutation({
@@ -44,12 +45,14 @@ export function useOptimisticUpdates({
 
   // Process pending updates in batches
   const processPendingUpdates = useCallback(async () => {
-    if (pendingUpdates.size === 0 || isProcessing) return;
+    if (pendingUpdates.size === 0 || processingRef.current) return;
 
+    processingRef.current = true;
     setIsProcessing(true);
     
     try {
-      const updates = Array.from(pendingUpdates.values()).map(pending => ({
+      const currentUpdates = new Map(pendingUpdates);
+      const updates = Array.from(currentUpdates.values()).map(pending => ({
         nodeId: pending.nodeId,
         updates: pending.updates
       }));
@@ -70,9 +73,10 @@ export function useOptimisticUpdates({
     } catch (error) {
       console.error('Error processing pending updates:', error);
     } finally {
+      processingRef.current = false;
       setIsProcessing(false);
     }
-  }, [pendingUpdates, isProcessing, batchSize, bulkUpdateMutation]);
+  }, [batchSize, bulkUpdateMutation, pendingUpdates]);
 
   // Debounced update function
   const scheduleUpdate = useCallback(() => {

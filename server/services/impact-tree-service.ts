@@ -339,6 +339,8 @@ export class ImpactTreeService {
       metadata?: any;
     };
   }>): Promise<TreeNodeRecord[]> {
+    console.log('BulkUpdateNodes called with:', { treeId, userId, nodeUpdatesCount: nodeUpdates.length });
+    
     // Verify tree ownership
     const treeOwnership = await db
       .select({ id: impactTrees.id })
@@ -349,13 +351,18 @@ export class ImpactTreeService {
       ))
       .limit(1);
 
-    if (treeOwnership.length === 0) return [];
+    if (treeOwnership.length === 0) {
+      console.log('Tree ownership verification failed');
+      throw new Error('Tree not found or access denied');
+    }
 
     const updatedNodes: TreeNodeRecord[] = [];
 
     // Process updates in transaction
     await db.transaction(async (tx) => {
       for (const nodeUpdate of nodeUpdates) {
+        console.log('Updating node:', nodeUpdate.id, 'with:', nodeUpdate.updates);
+        
         const [updatedNode] = await tx
           .update(treeNodes)
           .set({
@@ -369,10 +376,15 @@ export class ImpactTreeService {
           .returning();
 
         if (updatedNode) {
+          console.log('Successfully updated node:', updatedNode.id);
           updatedNodes.push(updatedNode);
+        } else {
+          console.log('Node not found for update:', nodeUpdate.id);
         }
       }
     });
+
+    console.log('Bulk update completed. Updated nodes:', updatedNodes.length);
 
     // Log bulk update activity
     await this.logActivity(userId, treeId, null, 'bulk_node_update', {
