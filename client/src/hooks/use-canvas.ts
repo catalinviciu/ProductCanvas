@@ -63,13 +63,27 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
           isCollapsed: false,
           hiddenChildren: [],
         }));
+        
+        // Generate connections based on parent-child relationships
+        const generatedConnections: NodeConnection[] = [];
+        nodeRecords.forEach((record: any) => {
+          if (record.parentId) {
+            generatedConnections.push({
+              id: `${record.parentId}-${record.id}`,
+              fromNodeId: record.parentId,
+              toNodeId: record.id,
+            });
+          }
+        });
+        
+        setConnections(generatedConnections);
       } else {
         // Use legacy nodes structure for backward compatibility
         treeNodes = (impactTree.nodes as TreeNode[]) || [];
+        setConnections((impactTree.connections as NodeConnection[]) || []);
       }
       
       setNodes(treeNodes);
-      setConnections((impactTree.connections as NodeConnection[]) || []);
       
       // Show create first node modal if canvas is empty
       setCreateFirstNodeModal({ isOpen: treeNodes.length === 0 });
