@@ -254,6 +254,7 @@ router.get('/api/impact-trees/:id/delete-preview', isAuthenticated, async (req: 
 
 router.delete('/api/impact-trees/:id', isAuthenticated, async (req: any, res) => {
   try {
+    console.log('DELETE request received for tree ID:', req.params.id);
     const treeId = parseInt(req.params.id);
     const userId = req.user.claims.sub;
     
@@ -265,8 +266,10 @@ router.delete('/api/impact-trees/:id', isAuthenticated, async (req: any, res) =>
       });
     }
 
+    console.log('About to call deleteTree service with treeId:', treeId, 'userId:', userId);
     const result = await treeService.deleteTree(treeId, userId);
     
+    console.log('Delete successful, result:', result);
     res.json({
       success: true,
       data: result,

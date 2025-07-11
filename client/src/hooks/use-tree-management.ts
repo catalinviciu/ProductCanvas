@@ -41,11 +41,16 @@ export function useTreeManagement() {
   const deleteTreeMutation = useMutation({
     mutationFn: async (treeId: number) => {
       console.log('Delete mutation called with treeId:', treeId);
-      const result = await apiRequest(`/api/impact-trees/${treeId}`, {
-        method: 'DELETE'
-      });
-      console.log('Delete API response:', result);
-      return result;
+      try {
+        const result = await apiRequest(`/api/impact-trees/${treeId}`, {
+          method: 'DELETE'
+        });
+        console.log('Delete API response:', result);
+        return result;
+      } catch (error) {
+        console.error('Delete API error:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       // Invalidate tree queries
