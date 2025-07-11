@@ -45,7 +45,7 @@ const createNodeSchema = z.object({
     x: z.number(),
     y: z.number(),
   }),
-  parentId: z.string().optional(),
+  parentId: z.string().nullable().optional(),
   metadata: z.record(z.any()).optional(),
 });
 
@@ -57,7 +57,7 @@ const updateNodeSchema = z.object({
     x: z.number(),
     y: z.number(),
   }).optional(),
-  parentId: z.string().optional(),
+  parentId: z.string().nullable().optional(),
   metadata: z.record(z.any()).optional(),
 });
 
