@@ -64,7 +64,7 @@ export default function CanvasPage() {
 
   const { data: impactTree, isLoading, error } = useQuery<ImpactTree>({
     queryKey: treeId ? ["/api/impact-trees", treeId] : ["/api/impact-trees", "new"],
-    enabled: !!isAuthenticated && !authLoading && !isNewTree,
+    enabled: !!isAuthenticated && !authLoading && !!treeId, // Only load if we have a valid tree ID
     retry: (failureCount, error) => {
       if (error && isUnauthorizedError(error as Error)) {
         toast({
@@ -126,6 +126,11 @@ export default function CanvasPage() {
     handleCreateFirstNode,
   } = useCanvas(impactTree);
 
+  // Debug tree loading
+  useEffect(() => {
+    console.log('Canvas - Tree ID:', treeId, 'Impact Tree:', impactTree?.id, 'Loading:', isLoading);
+  }, [treeId, impactTree, isLoading]);
+
   // Listen for custom reattach events from context menu
   useEffect(() => {
     const handleReattachEvent = (event: CustomEvent) => {
@@ -139,7 +144,7 @@ export default function CanvasPage() {
     };
   }, [handleNodeReattach]);
 
-  if (isLoading || authLoading) {
+  if (isLoading || authLoading || (treeId && !impactTree)) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-lg text-gray-600">Loading impact tree...</div>
