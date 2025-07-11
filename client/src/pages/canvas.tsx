@@ -21,13 +21,16 @@ export default function CanvasPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Handle new tree creation or existing tree ID
-  const treeId = id === "new" ? null : id ? parseInt(id) : 1;
+  const treeId = id === "new" ? null : id ? parseInt(id, 10) : null;
   const isNewTree = id === "new";
+  
+  // Debug logging to understand URL parsing
+  console.log('URL params - id:', id, 'treeId:', treeId, 'isNewTree:', isNewTree);
 
   // Create new tree mutation
   const createTreeMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/impact-trees', {
+      const response = await apiRequest('POST', '/api/impact-trees', {
         name: 'New Impact Tree',
         description: 'A new strategic planning canvas',
         canvasState: {
@@ -36,8 +39,10 @@ export default function CanvasPage() {
           orientation: 'vertical'
         }
       });
+      return response.json();
     },
     onSuccess: (newTree) => {
+      console.log('New tree created:', newTree);
       toast({
         title: "Tree created",
         description: "Your new impact tree has been created successfully.",
@@ -64,7 +69,7 @@ export default function CanvasPage() {
 
   const { data: impactTree, isLoading, error } = useQuery<ImpactTree>({
     queryKey: treeId ? [`/api/impact-trees/${treeId}`] : ["/api/impact-trees/new"],
-    enabled: !!isAuthenticated && !authLoading && !!treeId, // Only load if we have a valid tree ID
+    enabled: !!isAuthenticated && !authLoading && !!treeId && !isNaN(treeId), // Only load if we have a valid tree ID
     retry: (failureCount, error) => {
       if (error && isUnauthorizedError(error as Error)) {
         toast({
@@ -144,10 +149,19 @@ export default function CanvasPage() {
     };
   }, [handleNodeReattach]);
 
-  if (isLoading || authLoading || (treeId && !impactTree)) {
+  if (isLoading || authLoading || (treeId && !isNaN(treeId) && !impactTree)) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-lg text-gray-600">Loading impact tree...</div>
+      </div>
+    );
+  }
+  
+  // Show error if tree ID is invalid
+  if (treeId && isNaN(treeId)) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg text-red-600">Invalid tree ID</div>
       </div>
     );
   }
