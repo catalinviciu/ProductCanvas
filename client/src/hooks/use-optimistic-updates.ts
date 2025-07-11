@@ -46,7 +46,7 @@ export function useOptimisticUpdates({
   
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Enhanced batch save with retry logic and error handling
+  // Enhanced batch save with retry logic and error handling - FIXED
   const performBatchSave = useCallback(async (updates: Map<string, OptimisticUpdate>) => {
     if (updates.size === 0) return;
     
@@ -60,16 +60,19 @@ export function useOptimisticUpdates({
     setErrorNodes(new Set());
     
     try {
-      const batchRequest: BatchUpdateRequest = {
-        nodes: Array.from(updates.entries()).map(([nodeId, data]) => ({
+      // Use the correct format for bulk-update endpoint
+      const batchRequest = {
+        nodeUpdates: Array.from(updates.entries()).map(([nodeId, data]) => ({
           id: nodeId,
-          position: data.position
+          updates: {
+            position: data.position
+          }
         }))
       };
       
       const response = await apiRequest(
         'PUT',
-        `/api/impact-trees/${treeId}/nodes/batch`,
+        `/api/impact-trees/${treeId}/nodes/bulk-update`,
         batchRequest
       );
       
@@ -77,7 +80,7 @@ export function useOptimisticUpdates({
         // Clear successfully saved updates
         setPendingUpdates(prev => {
           const updated = new Map(prev);
-          batchRequest.nodes.forEach(node => updated.delete(node.id));
+          batchRequest.nodeUpdates.forEach(node => updated.delete(node.id));
           return updated;
         });
         
@@ -142,7 +145,7 @@ export function useOptimisticUpdates({
     }
   }, [treeId, maxRetries, onError, onSuccess]);
 
-  // Debounced save function
+  // Debounced save function - FIXED
   const debouncedSave = useMemo(
     () => debounce(async () => {
       if (pendingUpdates.size > 0) {
@@ -152,11 +155,8 @@ export function useOptimisticUpdates({
     [performBatchSave, pendingUpdates, debounceMs]
   );
 
-  // Queue an update for batching - TEMPORARILY DISABLED
+  // Queue an update for batching - FIXED
   const queueUpdate = useCallback((nodeId: string, position: { x: number; y: number }) => {
-    // DISABLED: Prevent infinite loop
-    console.warn('Optimistic updates temporarily disabled to prevent infinite loop');
-    return;
     
     // Only queue if we don't already have a pending update for this node or if the position changed
     setPendingUpdates(prev => {
@@ -176,11 +176,8 @@ export function useOptimisticUpdates({
     debouncedSave();
   }, [debouncedSave]);
 
-  // Queue multiple updates (for subtree operations) - TEMPORARILY DISABLED
+  // Queue multiple updates (for subtree operations) - FIXED
   const queueMultipleUpdates = useCallback((updates: Array<{ nodeId: string; position: { x: number; y: number } }>) => {
-    // DISABLED: Prevent infinite loop
-    console.warn('Optimistic updates temporarily disabled to prevent infinite loop');
-    return;
     
     setPendingUpdates(prev => {
       const newUpdates = new Map(prev);
