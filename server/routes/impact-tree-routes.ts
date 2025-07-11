@@ -270,6 +270,22 @@ router.delete('/api/impact-trees/:id', isAuthenticated, async (req: any, res) =>
     const result = await treeService.deleteTree(treeId, userId);
     
     console.log('Delete successful, result:', result);
+    
+    // Log activity after successful deletion (outside of transaction)
+    try {
+      console.log('Logging activity after successful deletion...');
+      await treeService.logActivity(
+        userId,
+        treeId,
+        null,
+        'tree_deleted',
+        { treeName: result.treeName, deletedNodes: result.deletedNodes }
+      );
+      console.log('Activity logged successfully');
+    } catch (error) {
+      console.error('Failed to log activity after deletion:', error);
+    }
+    
     res.json({
       success: true,
       data: result,

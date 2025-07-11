@@ -235,19 +235,6 @@ export class ImpactTreeService {
 
       console.log('Delete result:', deleteResult);
 
-      // Log activity (but don't let it fail the transaction)
-      try {
-        await this.logActivity(
-          userId,
-          treeId,
-          null,
-          'tree_deleted',
-          { treeName, deletedNodes }
-        );
-      } catch (error) {
-        console.error('Failed to log activity, but continuing:', error);
-      }
-
       console.log('Transaction completed successfully');
       return {
         success: true,
@@ -589,7 +576,7 @@ export class ImpactTreeService {
   }
 
   // Activity logging
-  private async logActivity(
+  async logActivity(
     userId: string,
     treeId: number,
     nodeId: string | null,
