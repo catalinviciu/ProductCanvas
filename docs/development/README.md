@@ -1,21 +1,22 @@
 # 🛠️ Development Guidelines
 
-> **Comprehensive development guidelines for React + Java projects**
+> **Comprehensive development guidelines for React + Node.js projects**
 
 ---
 
 ## 📋 **Overview**
 
-This directory contains all development guidelines, standards, and best practices for React + Java full-stack development. These guidelines ensure consistent, maintainable, and high-quality code across the entire project.
+This directory contains all development guidelines, standards, and best practices for React + Node.js full-stack development. These guidelines ensure consistent, maintainable, and high-quality code across the entire project.
 
 ---
 
 ## 📚 **Documentation Structure**
 
 ### **Core Guidelines**
-- **[Coding Standards](coding_standards.md)** - Comprehensive coding standards for React, TypeScript, and Java
+- **[Coding Standards](coding_standards.md)** - Comprehensive coding standards for React, TypeScript, and Node.js
 - **[API Design Guidelines](api_design_guidelines.md)** - RESTful API design principles and patterns
-- **[Database Design Patterns](database_design_patterns.md)** - JPA/Hibernate best practices and patterns
+- **[Database Design Patterns](database_design_patterns.md)** - Drizzle ORM best practices and patterns
+- **[Canvas Performance Guidelines](canvas_performance_guidelines.md)** - HTML5 canvas optimization for large trees
 - **[Testing Standards](testing_standards.md)** - Testing strategies for frontend and backend
 - **[Security Implementation Standards](security_implementation_standards.md)** - Security best practices
 - **[Performance Optimization Guidelines](performance_optimization_guidelines.md)** - Performance best practices
@@ -45,33 +46,29 @@ This directory contains all development guidelines, standards, and best practice
 
 ## 🏗️ **Project Structure**
 
-### **Backend Structure (Java/Spring Boot)**
+### **Backend Structure (Node.js/Express)**
 ```
-src/
-├── main/
-│   ├── java/
-│   │   └── com/company/project/
-│   │       ├── controller/          # REST API controllers
-│   │       ├── service/             # Business logic services
-│   │       ├── repository/          # Data access layer
-│   │       ├── entity/              # JPA entities
-│   │       ├── dto/                 # Data Transfer Objects
-│   │       ├── config/              # Configuration classes
-│   │       ├── exception/           # Custom exceptions
-│   │       ├── security/            # Security configuration
-│   │       └── util/                # Utility classes
-│   └── resources/
-│       ├── application.properties   # Application configuration
-│       ├── application-dev.properties
-│       ├── application-prod.properties
-│       └── db/migration/            # Database migration scripts
-└── test/
-    └── java/
-        └── com/company/project/
-            ├── controller/          # Controller tests
-            ├── service/             # Service tests
-            ├── repository/          # Repository tests
-            └── integration/         # Integration tests
+server/
+├── routes/                          # API route handlers
+├── services/                        # Business logic services
+├── db.ts                           # Database connection (Drizzle)
+├── storage.ts                      # Storage interface
+├── enhanced-storage.ts             # Enhanced storage with AI features
+├── vite.ts                         # Vite development server
+└── index.ts                        # Express server entry point
+
+shared/
+└── schema.ts                       # Drizzle schema definitions
+
+client/
+├── src/
+│   ├── components/                 # React components
+│   ├── pages/                      # Page components
+│   ├── hooks/                      # Custom React hooks
+│   ├── contexts/                   # React context providers
+│   ├── lib/                        # Utility functions
+│   └── main.tsx                    # React entry point
+└── public/                         # Static assets
 ```
 
 ### **Frontend Structure (React/TypeScript)**
@@ -106,17 +103,16 @@ src/
    - Create implementation plan
 
 2. **Backend Development**
-   - Create/modify JPA entities
-   - Implement repository interfaces
+   - Create/modify Drizzle schema definitions
    - Implement service layer with business logic
-   - Create REST controllers
+   - Create Express route handlers
    - Write unit and integration tests
 
 3. **Frontend Development**
    - Create/modify TypeScript types
-   - Implement API service layer
-   - Create React components
-   - Implement state management
+   - Implement API integration with TanStack Query
+   - Create React components and hooks
+   - Implement state management (React Context/Zustand)
    - Write component and integration tests
 
 4. **Integration & Testing**
@@ -174,11 +170,11 @@ src/
 ## 🔒 **Security Guidelines**
 
 ### **Backend Security**
-- **Authentication**: Implement JWT-based authentication
-- **Authorization**: Use role-based access control
-- **Input Validation**: Validate all input data
-- **SQL Injection Prevention**: Use parameterized queries
-- **CORS Configuration**: Configure CORS properly
+- **Authentication**: Implement Replit Auth integration
+- **Authorization**: Use session-based access control
+- **Input Validation**: Validate all input data with Zod
+- **SQL Injection Prevention**: Use Drizzle ORM with parameterized queries
+- **CORS Configuration**: Configure CORS properly for Replit deployment
 
 ### **Frontend Security**
 - **XSS Prevention**: Sanitize user input
@@ -192,10 +188,10 @@ src/
 ## ⚡ **Performance Guidelines**
 
 ### **Backend Performance**
-- **Database Optimization**: Use proper indexing and query optimization
+- **Database Optimization**: Use proper indexing and query optimization with Drizzle
 - **Caching**: Implement caching for frequently accessed data
-- **Connection Pooling**: Configure database connection pooling
-- **Lazy Loading**: Use lazy loading for entity relationships
+- **Connection Pooling**: Configure PostgreSQL connection pooling
+- **Optimistic Updates**: Use optimistic updates for canvas interactions
 - **Pagination**: Implement pagination for large datasets
 
 ### **Frontend Performance**
@@ -229,11 +225,11 @@ src/
 ## 🔧 **Tools and Configuration**
 
 ### **Development Tools**
-- **IDE**: IntelliJ IDEA (Java), VS Code (React)
+- **IDE**: VS Code (React + Node.js)
 - **Version Control**: Git with conventional commits
-- **Build Tools**: Maven/Gradle (Java), npm/yarn (React)
-- **Testing**: JUnit (Java), Jest/React Testing Library (React)
-- **Code Quality**: SonarQube, ESLint, Prettier
+- **Build Tools**: Vite (React), npm (Node.js)
+- **Testing**: Jest/React Testing Library (React), Node.js testing (Backend)
+- **Code Quality**: ESLint, Prettier, TypeScript strict mode
 
 ### **CI/CD Pipeline**
 - **Build**: Automated build on every commit
@@ -246,10 +242,10 @@ src/
 
 ## 📚 **Learning Resources**
 
-### **Java/Spring Boot**
-- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
-- [JPA/Hibernate Guide](https://hibernate.org/orm/documentation/)
-- [Spring Security Reference](https://spring.io/projects/spring-security)
+### **Node.js/Express**
+- [Node.js Documentation](https://nodejs.org/docs/)
+- [Express.js Guide](https://expressjs.com/en/guide/)
+- [Drizzle ORM Documentation](https://orm.drizzle.team/docs/overview)
 
 ### **React/TypeScript**
 - [React Documentation](https://reactjs.org/docs/)
@@ -278,7 +274,7 @@ src/
 
 ---
 
-**📝 Guidelines Version**: 1.0  
-**🎯 Project Type**: React + Java  
-**📅 Last Updated**: June 2025  
+**📝 Guidelines Version**: 2.0  
+**🎯 Project Type**: React + Node.js  
+**📅 Last Updated**: July 2025  
 **🚀 Status**: Production Ready

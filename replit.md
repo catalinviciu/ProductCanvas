@@ -157,6 +157,11 @@ Environment variables required:
 - January 11, 2025. **CRITICAL FIX**: Fixed bulk update endpoint infinite 404 error loop by reordering Express.js routes - specific `/bulk-update` route now comes before generic `/:nodeId` route to prevent route parameter conflicts
 - January 11, 2025. **RESOLVED**: Implemented comprehensive canvas error boundaries with CanvasErrorBoundary component for graceful error recovery
 - January 11, 2025. **PERFORMANCE**: Enhanced optimistic updates hook with improved error handling and user-friendly toast notifications
+- January 11, 2025. **DOCUMENTATION**: Updated documentation framework from Java to Node.js patterns
+- January 11, 2025. **DOCUMENTATION**: Created comprehensive canvas performance guidelines for HTML5 canvas optimization
+- January 11, 2025. **DOCUMENTATION**: Established API design guidelines for Express.js and Drizzle ORM patterns
+- January 11, 2025. **DOCUMENTATION**: Created database design patterns documentation for PostgreSQL with Drizzle ORM
+- January 11, 2025. **DOCUMENTATION**: Aligned all development guidelines with React + Node.js architecture instead of Java/Spring Boot
 
 ## User Preferences
 
