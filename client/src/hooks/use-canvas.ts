@@ -184,21 +184,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
 
     const newNode = createNode(nodeId, type, snappedPosition, testCategory, parentNode?.id);
     
-    // Save node to database using the new API
-    createNodeMutation.mutate({
-      id: nodeId,
-      type: type,
-      title: newNode.title,
-      description: newNode.description,
-      templateData: newNode.templateData,
-      position: snappedPosition,
-      parentId: parentNode?.id,
-      metadata: {
-        testCategory: testCategory,
-        createdAt: new Date().toISOString(),
-      }
-    });
-    
+    // Update local state immediately for responsive UI
     let updatedNodes = [...nodes, newNode];
     let updatedConnections = connections;
     
@@ -223,9 +209,21 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setNodes(updatedNodes);
     setConnections(updatedConnections);
     
-    // Also save the tree structure for backward compatibility
-    saveTree(updatedNodes, updatedConnections, undefined, 'node_created');
-  }, [nodes, connections, canvasState.orientation, saveTree, createNodeMutation]);
+    // Save node to database using the new API
+    createNodeMutation.mutate({
+      id: nodeId,
+      type: type,
+      title: newNode.title,
+      description: newNode.description,
+      templateData: newNode.templateData,
+      position: snappedPosition,
+      parentId: parentNode?.id,
+      metadata: {
+        testCategory: testCategory,
+        createdAt: new Date().toISOString(),
+      }
+    });
+  }, [nodes, connections, canvasState.orientation, createNodeMutation]);
 
   const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
     setContextMenu({
@@ -255,35 +253,28 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       existingNode.description === updatedNode.description &&
       existingNode.type === updatedNode.type;
 
-    if (isPositionOnlyUpdate) {
-      // For position-only updates (dragging), use branch drag system but don't auto-reorganize
-      const updatedNodes = handleBranchDrag(nodes, updatedNode.id, updatedNode.position, canvasState.orientation);
-      setNodes(updatedNodes);
-      saveTree(updatedNodes);
-    } else {
-      // For other updates (title, description, etc.), save to database via API
-      updateNodeMutation.mutate({
-        nodeId: updatedNode.id,
-        updates: {
-          title: updatedNode.title,
-          description: updatedNode.description,
-          templateData: updatedNode.templateData,
-          position: updatedNode.position,
-          parentId: updatedNode.parentId,
-          metadata: {
-            ...updatedNode.templateData,
-            lastModified: new Date().toISOString(),
-          }
+    // Update local state immediately for responsive UI
+    const updatedNodes = nodes.map(node => 
+      node.id === updatedNode.id ? updatedNode : node
+    );
+    setNodes(updatedNodes);
+    
+    // Save to database via API
+    updateNodeMutation.mutate({
+      nodeId: updatedNode.id,
+      updates: {
+        title: updatedNode.title,
+        description: updatedNode.description,
+        templateData: updatedNode.templateData,
+        position: updatedNode.position,
+        parentId: updatedNode.parentId,
+        metadata: {
+          testCategory: updatedNode.testCategory,
+          lastModified: new Date().toISOString(),
         }
-      });
-
-      const updatedNodes = nodes.map(node => 
-        node.id === updatedNode.id ? updatedNode : node
-      );
-      setNodes(updatedNodes);
-      saveTree(updatedNodes);
-    }
-  }, [nodes, canvasState.orientation, saveTree, updateNodeMutation]);
+      }
+    });
+  }, [nodes, updateNodeMutation]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
@@ -418,9 +409,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
     if (!nodeToDelete) return;
 
-    // Delete node from database using the new API
-    deleteNodeMutation.mutate(nodeId);
-
+    // Update local state immediately for responsive UI
     // Remove node and all its descendants
     const nodesToDelete = new Set<string>();
     const findDescendants = (id: string) => {
@@ -451,8 +440,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setNodes(updatedNodes);
     setConnections(updatedConnections);
     setSelectedNode(null);
-    saveTree(updatedNodes, updatedConnections);
-  }, [nodes, connections, saveTree, deleteNodeMutation]);
+    
+    // Delete node from database using the new API
+    deleteNodeMutation.mutate(nodeId);
+  }, [nodes, connections, deleteNodeMutation]);
 
   const handleNodeSelect = useCallback((node: TreeNode | null) => {
     setSelectedNode(node);
