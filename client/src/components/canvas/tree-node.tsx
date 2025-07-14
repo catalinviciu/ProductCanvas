@@ -202,7 +202,17 @@ const TreeNodeComponent = memo(function TreeNode({
           };
           
           // Signal drag start for smooth drag handling
-          document.dispatchEvent(new CustomEvent('dragStart', { detail: { nodeId: node.id } }));
+          const hasChildren = node.children && node.children.length > 0;
+          if (hasChildren) {
+            document.dispatchEvent(new CustomEvent('parentChildDragStart', { 
+              detail: { 
+                parentId: node.id, 
+                childIds: node.children 
+              } 
+            }));
+          } else {
+            document.dispatchEvent(new CustomEvent('dragStart', { detail: { nodeId: node.id } }));
+          }
         }
       }
     },

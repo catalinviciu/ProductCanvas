@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useOptimisticUpdates } from './use-optimistic-updates';
 import { type TreeNode } from '@shared/schema';
+import { snapToGrid } from '@/lib/canvas-utils';
 
 interface SmoothDragConfig {
   treeId: number;
@@ -36,6 +37,11 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
   const [isDragging, setIsDragging] = useState(false);
   const dragEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingDragUpdates = useRef<Map<string, any>>(new Map());
+  const parentChildDragData = useRef<{
+    parentId: string;
+    childIds: string[];
+    initialPositions: Map<string, { x: number; y: number }>;
+  } | null>(null);
 
   /**
    * Start drag operation - immediate visual feedback only
@@ -53,6 +59,80 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
       clearTimeout(dragEndTimeoutRef.current);
       dragEndTimeoutRef.current = null;
     }
+  }, []);
+
+  /**
+   * Start dragging a parent node with its children
+   */
+  const startParentChildDrag = useCallback((parentId: string, childIds: string[], nodePositions: Map<string, { x: number; y: number }>) => {
+    dragState.current = {
+      isDragging: true,
+      draggedNodes: new Set([parentId, ...childIds]),
+      dragStartTime: Date.now()
+    };
+    
+    parentChildDragData.current = {
+      parentId,
+      childIds,
+      initialPositions: new Map(nodePositions)
+    };
+    
+    setIsDragging(true);
+    
+    // Clear any pending drag end timeout
+    if (dragEndTimeoutRef.current) {
+      clearTimeout(dragEndTimeoutRef.current);
+      dragEndTimeoutRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Update positions during parent-child drag - maintains relative positions
+   */
+  const updateParentChildDrag = useCallback((parentId: string, newParentPosition: { x: number; y: number }, onUpdateCallback: (nodeId: string, position: { x: number; y: number }) => void) => {
+    if (!dragState.current.isDragging || !parentChildDragData.current || parentChildDragData.current.parentId !== parentId) {
+      return;
+    }
+    
+    const { childIds, initialPositions } = parentChildDragData.current;
+    const initialParentPosition = initialPositions.get(parentId);
+    
+    if (!initialParentPosition) return;
+    
+    // Calculate delta from initial position
+    const deltaX = newParentPosition.x - initialParentPosition.x;
+    const deltaY = newParentPosition.y - initialParentPosition.y;
+    
+    // Update parent position immediately
+    const snappedParentPosition = snapToGrid(newParentPosition);
+    onUpdateCallback(parentId, snappedParentPosition);
+    
+    // Store parent update for later persistence
+    pendingDragUpdates.current.set(parentId, {
+      position: snappedParentPosition,
+      metadata: { lastModified: new Date().toISOString() }
+    });
+    
+    // Update all children positions maintaining relative layout
+    childIds.forEach(childId => {
+      const initialChildPosition = initialPositions.get(childId);
+      if (initialChildPosition) {
+        const newChildPosition = {
+          x: initialChildPosition.x + deltaX,
+          y: initialChildPosition.y + deltaY
+        };
+        const snappedChildPosition = snapToGrid(newChildPosition);
+        
+        // Update child position immediately
+        onUpdateCallback(childId, snappedChildPosition);
+        
+        // Store child update for later persistence
+        pendingDragUpdates.current.set(childId, {
+          position: snappedChildPosition,
+          metadata: { lastModified: new Date().toISOString() }
+        });
+      }
+    });
   }, []);
 
   /**
@@ -98,6 +178,7 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
         draggedNodes: new Set(),
         dragStartTime: 0
       };
+      parentChildDragData.current = null;
       setIsDragging(false);
       pendingDragUpdates.current.clear();
     }, 100); // Brief delay for smooth UX
@@ -144,6 +225,10 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
     flushDragUpdates,
     isNodeDragging,
     getDragStats,
+    
+    // Parent-child drag functions
+    startParentChildDrag,
+    updateParentChildDrag,
     
     // Pass through optimistic updates for non-drag operations
     optimisticUpdate: optimisticUpdates.optimisticUpdate,

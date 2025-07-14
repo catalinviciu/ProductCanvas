@@ -307,28 +307,20 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
       
       // Check if the node has children
       if (node.children && node.children.length > 0) {
-        // Use moveNodeWithChildren to move the node and all its children
-        const updatedNodes = moveNodeWithChildren(nodes, nodeId, snappedPosition, canvasState.orientation);
-        
-        // Find all nodes that actually moved
-        const movedNodes = updatedNodes.filter(updatedNode => {
-          const originalNode = nodes.find(n => n.id === updatedNode.id);
-          return originalNode && (
-            originalNode.position.x !== updatedNode.position.x || 
-            originalNode.position.y !== updatedNode.position.y
-          );
-        });
-        
-        // Update all moved nodes with optimistic updates
-        movedNodes.forEach(movedNode => {
-          onNodeUpdate(movedNode);
-        });
+        // Signal that this is a parent-child drag operation
+        document.dispatchEvent(new CustomEvent('parentChildDragUpdate', { 
+          detail: { 
+            parentId: nodeId, 
+            newPosition: snappedPosition,
+            childIds: node.children
+          } 
+        }));
       } else {
         // Single node without children - simple update
         onNodeUpdate({ ...node, position: snappedPosition });
       }
     }
-  }, [nodes, onNodeUpdate, canvasState.orientation]);
+  }, [nodes, onNodeUpdate]);
 
   // Global mouse event handlers for mini map dragging with performance optimization
   useEffect(() => {

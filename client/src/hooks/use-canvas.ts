@@ -142,19 +142,52 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       smoothDrag.startDrag(nodeId);
     };
 
+    const handleParentChildDragStart = (event: CustomEvent) => {
+      const { parentId, childIds } = event.detail;
+      
+      // Get current positions of all nodes
+      const nodePositions = new Map<string, { x: number; y: number }>();
+      [parentId, ...childIds].forEach(nodeId => {
+        const node = nodes.find(n => n.id === nodeId);
+        if (node) {
+          nodePositions.set(nodeId, { x: node.position.x, y: node.position.y });
+        }
+      });
+      
+      smoothDrag.startParentChildDrag(parentId, childIds, nodePositions);
+    };
+
+    const handleParentChildDragUpdate = (event: CustomEvent) => {
+      const { parentId, newPosition, childIds } = event.detail;
+      
+      // Update positions immediately in local state
+      smoothDrag.updateParentChildDrag(parentId, newPosition, (nodeId, position) => {
+        const node = nodes.find(n => n.id === nodeId);
+        if (node) {
+          const updatedNode = { ...node, position };
+          const updatedNodes = nodes.map(n => n.id === nodeId ? updatedNode : n);
+          setNodes(updatedNodes);
+        }
+      });
+    };
+
     const handleDragEnd = (event: CustomEvent) => {
       const { nodeId } = event.detail;
       smoothDrag.endDrag();
     };
 
     document.addEventListener('dragStart', handleDragStart as EventListener);
+    document.addEventListener('parentChildDragStart', handleParentChildDragStart as EventListener);
+    document.addEventListener('parentChildDragUpdate', handleParentChildDragUpdate as EventListener);
     document.addEventListener('dragEnd', handleDragEnd as EventListener);
     
     return () => {
       document.removeEventListener('dragStart', handleDragStart as EventListener);
+      document.removeEventListener('parentChildDragStart', handleParentChildDragStart as EventListener);
+      document.removeEventListener('parentChildDragUpdate', handleParentChildDragUpdate as EventListener);
       document.removeEventListener('dragEnd', handleDragEnd as EventListener);
     };
-  }, [smoothDrag]);
+  }, [smoothDrag, nodes]);
 
   const updateTreeMutation = useMutation({
     mutationFn: async (updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {
@@ -327,6 +360,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     // Use different persistence strategies for drag vs other updates
     if (isPositionOnlyUpdate && smoothDrag.isNodeDragging(updatedNode.id)) {
       // For drag updates: use smooth drag system (delayed persistence)
+      // Note: Parent-child drag updates are handled by the event system
+      // Only handle individual node drag updates here
       smoothDrag.updateDragPosition(updatedNode.id, {
         title: updatedNode.title,
         description: updatedNode.description,
