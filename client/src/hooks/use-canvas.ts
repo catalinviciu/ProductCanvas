@@ -714,8 +714,17 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const handleCanvasUpdate = useCallback((updates: Partial<CanvasState>) => {
     const updatedCanvasState = { ...canvasState, ...updates };
     setCanvasState(updatedCanvasState);
-    saveTree(undefined, undefined, updatedCanvasState);
-  }, [canvasState, saveTree]);
+    
+    // Save canvas state changes without triggering enhanced persistence notifications
+    // This updates the database but doesn't show "tree saved" messages for zoom/pan operations
+    if (impactTree?.id) {
+      updateTreeMutation.mutate({
+        nodes,
+        connections,
+        canvasState: updatedCanvasState
+      });
+    }
+  }, [canvasState, impactTree?.id, nodes, connections, updateTreeMutation]);
 
   // Flush pending updates when doing major operations
   const handleMajorOperation = useCallback(async (operation: () => void) => {
@@ -736,8 +745,16 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const resetToHome = useCallback(() => {
     const homePosition = getHomePosition(nodes, canvasState.orientation);
     setCanvasState(homePosition);
-    saveTree(undefined, undefined, homePosition);
-  }, [nodes, canvasState.orientation, saveTree]);
+    
+    // Save canvas state changes without triggering enhanced persistence notifications
+    if (impactTree?.id) {
+      updateTreeMutation.mutate({
+        nodes,
+        connections,
+        canvasState: homePosition
+      });
+    }
+  }, [nodes, connections, canvasState.orientation, impactTree?.id, updateTreeMutation]);
 
   const fitToScreen = useCallback(() => {
     // Get canvas dimensions - use typical viewport dimensions if not available
@@ -746,19 +763,37 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     
     const fitPosition = fitNodesToScreen(nodes, canvasWidth, canvasHeight, canvasState.orientation);
     setCanvasState(fitPosition);
-    saveTree(undefined, undefined, fitPosition);
-  }, [nodes, canvasState.orientation, saveTree]);
+    
+    // Save canvas state changes without triggering enhanced persistence notifications
+    if (impactTree?.id) {
+      updateTreeMutation.mutate({
+        nodes,
+        connections,
+        canvasState: fitPosition
+      });
+    }
+  }, [nodes, connections, canvasState.orientation, impactTree?.id, updateTreeMutation]);
 
   const handleAutoLayout = useCallback(() => {
     const layoutedNodes = calculateNodeLayout(nodes, canvasState.orientation);
     setNodes(layoutedNodes);
-    saveTree(layoutedNodes);
     
     // Also adjust view to fit the newly organized tree
     const homePosition = getHomePosition(layoutedNodes, canvasState.orientation);
     setCanvasState(homePosition);
-    saveTree(layoutedNodes, undefined, homePosition);
-  }, [nodes, canvasState.orientation, saveTree]);
+    
+    // Save node layout changes using enhanced persistence
+    saveTree(layoutedNodes, undefined, undefined, 'auto_layout');
+    
+    // Save canvas state changes without enhanced persistence notifications
+    if (impactTree?.id) {
+      updateTreeMutation.mutate({
+        nodes: layoutedNodes,
+        connections,
+        canvasState: homePosition
+      });
+    }
+  }, [nodes, connections, canvasState.orientation, impactTree?.id, saveTree, updateTreeMutation]);
 
   const handleOrientationToggle = useCallback(() => {
     const newOrientation = canvasState.orientation === 'horizontal' ? 'vertical' : 'horizontal';
@@ -770,8 +805,18 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const canvasHeight = window.innerHeight - 80; // Account for header
     const fitPosition = fitNodesToScreen(layoutedNodes, canvasWidth, canvasHeight, newOrientation);
     setCanvasState(fitPosition);
-    saveTree(layoutedNodes, undefined, fitPosition);
-  }, [nodes, canvasState.orientation, saveTree]);
+    
+    // Save both node layout changes and canvas state changes
+    // Use enhanced persistence for node changes but direct mutation for canvas state
+    saveTree(layoutedNodes, undefined, undefined, 'orientation_toggle');
+    if (impactTree?.id) {
+      updateTreeMutation.mutate({
+        nodes: layoutedNodes,
+        connections,
+        canvasState: fitPosition
+      });
+    }
+  }, [nodes, connections, canvasState.orientation, impactTree?.id, saveTree, updateTreeMutation]);
 
   const handleToggleCollapse = useCallback((nodeId: string) => {
     const updatedNodes = toggleNodeCollapse(nodes, nodeId);
