@@ -425,6 +425,24 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
     onClose();
   }, [isDirty, onClose]);
 
+  // Handle status change and update local form data
+  const handleStatusChange = useCallback((nodeId: string, status: OpportunityWorkflowStatus) => {
+    // Update local form data immediately for UI feedback
+    setFormData(prev => ({
+      ...prev,
+      templateData: {
+        ...prev.templateData,
+        workflowStatus: status
+      }
+    }));
+    setIsDirty(true);
+
+    // Call parent handler to persist to backend
+    if (onStatusChange) {
+      onStatusChange(nodeId, status);
+    }
+  }, [onStatusChange]);
+
   const handleDelete = useCallback(() => {
     if (!node || !onDelete) return;
     
@@ -637,7 +655,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                         data={formData.templateData}
                         onFieldChange={handleFieldChange}
                         node={node}
-                        onStatusChange={onStatusChange}
+                        onStatusChange={handleStatusChange}
                       />
                     )}
                     {formData.type === 'solution' && (
@@ -922,6 +940,15 @@ function OpportunityTemplate({ data, onFieldChange, node, onStatusChange }: {
   node: TreeNode;
   onStatusChange?: (nodeId: string, status: OpportunityWorkflowStatus) => void;
 }) {
+  // Create a temporary node with updated template data for the status indicator
+  const nodeWithCurrentData = {
+    ...node,
+    templateData: {
+      ...node.templateData,
+      ...data
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Workflow Status Section */}
@@ -930,7 +957,7 @@ function OpportunityTemplate({ data, onFieldChange, node, onStatusChange }: {
           <Label className="text-sm font-medium">Workflow Status</Label>
           {onStatusChange && (
             <OpportunityStatusIndicator
-              node={node}
+              node={nodeWithCurrentData}
               onStatusChange={(status) => onStatusChange(node.id, status)}
               className="ml-2"
             />
