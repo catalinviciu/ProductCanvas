@@ -165,7 +165,15 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         const node = nodes.find(n => n.id === nodeId);
         if (node) {
           const updatedNode = { ...node, position, isDragging };
-          const updatedNodes = nodes.map(n => n.id === nodeId ? updatedNode : n);
+          // Also set isDragging on all children to show visual feedback
+          const updatedNodes = nodes.map(n => {
+            if (n.id === nodeId) {
+              return updatedNode;
+            } else if (childIds.includes(n.id)) {
+              return { ...n, isDragging: true };
+            }
+            return n;
+          });
           setNodes(updatedNodes);
         }
       });
@@ -179,15 +187,22 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const handleParentChildDragEnd = (event: CustomEvent) => {
       const { parentId, childIds } = event.detail;
       
-      // Clear isDragging flag from parent
+      // Clear isDragging flag from parent and all children
       const parentNode = nodes.find(n => n.id === parentId);
       if (parentNode && parentNode.isDragging) {
-        const updatedParent = { ...parentNode, isDragging: false };
-        const updatedNodes = nodes.map(n => n.id === parentId ? updatedParent : n);
+        // Clear isDragging from all nodes involved in the drag
+        const updatedNodes = nodes.map(n => {
+          if (n.id === parentId || childIds.includes(n.id)) {
+            return { ...n, isDragging: false };
+          }
+          return n;
+        });
         setNodes(updatedNodes);
         
         // Apply autolayout to children
+        console.log('Before autolayout - Parent position:', parentNode.position);
         const parentWithChildren = moveNodeWithChildren(updatedNodes, parentId, parentNode.position, canvasState.orientation);
+        console.log('After autolayout - nodes repositioned:', parentWithChildren.filter(n => [parentId, ...childIds].includes(n.id)).map(n => ({ id: n.id, position: n.position })));
         setNodes(parentWithChildren);
         
         // Update all nodes that were repositioned through optimistic updates
@@ -196,6 +211,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         nodesToUpdate.forEach(nodeId => {
           const node = parentWithChildren.find(n => n.id === nodeId);
           if (node) {
+            console.log(`Persisting position for ${nodeId}:`, node.position);
             optimisticUpdates.optimisticUpdate(nodeId, {
               position: node.position,
               metadata: { lastModified: new Date().toISOString() }
