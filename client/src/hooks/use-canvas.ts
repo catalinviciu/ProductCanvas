@@ -188,6 +188,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const handleDragEnd = (event: CustomEvent) => {
       const { nodeId } = event.detail;
       smoothDrag.endDrag();
+      
+      // CRITICAL: Ensure all pending drag updates are flushed to database
+      smoothDrag.flushDragUpdates();
+      
       // Clear drag operation state after a short delay to allow updates to complete
       setTimeout(() => {
         setIsDragOperationActive(false);
@@ -233,6 +237,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         
         // Suppress query invalidation during drag end processing to prevent bounce
         optimisticUpdates.suppressInvalidation();
+        
+        // CRITICAL: Flush any pending drag updates from the smooth drag system
+        smoothDrag.flushDragUpdates();
         
         // Clear any pending updates first to prevent conflicts
         optimisticUpdates.flushPendingUpdates().then(() => {
@@ -616,6 +623,37 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setNodes(reorganizedNodes);
     setConnections(updatedConnections);
     saveTree(reorganizedNodes, updatedConnections);
+    
+    // CRITICAL: Update parentId in database for the reattached node
+    // This ensures the parent-child relationship is properly persisted
+    const reattachedNode = reorganizedNodes.find(n => n.id === nodeId);
+    if (reattachedNode) {
+      console.log('Updating parentId in database for node:', nodeId, 'new parent:', newParentId);
+      optimisticUpdates.optimisticUpdate(nodeId, {
+        parentId: newParentId || null,
+        position: reattachedNode.position,
+        metadata: { lastModified: new Date().toISOString() }
+      }, true); // immediate=true for parent relationship changes
+    }
+    
+    // Also update position for any nodes that were repositioned during reattachment
+    const nodesToUpdate = reorganizedNodes.filter(node => {
+      const originalNode = nodes.find(n => n.id === node.id);
+      return originalNode && (
+        originalNode.position.x !== node.position.x || 
+        originalNode.position.y !== node.position.y
+      );
+    });
+    
+    nodesToUpdate.forEach(node => {
+      if (node.id !== nodeId) { // Don't duplicate update for the main reattached node
+        console.log('Updating position for repositioned node:', node.id, 'new position:', node.position);
+        optimisticUpdates.optimisticUpdate(node.id, {
+          position: node.position,
+          metadata: { lastModified: new Date().toISOString() }
+        });
+      }
+    });
     
     // Force clear all drag-related states after reattachment
     setTimeout(() => {
