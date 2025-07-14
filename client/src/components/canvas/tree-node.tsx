@@ -2,14 +2,14 @@ import { useState, useRef, useCallback, useEffect, memo, useMemo } from "react";
 import {
   type TreeNode as TreeNodeType,
   type TestCategory,
-  type OpportunityWorkflowStatus,
+  type WorkflowStatus,
 } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
 import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
 import { NODE_DIMENSIONS, DRAG_FEEDBACK } from "@/lib/node-constants";
 import { useTreeContextOptional } from "@/contexts/tree-context";
 import { getNodePlaceholder } from "@/lib/node-placeholders";
-import { OpportunityStatusIndicator } from "@/components/opportunity-status-indicator";
+import { WorkflowStatusIndicator } from "@/components/workflow-status-indicator";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -21,7 +21,7 @@ interface TreeNodeProps {
   onContextMenu: (position: { x: number; y: number }) => void;
   onReattach?: (nodeId: string, newParentId: string | null) => void;
   onToggleCollapse?: (nodeId: string) => void;
-  onStatusChange?: (nodeId: string, status: OpportunityWorkflowStatus) => void;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 
   // Deprecated: Use TreeContext for better performance. Kept for backward compatibility.
   allNodes?: TreeNodeType[];
@@ -673,9 +673,9 @@ const TreeNodeComponent = memo(function TreeNode({
 
           {/* Right side container - status always visible, other actions on hover */}
           <div className="flex items-center space-x-1">
-            {/* Status indicator for opportunity nodes - always visible */}
-            {node.type === "opportunity" && onStatusChange && (
-              <OpportunityStatusIndicator
+            {/* Status indicator for all node types except metric - always visible */}
+            {node.type !== "metric" && onStatusChange && (
+              <WorkflowStatusIndicator
                 node={node}
                 onStatusChange={(status) => onStatusChange(node.id, status)}
                 disabled={isEditing}

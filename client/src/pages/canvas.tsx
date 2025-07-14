@@ -16,7 +16,7 @@ import { type ImpactTree, type TreeNode } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { type OpportunityWorkflowStatus } from "@shared/schema";
+import { type WorkflowStatus } from "@shared/schema";
 
 export default function CanvasPage() {
   const { id } = useParams();
@@ -147,9 +147,9 @@ export default function CanvasPage() {
     handleNodeUpdate(updatedNode, true);
   };
 
-  // Status change mutation for opportunity nodes
+  // Status change mutation for all node types with workflow status
   const statusChangeMutation = useMutation({
-    mutationFn: async ({ nodeId, status }: { nodeId: string; status: OpportunityWorkflowStatus }) => {
+    mutationFn: async ({ nodeId, status }: { nodeId: string; status: WorkflowStatus }) => {
       if (!treeId) throw new Error('No tree ID available');
       
       const response = await apiRequest(`/api/impact-trees/${treeId}/nodes/${nodeId}/status`, {
@@ -174,21 +174,21 @@ export default function CanvasPage() {
       
       toast({
         title: "Status updated",
-        description: "Opportunity status has been updated successfully.",
+        description: "Node status has been updated successfully.",
       });
     },
     onError: (error) => {
       console.error('Status update error:', error);
       toast({
         title: "Status update failed",
-        description: "Failed to update opportunity status. Please try again.",
+        description: "Failed to update node status. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   // Status change handler
-  const handleStatusChange = (nodeId: string, status: OpportunityWorkflowStatus) => {
+  const handleStatusChange = (nodeId: string, status: WorkflowStatus) => {
     statusChangeMutation.mutate({ nodeId, status });
   };
 
