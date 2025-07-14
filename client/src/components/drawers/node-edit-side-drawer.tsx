@@ -920,7 +920,7 @@ function OpportunityTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
   node: TreeNode;
-  onStatusChange?: (status: OpportunityWorkflowStatus) => void;
+  onStatusChange?: (nodeId: string, status: OpportunityWorkflowStatus) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -931,7 +931,7 @@ function OpportunityTemplate({ data, onFieldChange, node, onStatusChange }: {
           {onStatusChange && (
             <OpportunityStatusIndicator
               node={node}
-              onStatusChange={onStatusChange}
+              onStatusChange={(status) => onStatusChange(node.id, status)}
               className="ml-2"
             />
           )}
