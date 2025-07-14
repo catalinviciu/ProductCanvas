@@ -467,11 +467,15 @@ const TreeNodeComponent = memo(function TreeNode({
     
     if (finalTitle !== node.title || editDescription !== node.description) {
       console.log("Updating node with new values");
-      onUpdate({
+      const updatedNode = {
         ...node,
         title: finalTitle,
         description: editDescription,
-      });
+      };
+      
+      // Mark this as an immediate update by adding a special property
+      (updatedNode as any).__immediate = true;
+      onUpdate(updatedNode);
     }
   }, [editTitle, editDescription, node, onUpdate]);
 

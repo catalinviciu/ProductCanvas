@@ -394,51 +394,58 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   }, [contextMenu.node, handleNodeCreate]);
 
   const handleNodeUpdate = useCallback((updatedNode: TreeNode, immediate = false) => {
+    // Check if this update is marked as immediate (inline editing)
+    const isImmediateUpdate = immediate || (updatedNode as any).__immediate;
+    
+    // Clean the node by removing the special immediate flag
+    const cleanedNode = { ...updatedNode };
+    delete (cleanedNode as any).__immediate;
+    
     // Check if this is just a position update (dragging) vs other changes
-    const existingNode = nodes.find(n => n.id === updatedNode.id);
+    const existingNode = nodes.find(n => n.id === cleanedNode.id);
     const isPositionOnlyUpdate = existingNode && 
-      existingNode.title === updatedNode.title &&
-      existingNode.description === updatedNode.description &&
-      existingNode.type === updatedNode.type &&
-      JSON.stringify(existingNode.templateData) === JSON.stringify(updatedNode.templateData);
+      existingNode.title === cleanedNode.title &&
+      existingNode.description === cleanedNode.description &&
+      existingNode.type === cleanedNode.type &&
+      JSON.stringify(existingNode.templateData) === JSON.stringify(cleanedNode.templateData);
 
     // Update local state immediately for responsive UI
     const updatedNodes = nodes.map(node => 
-      node.id === updatedNode.id ? updatedNode : node
+      node.id === cleanedNode.id ? cleanedNode : node
     );
     setNodes(updatedNodes);
     
     // Use different persistence strategies for drag vs other updates
-    if (isPositionOnlyUpdate && smoothDrag.isNodeDragging(updatedNode.id)) {
+    if (isPositionOnlyUpdate && smoothDrag.isNodeDragging(cleanedNode.id)) {
       // For drag updates: use smooth drag system (delayed persistence)
       // Note: Parent-child drag updates are handled by the event system
       // Only handle individual node drag updates here
-      smoothDrag.updateDragPosition(updatedNode.id, {
-        title: updatedNode.title,
-        description: updatedNode.description,
-        templateData: updatedNode.templateData,
-        position: updatedNode.position,
-        parentId: updatedNode.parentId,
+      smoothDrag.updateDragPosition(cleanedNode.id, {
+        title: cleanedNode.title,
+        description: cleanedNode.description,
+        templateData: cleanedNode.templateData,
+        position: cleanedNode.position,
+        parentId: cleanedNode.parentId,
         metadata: {
-          testCategory: updatedNode.testCategory,
+          testCategory: cleanedNode.testCategory,
           lastModified: new Date().toISOString(),
         }
       });
     } else {
       // For content updates: use optimistic updates
-      // If immediate is true (form submission), save immediately
+      // If immediate is true (form submission or inline editing), save immediately
       // If false (position updates), use debounced persistence
-      optimisticUpdates.optimisticUpdate(updatedNode.id, {
-        title: updatedNode.title,
-        description: updatedNode.description,
-        templateData: updatedNode.templateData,
-        position: updatedNode.position,
-        parentId: updatedNode.parentId,
+      optimisticUpdates.optimisticUpdate(cleanedNode.id, {
+        title: cleanedNode.title,
+        description: cleanedNode.description,
+        templateData: cleanedNode.templateData,
+        position: cleanedNode.position,
+        parentId: cleanedNode.parentId,
         metadata: {
-          testCategory: updatedNode.testCategory,
+          testCategory: cleanedNode.testCategory,
           lastModified: new Date().toISOString(),
         }
-      }, immediate);
+      }, isImmediateUpdate);
     }
   }, [nodes, optimisticUpdates, smoothDrag]);
 
