@@ -297,9 +297,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     );
     setNodes(updatedNodes);
     
-    // Use enhanced optimistic updates with type-aware batching
-    const updateType = isPositionOnlyUpdate ? 'position' : 'content';
-    optimisticUpdates.addOptimisticUpdate(updatedNode.id, updateType, {
+    // Use simple optimistic updates to avoid infinite loops
+    optimisticUpdates.optimisticUpdate(updatedNode.id, {
       title: updatedNode.title,
       description: updatedNode.description,
       templateData: updatedNode.templateData,

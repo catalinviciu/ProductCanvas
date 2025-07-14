@@ -33,89 +33,44 @@ export function useOptimisticUpdates({
   const processingRef = useRef(false);
   const retryCountRef = useRef<Map<string, number>>(new Map());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
+  const isInitializedRef = useRef(false);
 
-  // Enhanced bulk update mutation with retry logic
+  // Bulk update mutation for batching multiple node updates
   const bulkUpdateMutation = useMutation({
-    mutationFn: async (updates: PendingUpdate[]) => {
-      console.log('Processing bulk update for', updates.length, 'items');
-      setSaveStatus('pending');
-      
-      return await apiRequest('/api/impact-trees/batch-update', { 
-        method: 'POST',
-        body: { 
-          updates: updates.map(u => ({
-            id: u.id,
-            type: u.type,
-            data: {
-              nodeId: u.nodeId,
-              position: u.type === 'position' ? u.updates.position : undefined,
-              content: u.type === 'content' ? u.updates : undefined,
-              structure: u.type === 'structure' ? u.updates : undefined,
-              treeId
-            }
-          }))
-        }
+    mutationFn: async (updates: Array<{ nodeId: string; updates: any }>) => {
+      console.log('Processing bulk update for', updates.length, 'nodes');
+      return await apiRequest(`/api/impact-trees/${treeId}/nodes/bulk-update`, { 
+        method: 'PUT',
+        body: { nodeUpdates: updates.map(u => ({ id: u.nodeId, updates: u.updates })) }
       });
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       console.log('Bulk update completed successfully:', data);
-      
-      // Clear successfully saved updates
-      variables.forEach(update => {
-        pendingUpdates.delete(update.id);
-        retryCountRef.current.delete(update.id);
-      });
-      
-      // Update state
-      setPendingUpdates(new Map(pendingUpdates));
       setSaveStatus('success');
-      
-      // Invalidate affected queries
-      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${treeId}`] });
       
       // Show success briefly
       setTimeout(() => {
         setSaveStatus('idle');
       }, 1500);
     },
-    onError: (error, variables) => {
+    onError: (error) => {
       console.error('Bulk update failed:', error);
       setSaveStatus('error');
       
-      // Implement retry logic
-      const failedUpdates = variables.filter(update => {
-        const retryCount = retryCountRef.current.get(update.id) || 0;
-        return retryCount < maxRetries;
+      // Show user-friendly error message
+      toast({
+        title: "Save Error",
+        description: "Some changes couldn't be saved. Please try again.",
+        variant: "destructive"
       });
-
-      if (failedUpdates.length > 0) {
-        // Increment retry counts
-        failedUpdates.forEach(update => {
-          const currentRetries = retryCountRef.current.get(update.id) || 0;
-          retryCountRef.current.set(update.id, currentRetries + 1);
-        });
-
-        // Schedule retry with exponential backoff
-        const retryDelay = 1000 * Math.pow(2, retryCountRef.current.get(failedUpdates[0].id) || 0);
-        setTimeout(() => {
-          setSaveStatus('pending');
-          bulkUpdateMutation.mutate(failedUpdates);
-        }, retryDelay);
-      } else {
-        // All retries exhausted
-        toast({
-          title: "Save Error",
-          description: "Some changes couldn't be saved. Please try again.",
-          variant: "destructive"
-        });
-        setTimeout(() => {
-          setSaveStatus('idle');
-        }, 3000);
-      }
+      
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 3000);
     }
   });
 
-  // Process pending updates in batches with improved debouncing
+  // Process pending updates in batches
   const processPendingUpdates = useCallback(async () => {
     if (pendingUpdates.size === 0 || processingRef.current) return;
 
@@ -123,27 +78,25 @@ export function useOptimisticUpdates({
     setIsProcessing(true);
     
     try {
-      const updates = Array.from(pendingUpdates.values());
-      
-      // Sort by timestamp and batch
-      const sortedUpdates = updates.sort((a, b) => a.timestamp - b.timestamp);
+      const currentUpdates = new Map(pendingUpdates);
+      const updates = Array.from(currentUpdates.values()).map(pending => ({
+        nodeId: pending.nodeId,
+        updates: pending.updates
+      }));
+
+      // Process in batches
       const batches = [];
-      
-      for (let i = 0; i < sortedUpdates.length; i += batchSize) {
-        batches.push(sortedUpdates.slice(i, i + batchSize));
+      for (let i = 0; i < updates.length; i += batchSize) {
+        batches.push(updates.slice(i, i + batchSize));
       }
 
-      // Process batches sequentially with staggered timing
-      for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i];
-        
-        // Small delay between batches to prevent server overload
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        
+      // Process all batches
+      for (const batch of batches) {
         await bulkUpdateMutation.mutateAsync(batch);
       }
+
+      // Clear processed updates
+      setPendingUpdates(new Map());
     } catch (error) {
       console.error('Error processing pending updates:', error);
     } finally {
@@ -152,8 +105,8 @@ export function useOptimisticUpdates({
     }
   }, [batchSize, bulkUpdateMutation, pendingUpdates]);
 
-  // Enhanced debounced save function with improved timing
-  const debouncedSave = useCallback(() => {
+  // Debounced update function
+  const scheduleUpdate = useCallback(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
@@ -163,15 +116,13 @@ export function useOptimisticUpdates({
     }, debounceMs);
   }, [processPendingUpdates, debounceMs]);
 
-  // Add optimistic update function
-  const addOptimisticUpdate = useCallback((nodeId: string, type: PendingUpdate['type'], updates: any) => {
-    const updateId = `${nodeId}_${type}_${Date.now()}`;
-    
+  // Add or update a pending update
+  const addPendingUpdate = useCallback((nodeId: string, updates: any) => {
     setPendingUpdates(prev => {
       const newMap = new Map(prev);
-      newMap.set(updateId, {
-        id: updateId,
-        type,
+      newMap.set(nodeId, {
+        id: nodeId,
+        type: 'position',
         nodeId,
         updates,
         timestamp: Date.now()
@@ -179,24 +130,17 @@ export function useOptimisticUpdates({
       return newMap;
     });
     
-    // Clear existing timeout and set new one
-    debouncedSave();
-    setSaveStatus('pending');
-  }, [debouncedSave]);
-
-  // Legacy function for backward compatibility
-  const addPendingUpdate = useCallback((nodeId: string, updates: any) => {
-    addOptimisticUpdate(nodeId, 'position', updates);
-  }, [addOptimisticUpdate]);
+    scheduleUpdate();
+  }, [scheduleUpdate]);
 
   // Optimistic update function - updates local state immediately and schedules persistence
   const optimisticUpdate = useCallback((nodeId: string, updates: any) => {
     // Add to pending updates for persistence
-    addOptimisticUpdate(nodeId, 'position', updates);
+    addPendingUpdate(nodeId, updates);
     
     // Return success immediately for optimistic UI updates
     return Promise.resolve();
-  }, [addOptimisticUpdate]);
+  }, [addPendingUpdate]);
 
   // Force flush all pending updates immediately
   const flushPendingUpdates = useCallback(() => {
@@ -226,7 +170,6 @@ export function useOptimisticUpdates({
     pendingUpdatesCount: pendingUpdates.size,
     isProcessing,
     addPendingUpdate,
-    addOptimisticUpdate,
     saveStatus,
     hasUnsavedChanges: pendingUpdates.size > 0
   };
