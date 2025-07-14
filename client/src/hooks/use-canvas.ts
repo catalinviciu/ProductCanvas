@@ -211,15 +211,31 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         const nodesToUpdate = [parentId, ...allDescendants];
         
         console.log('All nodes to persist:', nodesToUpdate);
-        nodesToUpdate.forEach(nodeId => {
-          const node = reorganizedNodes.find(n => n.id === nodeId);
-          if (node) {
-            console.log(`Persisting position for ${nodeId}:`, node.position);
-            optimisticUpdates.optimisticUpdate(nodeId, {
-              position: node.position,
-              metadata: { lastModified: new Date().toISOString() }
-            });
-          }
+        
+        // Suppress query invalidation during drag end processing to prevent bounce
+        optimisticUpdates.suppressInvalidation();
+        
+        // Clear any pending updates first to prevent conflicts
+        optimisticUpdates.flushPendingUpdates().then(() => {
+          // Add all position updates to the batch
+          nodesToUpdate.forEach(nodeId => {
+            const node = reorganizedNodes.find(n => n.id === nodeId);
+            if (node) {
+              console.log(`Persisting position for ${nodeId}:`, node.position);
+              optimisticUpdates.addPendingUpdate(nodeId, {
+                position: node.position,
+                metadata: { lastModified: new Date().toISOString() }
+              });
+            }
+          });
+          
+          // Process the batch immediately to prevent bounce effect
+          optimisticUpdates.flushPendingUpdates().then(() => {
+            // Resume query invalidation after a short delay to ensure database is updated
+            setTimeout(() => {
+              optimisticUpdates.resumeInvalidation();
+            }, 200);
+          });
         });
       }
     };

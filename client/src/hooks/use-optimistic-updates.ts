@@ -25,6 +25,7 @@ export function useOptimisticUpdates({
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
+  const suppressInvalidationRef = useRef(false);
 
   // Bulk update mutation for batching multiple node updates
   const bulkUpdateMutation = useMutation({
@@ -37,7 +38,13 @@ export function useOptimisticUpdates({
     },
     onSuccess: (data) => {
       console.log('Bulk update completed successfully:', data);
-      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${treeId}`] });
+      // Only invalidate queries if suppression is not active
+      if (!suppressInvalidationRef.current) {
+        // Delay query invalidation to prevent bounce effect during drag operations
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${treeId}`] });
+        }, 100);
+      }
     },
     onError: (error) => {
       console.error('Bulk update failed:', error);
@@ -146,11 +153,22 @@ export function useOptimisticUpdates({
     return processPendingUpdates();
   }, [processPendingUpdates]);
 
+  // Control query invalidation suppression for drag operations
+  const suppressInvalidation = useCallback(() => {
+    suppressInvalidationRef.current = true;
+  }, []);
+
+  const resumeInvalidation = useCallback(() => {
+    suppressInvalidationRef.current = false;
+  }, []);
+
   return {
     optimisticUpdate,
     flushPendingUpdates,
     pendingUpdatesCount: pendingUpdates.size,
     isProcessing,
-    addPendingUpdate
+    addPendingUpdate,
+    suppressInvalidation,
+    resumeInvalidation
   };
 }
