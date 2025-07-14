@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop, autoLayoutPreservingParent } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop, autoLayoutPreservingParent, getAllDescendants } from "@/lib/canvas-utils";
 import { useEnhancedTreePersistence } from "./use-enhanced-tree-persistence";
 import { useOptimisticUpdates } from "./use-optimistic-updates";
 import { useSmoothDrag } from "./use-smooth-drag";
@@ -206,8 +206,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         setNodes(reorganizedNodes);
         
         // Update all nodes that were repositioned through optimistic updates
-        // This ensures the autolayout positions are persisted, not the old positions
-        const nodesToUpdate = [parentId, ...childIds];
+        // This includes the parent and ALL descendants (nested children at any level)
+        const allDescendants = getAllDescendants(reorganizedNodes, parentId);
+        const nodesToUpdate = [parentId, ...allDescendants];
+        
+        console.log('All nodes to persist:', nodesToUpdate);
         nodesToUpdate.forEach(nodeId => {
           const node = reorganizedNodes.find(n => n.id === nodeId);
           if (node) {
