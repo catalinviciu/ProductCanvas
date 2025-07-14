@@ -138,6 +138,11 @@ export default function CanvasPage() {
     isDragging,
   } = useCanvas(impactTree);
 
+  // Wrapper for immediate node updates (form submissions)
+  const handleImmediateNodeUpdate = (updatedNode: TreeNode) => {
+    handleNodeUpdate(updatedNode, true);
+  };
+
   // Debug tree loading
   useEffect(() => {
     console.log('Canvas - Tree ID:', treeId, 'Impact Tree:', impactTree?.id, 'Loading:', isLoading);
@@ -215,7 +220,7 @@ export default function CanvasPage() {
         node={selectedNode}
         isOpen={editDrawer.isOpen}
         onClose={closeEditDrawer}
-        onSave={handleNodeUpdate}
+        onSave={handleImmediateNodeUpdate}
         onDelete={handleNodeDelete}
       />
 

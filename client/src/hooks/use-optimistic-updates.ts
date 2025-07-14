@@ -115,14 +115,28 @@ export function useOptimisticUpdates({
     scheduleUpdate();
   }, [scheduleUpdate]);
 
+  // Process a single update immediately
+  const processSingleUpdate = useCallback(async (nodeId: string, updates: any) => {
+    try {
+      await bulkUpdateMutation.mutateAsync([{ nodeId, updates }]);
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error processing immediate update:', error);
+      return Promise.reject(error);
+    }
+  }, [bulkUpdateMutation]);
+
   // Optimistic update function - updates local state immediately and schedules persistence
-  const optimisticUpdate = useCallback((nodeId: string, updates: any) => {
-    // Add to pending updates for persistence
-    addPendingUpdate(nodeId, updates);
-    
-    // Return success immediately for optimistic UI updates
-    return Promise.resolve();
-  }, [addPendingUpdate]);
+  const optimisticUpdate = useCallback((nodeId: string, updates: any, immediate = false) => {
+    if (immediate) {
+      // For immediate updates (like form submissions), save immediately
+      return processSingleUpdate(nodeId, updates);
+    } else {
+      // For batched updates (like dragging), use debounced persistence
+      addPendingUpdate(nodeId, updates);
+      return Promise.resolve();
+    }
+  }, [addPendingUpdate, processSingleUpdate]);
 
   // Force flush all pending updates immediately
   const flushPendingUpdates = useCallback(() => {

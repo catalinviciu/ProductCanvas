@@ -393,13 +393,14 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, node: null, menuType: 'full' });
   }, [contextMenu.node, handleNodeCreate]);
 
-  const handleNodeUpdate = useCallback((updatedNode: TreeNode) => {
+  const handleNodeUpdate = useCallback((updatedNode: TreeNode, immediate = false) => {
     // Check if this is just a position update (dragging) vs other changes
     const existingNode = nodes.find(n => n.id === updatedNode.id);
     const isPositionOnlyUpdate = existingNode && 
       existingNode.title === updatedNode.title &&
       existingNode.description === updatedNode.description &&
-      existingNode.type === updatedNode.type;
+      existingNode.type === updatedNode.type &&
+      JSON.stringify(existingNode.templateData) === JSON.stringify(updatedNode.templateData);
 
     // Update local state immediately for responsive UI
     const updatedNodes = nodes.map(node => 
@@ -424,7 +425,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         }
       });
     } else {
-      // For content updates: use optimistic updates (immediate persistence)
+      // For content updates: use optimistic updates
+      // If immediate is true (form submission), save immediately
+      // If false (position updates), use debounced persistence
       optimisticUpdates.optimisticUpdate(updatedNode.id, {
         title: updatedNode.title,
         description: updatedNode.description,
@@ -435,7 +438,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
           testCategory: updatedNode.testCategory,
           lastModified: new Date().toISOString(),
         }
-      });
+      }, immediate);
     }
   }, [nodes, optimisticUpdates, smoothDrag]);
 
