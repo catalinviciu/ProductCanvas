@@ -197,19 +197,19 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
           }
           return n;
         });
-        setNodes(updatedNodes);
         
-        // Apply autolayout to children
+        // Use the same comprehensive autolayout as reattaching nodes
+        // This ensures all nested levels are properly positioned
         console.log('Before autolayout - Parent position:', parentNode.position);
-        const parentWithChildren = moveNodeWithChildren(updatedNodes, parentId, parentNode.position, canvasState.orientation);
-        console.log('After autolayout - nodes repositioned:', parentWithChildren.filter(n => [parentId, ...childIds].includes(n.id)).map(n => ({ id: n.id, position: n.position })));
-        setNodes(parentWithChildren);
+        const reorganizedNodes = autoLayoutAfterDrop(updatedNodes, canvasState.orientation);
+        console.log('After autolayout - nodes repositioned:', reorganizedNodes.filter(n => [parentId, ...childIds].includes(n.id)).map(n => ({ id: n.id, position: n.position })));
+        setNodes(reorganizedNodes);
         
         // Update all nodes that were repositioned through optimistic updates
         // This ensures the autolayout positions are persisted, not the old positions
         const nodesToUpdate = [parentId, ...childIds];
         nodesToUpdate.forEach(nodeId => {
-          const node = parentWithChildren.find(n => n.id === nodeId);
+          const node = reorganizedNodes.find(n => n.id === nodeId);
           if (node) {
             console.log(`Persisting position for ${nodeId}:`, node.position);
             optimisticUpdates.optimisticUpdate(nodeId, {
