@@ -1079,6 +1079,17 @@ export function autoLayoutAfterDrop(nodes: TreeNode[], orientation: 'horizontal'
   return calculateNodeLayout(nodes, orientation);
 }
 
+// Auto-layout tree preserving the position of a specific parent node
+export function autoLayoutPreservingParent(nodes: TreeNode[], parentId: string, parentPosition: { x: number; y: number }, orientation: 'horizontal' | 'vertical' = 'horizontal'): TreeNode[] {
+  // Update the parent's position first
+  const updatedNodes = nodes.map(node => 
+    node.id === parentId ? { ...node, position: parentPosition } : node
+  );
+  
+  // Use reorganizeSubtree to layout children from the parent's new position
+  return reorganizeSubtree(updatedNodes, parentId, orientation);
+}
+
 export function getHomePosition(nodes: TreeNode[], currentOrientation: 'horizontal' | 'vertical' = 'horizontal'): { zoom: number; pan: { x: number; y: number }; orientation: 'horizontal' | 'vertical' } {
   // Only consider visible nodes for home positioning to save canvas space
   const visibleNodes = getVisibleNodes(nodes);

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
-import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop } from "@/lib/canvas-utils";
+import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop, autoLayoutPreservingParent } from "@/lib/canvas-utils";
 import { useEnhancedTreePersistence } from "./use-enhanced-tree-persistence";
 import { useOptimisticUpdates } from "./use-optimistic-updates";
 import { useSmoothDrag } from "./use-smooth-drag";
@@ -198,10 +198,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
           return n;
         });
         
-        // Use the same comprehensive autolayout as reattaching nodes
-        // This ensures all nested levels are properly positioned
+        // Use autolayout that preserves the parent's new position
+        // This ensures nested levels are properly positioned from the parent's new location
         console.log('Before autolayout - Parent position:', parentNode.position);
-        const reorganizedNodes = autoLayoutAfterDrop(updatedNodes, canvasState.orientation);
+        const reorganizedNodes = autoLayoutPreservingParent(updatedNodes, parentId, parentNode.position, canvasState.orientation);
         console.log('After autolayout - nodes repositioned:', reorganizedNodes.filter(n => [parentId, ...childIds].includes(n.id)).map(n => ({ id: n.id, position: n.position })));
         setNodes(reorganizedNodes);
         
