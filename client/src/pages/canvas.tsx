@@ -33,16 +33,19 @@ export default function CanvasPage() {
   // Create new tree mutation
   const createTreeMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/impact-trees', {
-        name: 'New Impact Tree',
-        description: 'A new strategic planning canvas',
-        canvasState: {
-          zoom: 1,
-          pan: { x: 0, y: 0 },
-          orientation: 'vertical'
+      const response = await apiRequest('/api/impact-trees', {
+        method: 'POST',
+        body: {
+          name: 'New Impact Tree',
+          description: 'A new strategic planning canvas',
+          canvasState: {
+            zoom: 1,
+            pan: { x: 0, y: 0 },
+            orientation: 'vertical'
+          }
         }
       });
-      return response.json();
+      return response;
     },
     onSuccess: (newTree) => {
       console.log('New tree created:', newTree);
