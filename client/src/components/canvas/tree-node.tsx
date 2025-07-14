@@ -200,6 +200,9 @@ const TreeNodeComponent = memo(function TreeNode({
             nodeX: node.position.x,
             nodeY: node.position.y,
           };
+          
+          // Signal drag start for smooth drag handling
+          document.dispatchEvent(new CustomEvent('dragStart', { detail: { nodeId: node.id } }));
         }
       }
     },
@@ -234,6 +237,8 @@ const TreeNodeComponent = memo(function TreeNode({
     const handleGlobalMouseUp = () => {
       if (isDragging) {
         setIsDragging(false);
+        // Signal drag end for smooth drag handling
+        document.dispatchEvent(new CustomEvent('dragEnd', { detail: { nodeId: node.id } }));
       }
     };
 

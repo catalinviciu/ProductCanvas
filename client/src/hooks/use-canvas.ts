@@ -5,6 +5,7 @@ import { type ImpactTree, type TreeNode, type NodeConnection, type CanvasState, 
 import { generateNodeId, createNode, createConnection, getHomePosition, calculateNodeLayout, snapToGrid, preventOverlap, getSmartNodePosition, moveNodeWithChildren, toggleNodeCollapse, toggleChildVisibility, handleBranchDrag, reorganizeSubtree, fitNodesToScreen, autoLayoutAfterDrop } from "@/lib/canvas-utils";
 import { useEnhancedTreePersistence } from "./use-enhanced-tree-persistence";
 import { useOptimisticUpdates } from "./use-optimistic-updates";
+import { useSmoothDrag } from "./use-smooth-drag";
 
 interface ContextMenuState {
   isOpen: boolean;
@@ -27,6 +28,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const optimisticUpdates = useOptimisticUpdates({ 
     treeId: impactTree?.id || 0,
     debounceMs: 500,
+    batchSize: 10
+  });
+  const smoothDrag = useSmoothDrag({
+    treeId: impactTree?.id || 0,
+    debounceMs: 300,
     batchSize: 10
   });
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
@@ -128,6 +134,27 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       document.removeEventListener('addChildContextMenu', handleAddChildContextMenuEvent as EventListener);
     };
   }, []);
+
+  // Add drag event listeners for smooth drag system
+  useEffect(() => {
+    const handleDragStart = (event: CustomEvent) => {
+      const { nodeId } = event.detail;
+      smoothDrag.startDrag(nodeId);
+    };
+
+    const handleDragEnd = (event: CustomEvent) => {
+      const { nodeId } = event.detail;
+      smoothDrag.endDrag();
+    };
+
+    document.addEventListener('dragStart', handleDragStart as EventListener);
+    document.addEventListener('dragEnd', handleDragEnd as EventListener);
+    
+    return () => {
+      document.removeEventListener('dragStart', handleDragStart as EventListener);
+      document.removeEventListener('dragEnd', handleDragEnd as EventListener);
+    };
+  }, [smoothDrag]);
 
   const updateTreeMutation = useMutation({
     mutationFn: async (updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {
@@ -297,19 +324,35 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     );
     setNodes(updatedNodes);
     
-    // Use optimistic updates for batched persistence
-    optimisticUpdates.optimisticUpdate(updatedNode.id, {
-      title: updatedNode.title,
-      description: updatedNode.description,
-      templateData: updatedNode.templateData,
-      position: updatedNode.position,
-      parentId: updatedNode.parentId,
-      metadata: {
-        testCategory: updatedNode.testCategory,
-        lastModified: new Date().toISOString(),
-      }
-    });
-  }, [nodes, optimisticUpdates]);
+    // Use different persistence strategies for drag vs other updates
+    if (isPositionOnlyUpdate && smoothDrag.isNodeDragging(updatedNode.id)) {
+      // For drag updates: use smooth drag system (delayed persistence)
+      smoothDrag.updateDragPosition(updatedNode.id, {
+        title: updatedNode.title,
+        description: updatedNode.description,
+        templateData: updatedNode.templateData,
+        position: updatedNode.position,
+        parentId: updatedNode.parentId,
+        metadata: {
+          testCategory: updatedNode.testCategory,
+          lastModified: new Date().toISOString(),
+        }
+      });
+    } else {
+      // For content updates: use optimistic updates (immediate persistence)
+      optimisticUpdates.optimisticUpdate(updatedNode.id, {
+        title: updatedNode.title,
+        description: updatedNode.description,
+        templateData: updatedNode.templateData,
+        position: updatedNode.position,
+        parentId: updatedNode.parentId,
+        metadata: {
+          testCategory: updatedNode.testCategory,
+          lastModified: new Date().toISOString(),
+        }
+      });
+    }
+  }, [nodes, optimisticUpdates, smoothDrag]);
 
   const handleNodeReattach = useCallback((nodeId: string, newParentId: string | null) => {
     const nodeToReattach = nodes.find(n => n.id === nodeId);
@@ -570,9 +613,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   // Cleanup function to flush pending updates when component unmounts
   useEffect(() => {
     return () => {
+      smoothDrag.flushDragUpdates();
       optimisticUpdates.flushPendingUpdates();
     };
-  }, [optimisticUpdates]);
+  }, [optimisticUpdates, smoothDrag]);
 
   return {
     selectedNode,
@@ -601,9 +645,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
-    // Optimistic updates status
-    pendingUpdatesCount: optimisticUpdates.pendingUpdatesCount,
-    isProcessingUpdates: optimisticUpdates.isProcessing,
-    flushPendingUpdates: optimisticUpdates.flushPendingUpdates,
+    // Combined updates status (prioritizing drag state during drag operations)
+    pendingUpdatesCount: smoothDrag.isDragging ? 0 : optimisticUpdates.pendingUpdatesCount,
+    isProcessingUpdates: smoothDrag.isDragging ? false : optimisticUpdates.isProcessing,
+    flushPendingUpdates: smoothDrag.isDragging ? smoothDrag.flushDragUpdates : optimisticUpdates.flushPendingUpdates,
+    // Drag state for UI feedback
+    isDragging: smoothDrag.isDragging,
   };
 }

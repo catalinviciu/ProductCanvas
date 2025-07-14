@@ -4,13 +4,16 @@ import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
 interface OptimisticUpdatesIndicatorProps {
   pendingUpdatesCount: number;
   isProcessingUpdates: boolean;
+  isDragging?: boolean;
 }
 
 const OptimisticUpdatesIndicator = memo(function OptimisticUpdatesIndicator({
   pendingUpdatesCount,
-  isProcessingUpdates
+  isProcessingUpdates,
+  isDragging = false
 }: OptimisticUpdatesIndicatorProps) {
-  if (pendingUpdatesCount === 0 && !isProcessingUpdates) {
+  // Don't show indicator during drag operations for smooth experience
+  if (isDragging || (pendingUpdatesCount === 0 && !isProcessingUpdates)) {
     return null;
   }
 

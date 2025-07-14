@@ -7,6 +7,7 @@ import { ContextMenu } from "@/components/modals/context-menu";
 import { CreateFirstNodeModal } from "@/components/modals/create-first-node-modal";
 import { CanvasHeader } from "@/components/canvas-header";
 import { OptimisticUpdatesIndicator } from "@/components/canvas/optimistic-updates-indicator";
+import { DragFeedbackIndicator } from "@/components/canvas/drag-feedback-indicator";
 import { CanvasErrorBoundary } from "@/components/error-boundaries/canvas-error-boundary";
 import { useCanvas } from "@/hooks/use-canvas";
 import { useAuth } from "@/hooks/useAuth";
@@ -134,6 +135,7 @@ export default function CanvasPage() {
     pendingUpdatesCount,
     isProcessingUpdates,
     flushPendingUpdates,
+    isDragging,
   } = useCanvas(impactTree);
 
   // Debug tree loading
@@ -238,6 +240,11 @@ export default function CanvasPage() {
       <OptimisticUpdatesIndicator
         pendingUpdatesCount={pendingUpdatesCount}
         isProcessingUpdates={isProcessingUpdates}
+        isDragging={isDragging}
+      />
+      
+      <DragFeedbackIndicator
+        isDragging={isDragging}
       />
     </div>
   );
