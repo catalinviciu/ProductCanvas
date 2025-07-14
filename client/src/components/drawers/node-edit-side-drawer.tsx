@@ -1,8 +1,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { X, Save, Trash2, Type, Target, BarChart3, Lightbulb, ChevronDown, ChevronRight, Calculator, HelpCircle, Cog, FlaskConical, TrendingUp, Search } from "lucide-react";
-import { TreeNode, NodeType, TestCategory, OpportunityWorkflowStatus } from "@shared/schema";
+import { TreeNode, NodeType, TestCategory, OpportunityWorkflowStatus, WorkflowStatus } from "@shared/schema";
 import { OpportunityStatusIndicator } from "@/components/opportunity-status-indicator";
+import { WorkflowStatusIndicator } from "@/components/workflow-status-indicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,13 +19,53 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+// Helper function to determine if a node type supports workflow status
+const supportsWorkflowStatus = (nodeType: NodeType): boolean => {
+  // All node types except metric support workflow status
+  return nodeType !== 'metric';
+};
+
+// Workflow Status Section Component
+const WorkflowStatusSection = ({ node, data, onStatusChange }: {
+  node: TreeNode;
+  data: TemplateData;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
+}) => {
+  if (!supportsWorkflowStatus(node.type) || !onStatusChange) return null;
+
+  // Create a temporary node with updated template data for the status indicator
+  const nodeWithCurrentData = {
+    ...node,
+    templateData: {
+      ...node.templateData,
+      ...data
+    }
+  };
+
+  return (
+    <div className="bg-gray-50 p-3 rounded-lg">
+      <div className="flex items-center justify-between mb-2">
+        <Label className="text-sm font-medium">Workflow Status</Label>
+        <WorkflowStatusIndicator
+          node={nodeWithCurrentData}
+          onStatusChange={(status) => onStatusChange(node.id, status)}
+          className="ml-2"
+        />
+      </div>
+      <p className="text-xs text-gray-600">
+        Track this {node.type} through your workflow
+      </p>
+    </div>
+  );
+};
+
 interface NodeEditSideDrawerProps {
   node: TreeNode | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (node: TreeNode) => void;
   onDelete?: (nodeId: string) => void;
-  onStatusChange?: (nodeId: string, status: OpportunityWorkflowStatus) => void;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 }
 
 // Template data interfaces
@@ -642,12 +683,16 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                       <ObjectiveTemplate 
                         data={formData.templateData}
                         onFieldChange={handleFieldChange}
+                        node={node}
+                        onStatusChange={handleStatusChange}
                       />
                     )}
                     {formData.type === 'outcome' && (
                       <OutcomeTemplate 
                         data={formData.templateData}
                         onFieldChange={handleFieldChange}
+                        node={node}
+                        onStatusChange={handleStatusChange}
                       />
                     )}
                     {formData.type === 'opportunity' && (
@@ -662,6 +707,8 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                       <SolutionTemplate 
                         data={formData.templateData}
                         onFieldChange={handleFieldChange}
+                        node={node}
+                        onStatusChange={handleStatusChange}
                       />
                     )}
                     {formData.type === 'metric' && (
@@ -674,6 +721,8 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                       <ResearchTemplate 
                         data={formData.templateData}
                         onFieldChange={handleFieldChange}
+                        node={node}
+                        onStatusChange={handleStatusChange}
                       />
                     )}
                   </CollapsibleContent>
@@ -804,12 +853,15 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
 }
 
 // Template Components
-function ObjectiveTemplate({ data, onFieldChange }: {
+function ObjectiveTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
+  node: TreeNode;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 }) {
   return (
     <div className="space-y-4">
+      <WorkflowStatusSection node={node} data={data} onStatusChange={onStatusChange} />
       <TemplateField
         id="coreWhy"
         label='The "Why" (Core Problem/Opportunity)'
@@ -863,12 +915,15 @@ function ObjectiveTemplate({ data, onFieldChange }: {
   );
 }
 
-function OutcomeTemplate({ data, onFieldChange }: {
+function OutcomeTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
+  node: TreeNode;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 }) {
   return (
     <div className="space-y-4">
+      <WorkflowStatusSection node={node} data={data} onStatusChange={onStatusChange} />
       <TemplateField
         id="who"
         label="Who? (The Target Audience)"
@@ -938,35 +993,11 @@ function OpportunityTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
   node: TreeNode;
-  onStatusChange?: (nodeId: string, status: OpportunityWorkflowStatus) => void;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 }) {
-  // Create a temporary node with updated template data for the status indicator
-  const nodeWithCurrentData = {
-    ...node,
-    templateData: {
-      ...node.templateData,
-      ...data
-    }
-  };
-
   return (
     <div className="space-y-4">
-      {/* Workflow Status Section */}
-      <div className="bg-gray-50 p-3 rounded-lg">
-        <div className="flex items-center justify-between mb-2">
-          <Label className="text-sm font-medium">Workflow Status</Label>
-          {onStatusChange && (
-            <OpportunityStatusIndicator
-              node={nodeWithCurrentData}
-              onStatusChange={(status) => onStatusChange(node.id, status)}
-              className="ml-2"
-            />
-          )}
-        </div>
-        <p className="text-xs text-gray-600">
-          Track this opportunity through your discovery workflow
-        </p>
-      </div>
+      <WorkflowStatusSection node={node} data={data} onStatusChange={onStatusChange} />
       
       <TemplateField
         id="customerProblem"
@@ -1142,12 +1173,15 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
 }
 
 // Solution Template Component
-function SolutionTemplate({ data, onFieldChange }: {
+function SolutionTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
+  node: TreeNode;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 }) {
   return (
     <div className="space-y-4">
+      <WorkflowStatusSection node={node} data={data} onStatusChange={onStatusChange} />
       <TemplateField
         id="solutionRationale"
         label="Solution Rationale (Why This Solution?)"
@@ -1213,9 +1247,11 @@ function SolutionTemplate({ data, onFieldChange }: {
 }
 
 // Assumption Test Template Component
-function AssumptionTemplate({ data, onFieldChange }: {
+function AssumptionTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
+  node: TreeNode;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 }) {
   // Get specific placeholders based on assumption type
   const getAssumptionPlaceholders = (type: string) => {
@@ -1249,6 +1285,8 @@ function AssumptionTemplate({ data, onFieldChange }: {
 
   return (
     <div className="space-y-4">
+      <WorkflowStatusSection node={node} data={data} onStatusChange={onStatusChange} />
+      
       {/* Assumption Type Selector */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -1390,12 +1428,15 @@ function MetricTemplate({ data, onFieldChange }: {
 }
 
 // Research Template Component
-function ResearchTemplate({ data, onFieldChange }: {
+function ResearchTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
+  node: TreeNode;
+  onStatusChange?: (nodeId: string, status: WorkflowStatus) => void;
 }) {
   return (
     <div className="space-y-4">
+      <WorkflowStatusSection node={node} data={data} onStatusChange={onStatusChange} />
       <TemplateField
         id="researchType"
         label="Research Type"

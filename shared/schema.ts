@@ -119,8 +119,8 @@ export type User = typeof users.$inferSelect;
 export const nodeTypes = ["objective", "outcome", "opportunity", "solution", "assumption", "metric", "research"] as const;
 export const testCategories = ["viability", "value", "feasibility", "usability"] as const;
 
-// Opportunity workflow statuses
-export const opportunityWorkflowStatuses = [
+// Workflow statuses for all node types except metric
+export const workflowStatuses = [
   'identified',
   'later', 
   'next',
@@ -129,8 +129,12 @@ export const opportunityWorkflowStatuses = [
   'trash'
 ] as const;
 
+// Keep legacy export for backward compatibility
+export const opportunityWorkflowStatuses = workflowStatuses;
+
 export type NodeType = typeof nodeTypes[number];
 export type TestCategory = typeof testCategories[number];
+export type WorkflowStatus = typeof workflowStatuses[number];
 export type OpportunityWorkflowStatus = typeof opportunityWorkflowStatuses[number];
 
 export interface TreeNode {
@@ -146,6 +150,9 @@ export interface TreeNode {
   hiddenChildren?: string[]; // Track which specific children are hidden
   isDragging?: boolean; // Track drag state for visual feedback
   templateData?: {
+    // Workflow status for all node types except metric
+    workflowStatus?: WorkflowStatus;
+    
     // Objective fields
     coreWhy?: string;
     desiredOutcome?: string;
@@ -167,7 +174,6 @@ export interface TreeNode {
     linkToKeyResult?: string;
     impactOnCustomer?: string;
     customerSegments?: string;
-    workflowStatus?: OpportunityWorkflowStatus;
     
     // ICE scoring
     iceImpact?: number;

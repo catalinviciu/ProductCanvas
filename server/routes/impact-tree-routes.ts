@@ -2,7 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { ImpactTreeService } from '../services/impact-tree-service';
 import { isAuthenticated } from '../replitAuth';
-import { opportunityWorkflowStatuses } from '@shared/schema';
+import { opportunityWorkflowStatuses, workflowStatuses } from '@shared/schema';
 
 const router = express.Router();
 const treeService = new ImpactTreeService();
@@ -72,7 +72,7 @@ const bulkUpdateNodesSchema = z.object({
 });
 
 const updateNodeStatusSchema = z.object({
-  workflowStatus: z.enum(opportunityWorkflowStatuses)
+  workflowStatus: z.enum(workflowStatuses)
 });
 
 // Tree CRUD operations
@@ -509,6 +509,18 @@ router.post('/api/impact-trees/migrate-statuses', isAuthenticated, async (req: a
   } catch (error) {
     console.error('Migration error:', error);
     res.status(500).json({ message: "Migration failed" });
+  }
+});
+
+// Migration endpoint for all node types (development only)
+router.post('/api/impact-trees/migrate-workflow-statuses', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    await treeService.migrateWorkflowStatuses(userId);
+    res.json({ message: "Workflow status migration completed successfully" });
+  } catch (error) {
+    console.error('Workflow status migration error:', error);
+    res.status(500).json({ message: "Workflow status migration failed" });
   }
 });
 
