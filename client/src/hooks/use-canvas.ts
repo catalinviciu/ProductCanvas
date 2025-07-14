@@ -349,8 +349,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       }
     }
 
-    // After adding the new node, reorganize the parent's subtree if it has children
-    if (parentNode && parentNode.children && parentNode.children.length > 0) {
+    // After adding the new node, reorganize the parent's subtree to ensure proper positioning
+    if (parentNode) {
       updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id, canvasState.orientation);
     }
 
