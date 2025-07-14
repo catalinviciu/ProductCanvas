@@ -30,9 +30,7 @@ export const impactTrees = pgTable("impact_trees", {
   name: text("name").notNull(),
   description: text("description"),
   
-  // Legacy structure (maintain compatibility)
-  nodes: jsonb("nodes").notNull().default('[]'),
-  connections: jsonb("connections").notNull().default('[]'),
+  // Canvas state persistence
   canvasState: jsonb("canvas_state").notNull().default('{"zoom": 1, "pan": {"x": 0, "y": 0}}'),
   
   // AI-optimized structure
@@ -49,7 +47,6 @@ export const impactTrees = pgTable("impact_trees", {
   userUpdatedIdx: index("idx_trees_user_updated").on(table.user_id, table.updatedAt.desc()),
   aiProcessingIdx: index("idx_trees_ai_processing").on(table.lastAiProcessedAt, table.processingVersion),
   treeStructureGin: index("idx_tree_structure_gin").using("gin", table.treeStructure),
-  nodesGin: index("idx_nodes_gin").using("gin", table.nodes),
 }));
 
 export const treeVersions = pgTable("tree_versions", {

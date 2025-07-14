@@ -13,8 +13,6 @@ export class ImpactTreeService {
         user_id: impactTrees.user_id,
         name: impactTrees.name,
         description: impactTrees.description,
-        nodes: impactTrees.nodes,
-        connections: impactTrees.connections,
         canvasState: impactTrees.canvasState,
         treeStructure: impactTrees.treeStructure,
         userMetrics: impactTrees.userMetrics,

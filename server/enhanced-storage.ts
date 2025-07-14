@@ -123,8 +123,6 @@ export class EnhancedTreeStorage {
         .update(impactTrees)
         .set({
           user_id: userId,
-          nodes: treeData.nodes,
-          connections: treeData.connections,
           canvasState: treeData.canvasState,
           treeStructure: aiStructure.hierarchy,
           userMetrics: userMetrics,
@@ -228,8 +226,6 @@ export class EnhancedTreeStorage {
         userId: impactTrees.user_id,
         name: impactTrees.name,
         treeStructure: impactTrees.treeStructure,
-        nodes: impactTrees.nodes,
-        connections: impactTrees.connections,
         aiMetadata: impactTrees.aiMetadata,
         updatedAt: impactTrees.updatedAt,
       })
@@ -329,8 +325,6 @@ export class EnhancedTreeStorage {
       treeId: treeId,
       versionNumber: nextVersion,
       treeSnapshot: {
-        nodes: treeData.nodes,
-        connections: treeData.connections,
         canvasState: treeData.canvasState,
         metadata: treeData.aiMetadata,
       },

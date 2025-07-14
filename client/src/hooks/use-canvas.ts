@@ -58,7 +58,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   useEffect(() => {
     // Don't reinitialize state during drag operations to prevent bounce effect
     if (impactTree && !isDragOperationActive) {
-      // Convert nodeRecords to TreeNode format if available, otherwise use legacy nodes
+      // Convert nodeRecords to TreeNode format
       let treeNodes: TreeNode[] = [];
       
       if ((impactTree as any).nodeRecords) {
@@ -92,10 +92,6 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         });
         
         setConnections(generatedConnections);
-      } else {
-        // Use legacy nodes structure for backward compatibility
-        treeNodes = (impactTree.nodes as TreeNode[]) || [];
-        setConnections((impactTree.connections as NodeConnection[]) || []);
       }
       
       setNodes(treeNodes);
