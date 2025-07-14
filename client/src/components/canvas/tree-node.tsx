@@ -112,6 +112,7 @@ const TreeNodeComponent = memo(function TreeNode({
   onContextMenu,
   onReattach,
   onToggleCollapse,
+  onStatusChange,
   allNodes = [],
   isDropTarget = false,
   isDraggedOver = false,
@@ -673,10 +674,10 @@ const TreeNodeComponent = memo(function TreeNode({
           {/* Action buttons container - only visible on hover */}
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             {/* Status indicator for opportunity nodes */}
-            {node.type === "opportunity" && (
+            {node.type === "opportunity" && onStatusChange && (
               <OpportunityStatusIndicator
                 node={node}
-                onStatusChange={(status) => onStatusChange?.(node.id, status)}
+                onStatusChange={(status) => onStatusChange(node.id, status)}
                 disabled={isEditing}
                 className="mr-1"
               />
