@@ -195,7 +195,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     };
 
     const handleParentChildDragEnd = (event: CustomEvent) => {
-      const { parentId, childIds } = event.detail;
+      const { parentId, childIds, finalPosition } = event.detail;
       
       // Clear isDragging flag from parent and all children
       const parentNode = nodes.find(n => n.id === parentId);
@@ -208,10 +208,19 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
           return n;
         });
         
+        // Use the final position from the drag event if available, otherwise fall back to current position
+        const finalParentPosition = finalPosition || parentNode.position;
+        
+        // Ensure the parent node is updated with the final position before autolayout
+        const parentNodeIndex = updatedNodes.findIndex(n => n.id === parentId);
+        if (parentNodeIndex !== -1) {
+          updatedNodes[parentNodeIndex] = { ...updatedNodes[parentNodeIndex], position: finalParentPosition };
+        }
+        
         // Use autolayout that preserves the parent's new position
         // This ensures nested levels are properly positioned from the parent's new location
-        console.log('Before autolayout - Parent position:', parentNode.position);
-        const reorganizedNodes = autoLayoutPreservingParent(updatedNodes, parentId, parentNode.position, canvasState.orientation);
+        console.log('Before autolayout - Parent position:', finalParentPosition);
+        const reorganizedNodes = autoLayoutPreservingParent(updatedNodes, parentId, finalParentPosition, canvasState.orientation);
         console.log('After autolayout - nodes repositioned:', reorganizedNodes.filter(n => [parentId, ...childIds].includes(n.id)).map(n => ({ id: n.id, position: n.position })));
         setNodes(reorganizedNodes);
         

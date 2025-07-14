@@ -143,10 +143,13 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
     dragEndTimeoutRef.current = setTimeout(() => {
       // Signal that autolayout should be applied if this was a parent-child drag
       if (wasParentChildDrag && parentChildData) {
+        // Get the final position from pending updates
+        const finalPosition = pendingDragUpdates.current.get(parentChildData.parentId)?.position;
         document.dispatchEvent(new CustomEvent('parentChildDragEnd', { 
           detail: { 
             parentId: parentChildData.parentId, 
-            childIds: parentChildData.childIds 
+            childIds: parentChildData.childIds,
+            finalPosition: finalPosition
           } 
         }));
       } else {
