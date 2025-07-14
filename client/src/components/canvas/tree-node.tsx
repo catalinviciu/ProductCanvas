@@ -206,13 +206,11 @@ const TreeNodeComponent = memo(function TreeNode({
     [node, onSelect, isEditing],
   );
 
-  // Throttled drag handler for better performance
-  const throttledDragHandler = useCallback(
-    throttle((position: { x: number; y: number }) => {
-      onDrag(node.id, position);
-    }, 16), // ~60fps
-    [node.id, onDrag],
-  );
+  // High-frequency position updates for smooth drag performance
+  const optimizedDragHandler = useCallback((position: { x: number; y: number }) => {
+    // Update position immediately for smooth visual feedback
+    onDrag(node.id, position);
+  }, [node.id, onDrag]);
 
   // Global mouse event handlers for smooth dragging
   useEffect(() => {
@@ -227,7 +225,7 @@ const TreeNodeComponent = memo(function TreeNode({
           y: dragRef.current.nodeY + deltaY,
         };
 
-        throttledDragHandler(newPosition);
+        optimizedDragHandler(newPosition);
       }
     };
 
@@ -246,7 +244,7 @@ const TreeNodeComponent = memo(function TreeNode({
       document.removeEventListener("mousemove", handleGlobalMouseMove);
       document.removeEventListener("mouseup", handleGlobalMouseUp);
     };
-  }, [isDragging, isEditing, throttledDragHandler]);
+  }, [isDragging, isEditing, optimizedDragHandler]);
 
   // Enhanced drop zone handlers for attachment
   const handleDragEnter = useCallback(

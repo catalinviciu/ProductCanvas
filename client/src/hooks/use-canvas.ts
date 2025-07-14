@@ -297,8 +297,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     );
     setNodes(updatedNodes);
     
-    // Use optimistic updates for batched persistence
-    optimisticUpdates.optimisticUpdate(updatedNode.id, {
+    // Use enhanced optimistic updates with type-aware batching
+    const updateType = isPositionOnlyUpdate ? 'position' : 'content';
+    optimisticUpdates.addOptimisticUpdate(updatedNode.id, updateType, {
       title: updatedNode.title,
       description: updatedNode.description,
       templateData: updatedNode.templateData,
@@ -601,9 +602,11 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
-    // Optimistic updates status
+    // Enhanced optimistic updates status
     pendingUpdatesCount: optimisticUpdates.pendingUpdatesCount,
     isProcessingUpdates: optimisticUpdates.isProcessing,
     flushPendingUpdates: optimisticUpdates.flushPendingUpdates,
+    saveStatus: optimisticUpdates.saveStatus,
+    hasUnsavedChanges: optimisticUpdates.hasUnsavedChanges,
   };
 }
