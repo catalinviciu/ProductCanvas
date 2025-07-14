@@ -59,6 +59,8 @@ const updateNodeSchema = z.object({
   }).optional(),
   parentId: z.string().nullable().optional(),
   metadata: z.record(z.any()).optional(),
+  isCollapsed: z.boolean().optional(),
+  hiddenChildren: z.array(z.string()).optional(),
 });
 
 const bulkUpdateNodesSchema = z.object({

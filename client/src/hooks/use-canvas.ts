@@ -74,8 +74,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
           children: nodeRecords.filter((r: any) => r.parentId === record.id).map((r: any) => r.id),
           templateData: record.templateData || {},
           testCategory: record.metadata?.testCategory,
-          isCollapsed: false,
-          hiddenChildren: [],
+          // Extract collapse state from metadata if available
+          isCollapsed: record.metadata?.isCollapsed || false,
+          hiddenChildren: record.metadata?.hiddenChildren || [],
         }));
         
         // Generate connections based on parent-child relationships
@@ -779,8 +780,25 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   const handleToggleCollapse = useCallback((nodeId: string) => {
     const updatedNodes = toggleNodeCollapse(nodes, nodeId);
     setNodes(updatedNodes);
+    
+    // CRITICAL: Update the isCollapsed state in the database for the specific node
+    const updatedNode = updatedNodes.find(n => n.id === nodeId);
+    if (updatedNode) {
+      console.log('Updating collapse state in database for node:', nodeId, 'isCollapsed:', updatedNode.isCollapsed);
+      
+      // Store collapse state in metadata since these fields don't exist in database schema
+      optimisticUpdates.optimisticUpdate(nodeId, {
+        metadata: {
+          isCollapsed: updatedNode.isCollapsed,
+          hiddenChildren: updatedNode.hiddenChildren || [],
+          lastModified: new Date().toISOString()
+        }
+      }, true); // immediate=true for UI state changes
+    }
+    
+    // Also save the tree to ensure all changes are persisted
     saveTree(updatedNodes);
-  }, [nodes, saveTree]);
+  }, [nodes, saveTree, optimisticUpdates]);
 
   const handleToggleChildVisibility = useCallback((parentId: string, childId: string) => {
     const updatedNodes = toggleChildVisibility(nodes, parentId, childId);
