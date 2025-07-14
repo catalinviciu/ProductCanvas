@@ -349,13 +349,17 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       }
     }
 
-    // After adding the new node, reorganize the parent's subtree to ensure proper positioning
-    if (parentNode) {
-      updatedNodes = reorganizeSubtree(updatedNodes, parentNode.id, canvasState.orientation);
-    }
-
+    // Apply auto-layout to the entire tree after adding the new node
+    // This ensures proper positioning and prevents overlapping
+    console.log('Applying auto-layout after node creation for tree with', updatedNodes.length, 'nodes');
+    updatedNodes = calculateNodeLayout(updatedNodes, canvasState.orientation);
+    
     setNodes(updatedNodes);
     setConnections(updatedConnections);
+    
+    // Find the positioned node to save to database
+    const finalNode = updatedNodes.find(n => n.id === nodeId);
+    const finalPosition = finalNode?.position || snappedPosition;
     
     // Save node to database using the new API
     createNodeMutation.mutate({
@@ -364,14 +368,27 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       title: newNode.title,
       description: newNode.description,
       templateData: newNode.templateData,
-      position: snappedPosition,
+      position: finalPosition,
       parentId: parentNode?.id,
       metadata: {
         testCategory: testCategory,
         createdAt: new Date().toISOString(),
       }
     });
-  }, [nodes, connections, canvasState.orientation, createNodeMutation, impactTree?.id]);
+
+    // Update all repositioned nodes through optimistic updates
+    // This ensures the entire tree layout is persisted to the database
+    updatedNodes.forEach(node => {
+      const originalNode = nodes.find(n => n.id === node.id);
+      if (originalNode && (originalNode.position.x !== node.position.x || originalNode.position.y !== node.position.y)) {
+        console.log(`Persisting repositioned node ${node.id} from position (${originalNode.position.x}, ${originalNode.position.y}) to (${node.position.x}, ${node.position.y})`);
+        optimisticUpdates.optimisticUpdate(node.id, {
+          position: node.position,
+          metadata: { lastModified: new Date().toISOString() }
+        });
+      }
+    });
+  }, [nodes, connections, canvasState.orientation, createNodeMutation, impactTree?.id, optimisticUpdates]);
 
   const handleContextMenu = useCallback((node: TreeNode, position: { x: number; y: number }) => {
     setContextMenu({
