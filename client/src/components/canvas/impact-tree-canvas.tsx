@@ -7,7 +7,7 @@ import { TreeProvider } from "@/contexts/tree-context";
 import { getVisibleNodes, getVisibleConnections, moveNodeWithChildren, snapToGrid } from "@/lib/canvas-utils";
 import { throttle, debounce } from "@/lib/performance-utils";
 import { NODE_DIMENSIONS, CANVAS_CONSTANTS } from "@/lib/node-constants";
-import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory } from "@shared/schema";
+import { type TreeNode as TreeNodeType, type NodeConnection, type CanvasState, type NodeType, type TestCategory, type OpportunityWorkflowStatus } from "@shared/schema";
 
 interface ImpactTreeCanvasProps {
   nodes: TreeNodeType[];
@@ -26,6 +26,7 @@ interface ImpactTreeCanvasProps {
   onResetToHome: () => void;
   onFitToScreen: () => void;
   onOrientationToggle: () => void;
+  onStatusChange?: (nodeId: string, status: OpportunityWorkflowStatus) => void;
 }
 
 const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
@@ -45,6 +46,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
   onResetToHome,
   onFitToScreen,
   onOrientationToggle,
+  onStatusChange,
 }: ImpactTreeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -517,6 +519,7 @@ const ImpactTreeCanvasComponent = memo(function ImpactTreeCanvas({
                 onContextMenu={(position: { x: number; y: number }) => onContextMenu(node, position)}
                 onReattach={onNodeReattach}
                 onToggleCollapse={onToggleCollapse}
+                onStatusChange={onStatusChange}
                 isDropTarget={draggedNodeId !== null && draggedNodeId !== node.id}
                 isDraggedOver={draggedOverNodeId === node.id}
                 orientation={canvasState.orientation}

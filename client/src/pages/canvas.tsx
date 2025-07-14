@@ -12,10 +12,11 @@ import { CanvasErrorBoundary } from "@/components/error-boundaries/canvas-error-
 import { useCanvas } from "@/hooks/use-canvas";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavAutoHide } from "@/hooks/use-nav-auto-hide";
-import { type ImpactTree } from "@shared/schema";
+import { type ImpactTree, type TreeNode } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
+import { type OpportunityWorkflowStatus } from "@shared/schema";
 
 export default function CanvasPage() {
   const { id } = useParams();
@@ -146,6 +147,51 @@ export default function CanvasPage() {
     handleNodeUpdate(updatedNode, true);
   };
 
+  // Status change mutation for opportunity nodes
+  const statusChangeMutation = useMutation({
+    mutationFn: async ({ nodeId, status }: { nodeId: string; status: OpportunityWorkflowStatus }) => {
+      if (!treeId) throw new Error('No tree ID available');
+      
+      const response = await apiRequest(`/api/impact-trees/${treeId}/nodes/${nodeId}/status`, {
+        method: 'PATCH',
+        body: { workflowStatus: status }
+      });
+      return response;
+    },
+    onSuccess: (updatedNode) => {
+      // Update the node in the local state
+      const nodeToUpdate = nodes.find(n => n.id === updatedNode.id);
+      if (nodeToUpdate) {
+        const updatedNodeWithStatus = {
+          ...nodeToUpdate,
+          templateData: {
+            ...nodeToUpdate.templateData,
+            workflowStatus: updatedNode.templateData?.workflowStatus
+          }
+        };
+        handleNodeUpdate(updatedNodeWithStatus, true);
+      }
+      
+      toast({
+        title: "Status updated",
+        description: "Opportunity status has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error('Status update error:', error);
+      toast({
+        title: "Status update failed",
+        description: "Failed to update opportunity status. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Status change handler
+  const handleStatusChange = (nodeId: string, status: OpportunityWorkflowStatus) => {
+    statusChangeMutation.mutate({ nodeId, status });
+  };
+
   // Debug tree loading
   useEffect(() => {
     console.log('Canvas - Tree ID:', treeId, 'Impact Tree:', impactTree?.id, 'Loading:', isLoading);
@@ -215,6 +261,7 @@ export default function CanvasPage() {
             onResetToHome={resetToHome}
             onFitToScreen={fitToScreen}
             onOrientationToggle={handleOrientationToggle}
+            onStatusChange={handleStatusChange}
           />
         </CanvasErrorBoundary>
       </main>
@@ -225,6 +272,7 @@ export default function CanvasPage() {
         onClose={closeEditDrawer}
         onSave={handleImmediateNodeUpdate}
         onDelete={handleNodeDelete}
+        onStatusChange={handleStatusChange}
       />
 
       <ContextMenu

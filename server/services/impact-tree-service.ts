@@ -1,7 +1,7 @@
 import { eq, and, desc, inArray, count, sql } from "drizzle-orm";
 import { db } from "../db";
-import { impactTrees, treeNodes, userActivities } from "@shared/schema";
-import type { ImpactTree, TreeNode, TreeNodeRecord, InsertTreeNode } from "@shared/schema";
+import { impactTrees, treeNodes, userActivities, opportunityWorkflowStatuses } from "@shared/schema";
+import type { ImpactTree, TreeNode, TreeNodeRecord, InsertTreeNode, OpportunityWorkflowStatus } from "@shared/schema";
 
 export class ImpactTreeService {
   
@@ -571,6 +571,122 @@ export class ImpactTreeService {
     }
 
     return updatedNodes;
+  }
+
+  // Status management for opportunity nodes
+  async updateNodeStatus(
+    treeId: number, 
+    nodeId: string, 
+    userId: string, 
+    workflowStatus: OpportunityWorkflowStatus
+  ): Promise<TreeNodeRecord | null> {
+    // Validate status
+    if (!opportunityWorkflowStatuses.includes(workflowStatus)) {
+      throw new Error(`Invalid workflow status: ${workflowStatus}`);
+    }
+
+    // Get existing node
+    const existingNode = await db
+      .select()
+      .from(treeNodes)
+      .where(and(
+        eq(treeNodes.id, nodeId),
+        eq(treeNodes.treeId, treeId)
+      ))
+      .limit(1);
+
+    if (!existingNode.length) return null;
+
+    // Verify tree ownership
+    const treeOwnership = await db
+      .select({ id: impactTrees.id })
+      .from(impactTrees)
+      .where(and(
+        eq(impactTrees.id, treeId),
+        eq(impactTrees.user_id, userId)
+      ))
+      .limit(1);
+
+    if (treeOwnership.length === 0) return null;
+
+    // Update node with new status
+    const updatedTemplateData = {
+      ...existingNode[0].templateData,
+      workflowStatus
+    };
+
+    const [updatedNode] = await db
+      .update(treeNodes)
+      .set({
+        templateData: updatedTemplateData,
+        updatedAt: new Date()
+      })
+      .where(eq(treeNodes.id, nodeId))
+      .returning();
+
+    // Log activity
+    await this.logActivity(
+      userId,
+      treeId,
+      nodeId,
+      'node_status_updated',
+      { 
+        nodeTitle: existingNode[0].title,
+        previousStatus: existingNode[0].templateData?.workflowStatus,
+        newStatus: workflowStatus 
+      }
+    );
+
+    return updatedNode;
+  }
+
+  // Migration method for existing opportunity nodes
+  async migrateOpportunityStatuses(userId: string): Promise<void> {
+    console.log('Starting opportunity status migration for user:', userId);
+    
+    // Find all opportunity nodes belonging to user's trees without workflowStatus
+    const opportunityNodes = await db
+      .select({
+        id: treeNodes.id,
+        treeId: treeNodes.treeId,
+        title: treeNodes.title,
+        templateData: treeNodes.templateData
+      })
+      .from(treeNodes)
+      .innerJoin(impactTrees, eq(treeNodes.treeId, impactTrees.id))
+      .where(and(
+        eq(treeNodes.nodeType, 'opportunity'),
+        eq(impactTrees.user_id, userId)
+      ));
+
+    console.log(`Found ${opportunityNodes.length} opportunity nodes for user`);
+
+    // Filter nodes that don't have workflowStatus
+    const nodesToUpdate = opportunityNodes.filter(node => 
+      !node.templateData?.workflowStatus
+    );
+
+    console.log(`${nodesToUpdate.length} nodes need status migration`);
+
+    // Update nodes without workflowStatus to default 'identified'
+    for (const node of nodesToUpdate) {
+      const updatedTemplateData = {
+        ...node.templateData,
+        workflowStatus: 'identified' as OpportunityWorkflowStatus
+      };
+
+      await db
+        .update(treeNodes)
+        .set({
+          templateData: updatedTemplateData,
+          updatedAt: new Date()
+        })
+        .where(eq(treeNodes.id, node.id));
+
+      console.log(`Migrated node ${node.id} (${node.title}) to 'identified' status`);
+    }
+
+    console.log('Migration completed');
   }
 
   // Activity logging

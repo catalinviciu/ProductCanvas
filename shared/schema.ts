@@ -119,8 +119,19 @@ export type User = typeof users.$inferSelect;
 export const nodeTypes = ["objective", "outcome", "opportunity", "solution", "assumption", "metric", "research"] as const;
 export const testCategories = ["viability", "value", "feasibility", "usability"] as const;
 
+// Opportunity workflow statuses
+export const opportunityWorkflowStatuses = [
+  'identified',
+  'later', 
+  'next',
+  'now',
+  'done',
+  'trash'
+] as const;
+
 export type NodeType = typeof nodeTypes[number];
 export type TestCategory = typeof testCategories[number];
+export type OpportunityWorkflowStatus = typeof opportunityWorkflowStatuses[number];
 
 export interface TreeNode {
   id: string;
@@ -156,6 +167,7 @@ export interface TreeNode {
     linkToKeyResult?: string;
     impactOnCustomer?: string;
     customerSegments?: string;
+    workflowStatus?: OpportunityWorkflowStatus;
     
     // ICE scoring
     iceImpact?: number;

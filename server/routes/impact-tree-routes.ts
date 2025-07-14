@@ -2,6 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { ImpactTreeService } from '../services/impact-tree-service';
 import { isAuthenticated } from '../replitAuth';
+import { opportunityWorkflowStatuses } from '@shared/schema';
 
 const router = express.Router();
 const treeService = new ImpactTreeService();
@@ -68,6 +69,10 @@ const bulkUpdateNodesSchema = z.object({
     id: z.string(),
     updates: updateNodeSchema,
   })),
+});
+
+const updateNodeStatusSchema = z.object({
+  workflowStatus: z.enum(opportunityWorkflowStatuses)
 });
 
 // Tree CRUD operations
@@ -463,6 +468,47 @@ router.get('/api/impact-trees/:id/nodes/:nodeId/children', isAuthenticated, asyn
   } catch (error) {
     console.error('Error fetching node children:', error);
     res.status(500).json({ message: 'Failed to fetch node children' });
+  }
+});
+
+// Status management endpoints
+router.patch('/api/impact-trees/:treeId/nodes/:nodeId/status', isAuthenticated, async (req: any, res) => {
+  try {
+    const treeId = parseInt(req.params.treeId);
+    const nodeId = req.params.nodeId;
+    const userId = req.user.claims.sub;
+    
+    if (isNaN(treeId)) {
+      return res.status(400).json({ message: 'Invalid tree ID' });
+    }
+    
+    const { workflowStatus } = updateNodeStatusSchema.parse(req.body);
+    
+    const updatedNode = await treeService.updateNodeStatus(treeId, nodeId, userId, workflowStatus);
+    
+    if (!updatedNode) {
+      return res.status(404).json({ message: "Node not found" });
+    }
+    
+    res.json(updatedNode);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid status", errors: error.errors });
+    }
+    console.error('Status update error:', error);
+    res.status(500).json({ message: "Failed to update node status" });
+  }
+});
+
+// Migration endpoint (development only)
+router.post('/api/impact-trees/migrate-statuses', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    await treeService.migrateOpportunityStatuses(userId);
+    res.json({ message: "Migration completed successfully" });
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({ message: "Migration failed" });
   }
 });
 

@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { X, Save, Trash2, Type, Target, BarChart3, Lightbulb, ChevronDown, ChevronRight, Calculator, HelpCircle, Cog, FlaskConical, TrendingUp, Search } from "lucide-react";
-import { TreeNode, NodeType, TestCategory } from "@shared/schema";
+import { TreeNode, NodeType, TestCategory, OpportunityWorkflowStatus } from "@shared/schema";
+import { OpportunityStatusIndicator } from "@/components/opportunity-status-indicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ interface NodeEditSideDrawerProps {
   onClose: () => void;
   onSave: (node: TreeNode) => void;
   onDelete?: (nodeId: string) => void;
+  onStatusChange?: (nodeId: string, status: OpportunityWorkflowStatus) => void;
 }
 
 // Template data interfaces
@@ -343,7 +345,7 @@ const TEMPLATE_GUIDANCE = {
   }
 };
 
-export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: NodeEditSideDrawerProps) {
+export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, onStatusChange }: NodeEditSideDrawerProps) {
   const [formData, setFormData] = useState<NodeFormData>({
     type: 'objective',
     title: '',
@@ -634,6 +636,8 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete }: 
                       <OpportunityTemplate 
                         data={formData.templateData}
                         onFieldChange={handleFieldChange}
+                        node={node}
+                        onStatusChange={onStatusChange}
                       />
                     )}
                     {formData.type === 'solution' && (
@@ -912,12 +916,31 @@ function OutcomeTemplate({ data, onFieldChange }: {
   );
 }
 
-function OpportunityTemplate({ data, onFieldChange }: {
+function OpportunityTemplate({ data, onFieldChange, node, onStatusChange }: {
   data: TemplateData;
   onFieldChange: (field: string, value: string) => void;
+  node: TreeNode;
+  onStatusChange?: (status: OpportunityWorkflowStatus) => void;
 }) {
   return (
     <div className="space-y-4">
+      {/* Workflow Status Section */}
+      <div className="bg-gray-50 p-3 rounded-lg">
+        <div className="flex items-center justify-between mb-2">
+          <Label className="text-sm font-medium">Workflow Status</Label>
+          {onStatusChange && (
+            <OpportunityStatusIndicator
+              node={node}
+              onStatusChange={onStatusChange}
+              className="ml-2"
+            />
+          )}
+        </div>
+        <p className="text-xs text-gray-600">
+          Track this opportunity through your discovery workflow
+        </p>
+      </div>
+      
       <TemplateField
         id="customerProblem"
         label="The Customer's Problem/Need (The &quot;What&quot;)"
