@@ -4,7 +4,7 @@ import {
   type TestCategory,
 } from "@shared/schema";
 import { throttle } from "@/lib/performance-utils";
-import { isChildHidden, areAllChildrenHidden } from "@/lib/canvas-utils";
+import { isChildHidden, areAllChildrenHidden, getAllDescendants } from "@/lib/canvas-utils";
 import { NODE_DIMENSIONS, DRAG_FEEDBACK } from "@/lib/node-constants";
 import { useTreeContextOptional } from "@/contexts/tree-context";
 import { getNodePlaceholder } from "@/lib/node-placeholders";
@@ -137,6 +137,8 @@ const TreeNodeComponent = memo(function TreeNode({
 
   // Use tree context for efficient node lookups, fallback to allNodes prop
   const treeContext = useTreeContextOptional();
+  // Get all nodes from TreeContext or fallback to allNodes prop
+  const allNodesArray = treeContext?.allNodes || allNodes;
 
   // Memoize config to prevent unnecessary recalculations
   const config = useMemo(() => nodeTypeConfig[node.type], [node.type]);
@@ -204,10 +206,12 @@ const TreeNodeComponent = memo(function TreeNode({
           // Signal drag start for smooth drag handling
           const hasChildren = node.children && node.children.length > 0;
           if (hasChildren) {
+            // Get all descendants, not just immediate children
+            const allDescendants = getAllDescendants(allNodesArray, node.id);
             document.dispatchEvent(new CustomEvent('parentChildDragStart', { 
               detail: { 
                 parentId: node.id, 
-                childIds: node.children 
+                childIds: allDescendants 
               } 
             }));
           } else {
