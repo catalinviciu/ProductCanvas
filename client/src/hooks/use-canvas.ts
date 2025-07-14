@@ -52,10 +52,12 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     pan: { x: 0, y: 0 },
     orientation: 'vertical',
   });
+  const [isDragOperationActive, setIsDragOperationActive] = useState(false);
 
   // Initialize state from impactTree
   useEffect(() => {
-    if (impactTree) {
+    // Don't reinitialize state during drag operations to prevent bounce effect
+    if (impactTree && !isDragOperationActive) {
       // Convert nodeRecords to TreeNode format if available, otherwise use legacy nodes
       let treeNodes: TreeNode[] = [];
       
@@ -114,7 +116,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         setCanvasState(homePosition);
       }
     }
-  }, [impactTree]);
+  }, [impactTree, isDragOperationActive]);
 
   // Add event listener for add child context menu
   useEffect(() => {
@@ -139,11 +141,15 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
   useEffect(() => {
     const handleDragStart = (event: CustomEvent) => {
       const { nodeId } = event.detail;
+      setIsDragOperationActive(true);
       smoothDrag.startDrag(nodeId);
     };
 
     const handleParentChildDragStart = (event: CustomEvent) => {
       const { parentId, childIds } = event.detail;
+      
+      // Set drag operation active to prevent state reinitialization during drag
+      setIsDragOperationActive(true);
       
       // Get current positions of all nodes
       const nodePositions = new Map<string, { x: number; y: number }>();
@@ -182,6 +188,10 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     const handleDragEnd = (event: CustomEvent) => {
       const { nodeId } = event.detail;
       smoothDrag.endDrag();
+      // Clear drag operation state after a short delay to allow updates to complete
+      setTimeout(() => {
+        setIsDragOperationActive(false);
+      }, 100);
     };
 
     const handleParentChildDragEnd = (event: CustomEvent) => {
@@ -234,6 +244,8 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
             // Resume query invalidation after a short delay to ensure database is updated
             setTimeout(() => {
               optimisticUpdates.resumeInvalidation();
+              // Clear drag operation state after processing is complete
+              setIsDragOperationActive(false);
             }, 200);
           });
         });
