@@ -671,9 +671,9 @@ const TreeNodeComponent = memo(function TreeNode({
             </div>
           </div>
 
-          {/* Action buttons container - only visible on hover */}
-          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {/* Status indicator for opportunity nodes */}
+          {/* Right side container - status always visible, other actions on hover */}
+          <div className="flex items-center space-x-1">
+            {/* Status indicator for opportunity nodes - always visible */}
             {node.type === "opportunity" && onStatusChange && (
               <OpportunityStatusIndicator
                 node={node}
@@ -682,20 +682,23 @@ const TreeNodeComponent = memo(function TreeNode({
                 className="mr-1"
               />
             )}
-            {!isEditing && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  onContextMenu({ x: rect.right, y: rect.bottom });
-                }}
-                className="action-btn-compact hover:scale-110 transition-transform duration-200"
-                title="More options"
-              >
-                <i className="fas fa-ellipsis-v text-xs"></i>
-              </button>
-            )}
+            {/* Action buttons - only visible on hover */}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              {!isEditing && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    onContextMenu({ x: rect.right, y: rect.bottom });
+                  }}
+                  className="action-btn-compact hover:scale-110 transition-transform duration-200"
+                  title="More options"
+                >
+                  <i className="fas fa-ellipsis-v text-xs"></i>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
