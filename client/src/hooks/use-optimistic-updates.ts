@@ -1,12 +1,9 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
 import { type TreeNode } from '@shared/schema';
 
 interface PendingUpdate {
-  id: string;
-  type: 'position' | 'content' | 'structure';
   nodeId: string;
   updates: any;
   timestamp: number;
@@ -16,24 +13,18 @@ interface OptimisticUpdatesConfig {
   treeId: number;
   debounceMs?: number;
   batchSize?: number;
-  maxRetries?: number;
 }
 
 export function useOptimisticUpdates({
   treeId,
   debounceMs = 500,
-  batchSize = 10,
-  maxRetries = 3
+  batchSize = 10
 }: OptimisticUpdatesConfig) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const [pendingUpdates, setPendingUpdates] = useState<Map<string, PendingUpdate>>(new Map());
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
-  const retryCountRef = useRef<Map<string, number>>(new Map());
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
-  const isInitializedRef = useRef(false);
 
   // Bulk update mutation for batching multiple node updates
   const bulkUpdateMutation = useMutation({
@@ -46,27 +37,20 @@ export function useOptimisticUpdates({
     },
     onSuccess: (data) => {
       console.log('Bulk update completed successfully:', data);
-      setSaveStatus('success');
-      
-      // Show success briefly
-      setTimeout(() => {
-        setSaveStatus('idle');
-      }, 1500);
+      queryClient.invalidateQueries({ queryKey: [`/api/impact-trees/${treeId}`] });
     },
     onError: (error) => {
       console.error('Bulk update failed:', error);
-      setSaveStatus('error');
-      
       // Show user-friendly error message
-      toast({
-        title: "Save Error",
-        description: "Some changes couldn't be saved. Please try again.",
-        variant: "destructive"
-      });
-      
-      setTimeout(() => {
-        setSaveStatus('idle');
-      }, 3000);
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('show-toast', {
+          detail: {
+            title: "Update failed",
+            description: "Failed to save changes. Please try again.",
+            variant: "destructive",
+          }
+        }));
+      }
     }
   });
 
@@ -121,8 +105,6 @@ export function useOptimisticUpdates({
     setPendingUpdates(prev => {
       const newMap = new Map(prev);
       newMap.set(nodeId, {
-        id: nodeId,
-        type: 'position',
         nodeId,
         updates,
         timestamp: Date.now()
@@ -150,27 +132,11 @@ export function useOptimisticUpdates({
     return processPendingUpdates();
   }, [processPendingUpdates]);
 
-  // Cleanup effect for component unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-      
-      // Flush any pending updates on unmount
-      if (pendingUpdates.size > 0) {
-        processPendingUpdates();
-      }
-    };
-  }, [processPendingUpdates, pendingUpdates.size]);
-
   return {
     optimisticUpdate,
     flushPendingUpdates,
     pendingUpdatesCount: pendingUpdates.size,
     isProcessing,
-    addPendingUpdate,
-    saveStatus,
-    hasUnsavedChanges: pendingUpdates.size > 0
+    addPendingUpdate
   };
 }

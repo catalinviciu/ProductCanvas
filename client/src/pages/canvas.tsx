@@ -134,8 +134,6 @@ export default function CanvasPage() {
     pendingUpdatesCount,
     isProcessingUpdates,
     flushPendingUpdates,
-    saveStatus,
-    hasUnsavedChanges,
   } = useCanvas(impactTree);
 
   // Debug tree loading
@@ -238,9 +236,8 @@ export default function CanvasPage() {
       />
 
       <OptimisticUpdatesIndicator
-        saveStatus={saveStatus}
-        hasUnsavedChanges={hasUnsavedChanges}
-        pendingCount={pendingUpdatesCount}
+        pendingUpdatesCount={pendingUpdatesCount}
+        isProcessingUpdates={isProcessingUpdates}
       />
     </div>
   );

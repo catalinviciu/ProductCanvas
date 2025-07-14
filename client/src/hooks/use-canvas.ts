@@ -297,7 +297,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     );
     setNodes(updatedNodes);
     
-    // Use simple optimistic updates to avoid infinite loops
+    // Use optimistic updates for batched persistence
     optimisticUpdates.optimisticUpdate(updatedNode.id, {
       title: updatedNode.title,
       description: updatedNode.description,
@@ -601,11 +601,9 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
     fitToScreen,
     closeCreateFirstNodeModal,
     handleCreateFirstNode,
-    // Enhanced optimistic updates status
+    // Optimistic updates status
     pendingUpdatesCount: optimisticUpdates.pendingUpdatesCount,
     isProcessingUpdates: optimisticUpdates.isProcessing,
     flushPendingUpdates: optimisticUpdates.flushPendingUpdates,
-    saveStatus: optimisticUpdates.saveStatus,
-    hasUnsavedChanges: optimisticUpdates.hasUnsavedChanges,
   };
 }
