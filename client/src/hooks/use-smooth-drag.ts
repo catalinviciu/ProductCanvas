@@ -87,25 +87,16 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
   }, []);
 
   /**
-   * Update positions during parent-child drag - maintains relative positions
+   * Update positions during parent-child drag - only moves parent, children get autolayout on release
    */
-  const updateParentChildDrag = useCallback((parentId: string, newParentPosition: { x: number; y: number }, onUpdateCallback: (nodeId: string, position: { x: number; y: number }) => void) => {
+  const updateParentChildDrag = useCallback((parentId: string, newParentPosition: { x: number; y: number }, onUpdateCallback: (nodeId: string, position: { x: number; y: number }, isDragging?: boolean) => void) => {
     if (!dragState.current.isDragging || !parentChildDragData.current || parentChildDragData.current.parentId !== parentId) {
       return;
     }
     
-    const { childIds, initialPositions } = parentChildDragData.current;
-    const initialParentPosition = initialPositions.get(parentId);
-    
-    if (!initialParentPosition) return;
-    
-    // Calculate delta from initial position
-    const deltaX = newParentPosition.x - initialParentPosition.x;
-    const deltaY = newParentPosition.y - initialParentPosition.y;
-    
-    // Update parent position immediately
+    // Update parent position immediately with drag state
     const snappedParentPosition = snapToGrid(newParentPosition);
-    onUpdateCallback(parentId, snappedParentPosition);
+    onUpdateCallback(parentId, snappedParentPosition, true);
     
     // Store parent update for later persistence
     pendingDragUpdates.current.set(parentId, {
@@ -113,26 +104,7 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
       metadata: { lastModified: new Date().toISOString() }
     });
     
-    // Update all children positions maintaining relative layout
-    childIds.forEach(childId => {
-      const initialChildPosition = initialPositions.get(childId);
-      if (initialChildPosition) {
-        const newChildPosition = {
-          x: initialChildPosition.x + deltaX,
-          y: initialChildPosition.y + deltaY
-        };
-        const snappedChildPosition = snapToGrid(newChildPosition);
-        
-        // Update child position immediately
-        onUpdateCallback(childId, snappedChildPosition);
-        
-        // Store child update for later persistence
-        pendingDragUpdates.current.set(childId, {
-          position: snappedChildPosition,
-          metadata: { lastModified: new Date().toISOString() }
-        });
-      }
-    });
+    // Don't move children during drag - they'll be repositioned via autolayout on release
   }, []);
 
   /**
@@ -163,6 +135,10 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
       dragEndTimeoutRef.current = null;
     }
     
+    // Check if this was a parent-child drag operation
+    const wasParentChildDrag = parentChildDragData.current !== null;
+    const parentChildData = parentChildDragData.current;
+    
     // Schedule persistence after a brief delay to ensure smooth UX
     dragEndTimeoutRef.current = setTimeout(() => {
       // Persist all pending updates at once
@@ -171,6 +147,16 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
       updates.forEach(([nodeId, nodeUpdates]) => {
         optimisticUpdates.optimisticUpdate(nodeId, nodeUpdates);
       });
+      
+      // Signal that autolayout should be applied if this was a parent-child drag
+      if (wasParentChildDrag && parentChildData) {
+        document.dispatchEvent(new CustomEvent('parentChildDragEnd', { 
+          detail: { 
+            parentId: parentChildData.parentId, 
+            childIds: parentChildData.childIds 
+          } 
+        }));
+      }
       
       // Clear state
       dragState.current = {

@@ -563,6 +563,11 @@ const TreeNodeComponent = memo(function TreeNode({
       stateClasses.push("dragging scale-105 shadow-2xl rotate-1 z-50");
     if (isEditing) stateClasses.push("editing z-50");
 
+    // Show grey background when node is being dragged (position updates)
+    if (node.isDragging) {
+      stateClasses.push("!bg-gray-200 dark:!bg-gray-700");
+    }
+
     // Enhanced drag and drop visual feedback
     if (draggedOverNodeId === node.id) {
       stateClasses.push("bg-green-50 border-green-300 scale-102 shadow-lg");
@@ -591,6 +596,7 @@ const TreeNodeComponent = memo(function TreeNode({
     isDropTarget,
     draggedNode,
     isDraggedOver,
+    node.isDragging,
   ]);
 
   // Memoize style object to prevent unnecessary re-renders

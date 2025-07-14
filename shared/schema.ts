@@ -136,6 +136,7 @@ export interface TreeNode {
   children: string[];
   isCollapsed?: boolean;
   hiddenChildren?: string[]; // Track which specific children are hidden
+  isDragging?: boolean; // Track drag state for visual feedback
   templateData?: {
     // Objective fields
     coreWhy?: string;
