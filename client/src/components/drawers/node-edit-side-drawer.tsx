@@ -1549,7 +1549,7 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
           <Slider
             value={[data.riceReach || 0]}
             onValueChange={([value]) => onFieldChange('template.riceReach', value)}
-            max={100}
+            max={5}
             min={0}
             step={1}
             className="w-full"
@@ -1593,15 +1593,15 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Confidence</Label>
             <span className="text-sm text-gray-500">
-              {data.riceConfidence || 0}%
+              {data.riceConfidence || 0}
             </span>
           </div>
           <Slider
             value={[data.riceConfidence || 0]}
             onValueChange={([value]) => onFieldChange('template.riceConfidence', value)}
-            max={100}
+            max={1}
             min={0}
-            step={1}
+            step={0.01}
             className="w-full"
           />
           <Textarea
