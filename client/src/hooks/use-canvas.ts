@@ -189,6 +189,19 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
         // Apply autolayout to children
         const parentWithChildren = moveNodeWithChildren(updatedNodes, parentId, parentNode.position, canvasState.orientation);
         setNodes(parentWithChildren);
+        
+        // Update all nodes that were repositioned through optimistic updates
+        // This ensures the autolayout positions are persisted, not the old positions
+        const nodesToUpdate = [parentId, ...childIds];
+        nodesToUpdate.forEach(nodeId => {
+          const node = parentWithChildren.find(n => n.id === nodeId);
+          if (node) {
+            optimisticUpdates.optimisticUpdate(nodeId, {
+              position: node.position,
+              metadata: { lastModified: new Date().toISOString() }
+            });
+          }
+        });
       }
     };
 
@@ -205,7 +218,7 @@ export function useCanvas(impactTree: ImpactTree | undefined) {
       document.removeEventListener('dragEnd', handleDragEnd as EventListener);
       document.removeEventListener('parentChildDragEnd', handleParentChildDragEnd as EventListener);
     };
-  }, [smoothDrag, nodes, canvasState.orientation]);
+  }, [smoothDrag, nodes, canvasState.orientation, optimisticUpdates]);
 
   const updateTreeMutation = useMutation({
     mutationFn: async (updates: { nodes: TreeNode[]; connections: NodeConnection[]; canvasState: CanvasState }) => {

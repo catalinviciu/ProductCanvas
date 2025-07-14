@@ -141,13 +141,6 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
     
     // Schedule persistence after a brief delay to ensure smooth UX
     dragEndTimeoutRef.current = setTimeout(() => {
-      // Persist all pending updates at once
-      const updates = Array.from(pendingDragUpdates.current.entries());
-      
-      updates.forEach(([nodeId, nodeUpdates]) => {
-        optimisticUpdates.optimisticUpdate(nodeId, nodeUpdates);
-      });
-      
       // Signal that autolayout should be applied if this was a parent-child drag
       if (wasParentChildDrag && parentChildData) {
         document.dispatchEvent(new CustomEvent('parentChildDragEnd', { 
@@ -156,6 +149,13 @@ export function useSmoothDrag({ treeId, debounceMs = 300, batchSize = 10 }: Smoo
             childIds: parentChildData.childIds 
           } 
         }));
+      } else {
+        // For non-parent-child drags, persist updates immediately
+        const updates = Array.from(pendingDragUpdates.current.entries());
+        
+        updates.forEach(([nodeId, nodeUpdates]) => {
+          optimisticUpdates.optimisticUpdate(nodeId, nodeUpdates);
+        });
       }
       
       // Clear state
