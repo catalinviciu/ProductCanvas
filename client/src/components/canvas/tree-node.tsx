@@ -10,6 +10,7 @@ import { NODE_DIMENSIONS, DRAG_FEEDBACK } from "@/lib/node-constants";
 import { useTreeContextOptional } from "@/contexts/tree-context";
 import { getNodePlaceholder } from "@/lib/node-placeholders";
 import { WorkflowStatusIndicator } from "@/components/workflow-status-indicator";
+import { ScoreBadge } from "@/components/score-badge";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -780,6 +781,22 @@ const TreeNodeComponent = memo(function TreeNode({
             <i className={`${testConfig.icon} text-xs mr-1`} />
             <span>{testConfig.label}</span>
           </div>
+        )}
+
+        {/* Score badges for Opportunity and Solution nodes */}
+        {!isEditing && node.type === "opportunity" && node.templateData?.iceScore && (
+          <ScoreBadge
+            score={node.templateData.iceScore}
+            type="ICE"
+            className="z-10"
+          />
+        )}
+        {!isEditing && node.type === "solution" && node.templateData?.riceScore && (
+          <ScoreBadge
+            score={node.templateData.riceScore}
+            type="RICE"
+            className="z-10"
+          />
         )}
       </div>
       {/* Children indicator bottom left - clickable to toggle visibility - only visible on hover */}

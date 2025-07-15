@@ -2,6 +2,7 @@ import { eq, and, desc, inArray, count, sql } from "drizzle-orm";
 import { db } from "../db";
 import { impactTrees, treeNodes, userActivities, opportunityWorkflowStatuses, workflowStatuses } from "@shared/schema";
 import type { ImpactTree, TreeNode, TreeNodeRecord, InsertTreeNode, OpportunityWorkflowStatus, WorkflowStatus } from "@shared/schema";
+import { scoreCalculationService } from "./score-calculation-service";
 
 export class ImpactTreeService {
   
@@ -328,6 +329,17 @@ export class ImpactTreeService {
       }
     }
 
+    // Calculate scores if this is an opportunity or solution node
+    let templateData = nodeData.templateData || {};
+    if (nodeData.type === 'opportunity' || nodeData.type === 'solution') {
+      const tempNode = {
+        id: nodeData.id,
+        nodeType: nodeData.type,
+        templateData: templateData
+      } as TreeNodeRecord;
+      templateData = scoreCalculationService.updateNodeScores(tempNode);
+    }
+
     const [newNode] = await db
       .insert(treeNodes)
       .values({
@@ -337,7 +349,7 @@ export class ImpactTreeService {
         nodeType: nodeData.type,
         title: nodeData.title,
         description: nodeData.description,
-        templateData: nodeData.templateData || {},
+        templateData: templateData,
         position: nodeData.position,
         metadata: nodeData.metadata || {},
       })
@@ -361,8 +373,8 @@ export class ImpactTreeService {
     metadata?: any;
   }): Promise<TreeNodeRecord | null> {
     // Verify tree ownership and node existence
-    const nodeExists = await db
-      .select({ id: treeNodes.id })
+    const existingNode = await db
+      .select()
       .from(treeNodes)
       .innerJoin(impactTrees, eq(treeNodes.treeId, impactTrees.id))
       .where(and(
@@ -372,7 +384,7 @@ export class ImpactTreeService {
       ))
       .limit(1);
 
-    if (nodeExists.length === 0) return null;
+    if (existingNode.length === 0) return null;
 
     // If parentId is being updated, verify it exists in this tree
     if (updates.parentId) {
@@ -390,10 +402,21 @@ export class ImpactTreeService {
       }
     }
 
+    // Calculate scores if templateData is being updated
+    let updatedTemplateData = updates.templateData;
+    if (updates.templateData && (existingNode[0].tree_nodes.nodeType === 'opportunity' || existingNode[0].tree_nodes.nodeType === 'solution')) {
+      const nodeWithUpdatedData = {
+        ...existingNode[0].tree_nodes,
+        templateData: { ...existingNode[0].tree_nodes.templateData, ...updates.templateData }
+      };
+      updatedTemplateData = scoreCalculationService.updateNodeScores(nodeWithUpdatedData);
+    }
+
     const [updatedNode] = await db
       .update(treeNodes)
       .set({
         ...updates,
+        templateData: updatedTemplateData,
         updatedAt: new Date(),
       })
       .where(eq(treeNodes.id, nodeId))
@@ -540,10 +563,33 @@ export class ImpactTreeService {
         for (const nodeUpdate of validUpdates) {
           console.log('Updating node:', nodeUpdate.id, 'with:', nodeUpdate.updates);
           
+          let updateData = { ...nodeUpdate.updates };
+          
+          // Calculate scores if templateData is being updated
+          if (updateData.templateData) {
+            // First get the current node to merge template data
+            const currentNode = await tx
+              .select()
+              .from(treeNodes)
+              .where(and(
+                eq(treeNodes.id, nodeUpdate.id),
+                eq(treeNodes.treeId, treeId)
+              ))
+              .limit(1);
+
+            if (currentNode.length > 0 && (currentNode[0].nodeType === 'opportunity' || currentNode[0].nodeType === 'solution')) {
+              const nodeWithUpdatedData = {
+                ...currentNode[0],
+                templateData: { ...currentNode[0].templateData, ...updateData.templateData }
+              };
+              updateData.templateData = scoreCalculationService.updateNodeScores(nodeWithUpdatedData);
+            }
+          }
+          
           const [updatedNode] = await tx
             .update(treeNodes)
             .set({
-              ...nodeUpdate.updates,
+              ...updateData,
               updatedAt: new Date(),
             })
             .where(and(

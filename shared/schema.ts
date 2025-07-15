@@ -182,6 +182,7 @@ export interface TreeNode {
     iceImpactRationale?: string;
     iceConfidenceRationale?: string;
     iceEaseRationale?: string;
+    iceScore?: number; // Calculated ICE score for display
     
     // Solution fields
     solutionRationale?: string;
@@ -200,6 +201,7 @@ export interface TreeNode {
     riceImpactRationale?: string;
     riceConfidenceRationale?: string;
     riceEffortRationale?: string;
+    riceScore?: number; // Calculated RICE score for display
     
     // Assumption Test fields
     assumptionType?: string;
