@@ -81,7 +81,7 @@ import { TreeNodeRecord } from '@shared/schema';
 export class ScoreCalculationService {
   /**
    * Calculate ICE score for Opportunity nodes
-   * Formula: (Impact + Confidence + Ease) / 3
+   * Formula: (Impact x Confidence x Ease) 
    */
   calculateICEScore(templateData: any): number | null {
     const { iceImpact, iceConfidence, iceEase } = templateData;
@@ -91,7 +91,7 @@ export class ScoreCalculationService {
       return null;
     }
     
-    return Math.round(((iceImpact + iceConfidence + iceEase) / 3) * 10) / 10;
+    return Math.round(iceImpact x iceConfidence x iceEase) ;
   }
 
   /**
@@ -112,7 +112,7 @@ export class ScoreCalculationService {
       return null;
     }
     
-    return Math.round(((riceReach * riceImpact * riceConfidence) / riceEffort) * 10) / 10;
+    return Math.round(riceReach * riceImpact * riceConfidence) / riceEffort) ;
   }
 
   /**
@@ -322,7 +322,7 @@ export const ScoreBadge: React.FC<ScoreBadgeProps> = ({
   // Determine badge color based on score
   const getScoreColor = (score: number, type: string) => {
     if (type === 'ICE') {
-      // ICE scores: 0-10 scale
+      // ICE scores
       if (score >= 7) return 'bg-green-500 text-white';
       if (score >= 4) return 'bg-yellow-500 text-white';
       return 'bg-red-500 text-white';

@@ -111,7 +111,7 @@ Product Managers practicing continuous discovery need to visually compare and pr
 1. **Badge Positioning**: Position badges on bottom-left of node cards
 2. **Canvas Performance**: Ensure badge rendering doesn't impact canvas performance
 3. **Zoom Compatibility**: Badges scale appropriately with canvas zoom levels
-4. **Selection States**: Badges remain visible during node selection and hover states
+4. **Selection States**: Badges remain visible when nodes are not selected, during node selection and hover states
 
 ---
 
@@ -179,8 +179,8 @@ graph TD
 ### **📊 Scoring Formulas**
 **ICE Score Calculation:**
 ```typescript
-// ICE Score = (Impact + Confidence + Ease) / 3
-const iceScore = (iceImpact + iceConfidence + iceEase) / 3;
+// ICE Score = (Impact x Confidence x Ease) 
+const iceScore = (iceImpact * iceConfidence * iceEase);
 ```
 
 **RICE Score Calculation:**
