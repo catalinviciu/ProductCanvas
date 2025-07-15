@@ -12,19 +12,19 @@ export const ScoreBadge: React.FC<ScoreBadgeProps> = ({
   type, 
   className 
 }) => {
-  // Determine badge color based on score
+  // Determine badge border color based on score
   const getScoreColor = (score: number, type: string) => {
     if (type === 'ICE') {
       // ICE scores: 0-27 range (3 * 3 * 3), normalize to 0-10
       const normalizedScore = (score / 27) * 10;
-      if (normalizedScore >= 7) return 'bg-green-500 text-white';
-      if (normalizedScore >= 4) return 'bg-yellow-500 text-white';
-      return 'bg-red-500 text-white';
+      if (normalizedScore >= 7) return 'border-green-500 text-green-700';
+      if (normalizedScore >= 4) return 'border-yellow-500 text-yellow-700';
+      return 'border-red-500 text-red-700';
     } else {
       // RICE scores: variable scale, use relative thresholds
-      if (score >= 10) return 'bg-green-500 text-white';
-      if (score >= 5) return 'bg-yellow-500 text-white';
-      return 'bg-red-500 text-white';
+      if (score >= 10) return 'border-green-500 text-green-700';
+      if (score >= 5) return 'border-yellow-500 text-yellow-700';
+      return 'border-red-500 text-red-700';
     }
   };
 
@@ -35,7 +35,7 @@ export const ScoreBadge: React.FC<ScoreBadgeProps> = ({
     <div 
       className={cn(
         'absolute bottom-1 left-1 px-2 py-1 rounded-md text-xs font-medium',
-        'shadow-sm border border-white/20',
+        'bg-white/90 backdrop-blur-sm shadow-sm border-2',
         'transition-all duration-200',
         colorClass,
         className
