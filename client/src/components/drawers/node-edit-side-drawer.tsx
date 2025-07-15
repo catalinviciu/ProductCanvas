@@ -265,23 +265,24 @@ const TEMPLATE_GUIDANCE = {
       tooltip: "Why is this the right solution? What makes it better than alternative approaches?",
       placeholder: "Guided budget setup wizard reduces cognitive load and provides contextual help, addressing the core usability issue"
     },
-    implementationApproach: {
-      tooltip: "How will this solution be built? What's the technical approach and methodology?",
-      placeholder: "Progressive disclosure UI pattern with smart defaults, A/B test different flows, iterative user testing"
-    },
+
     keyFeatures: {
       tooltip: "What are the core features and capabilities that make this solution effective?",
       placeholder: "Smart category suggestions, progress indicators, skip options, contextual help tooltips, mobile-first design"
-    },
-    technicalRequirements: {
-      tooltip: "What technical infrastructure, tools, or systems are needed?",
-      placeholder: "Frontend: New onboarding flow components, Backend: Category suggestion algorithm, Analytics: Flow tracking"
     },
     userExperience: {
       tooltip: "How will users interact with this solution? What's their journey?",
       placeholder: "Users see 3-step wizard, get personalized categories, can skip advanced options, receive confirmation"
     },
-    dependencies: {
+    technicalRequirements: {
+      tooltip: "What technical infrastructure, tools, or systems are needed?",
+      placeholder: "Frontend: New onboarding flow components, Backend: Category suggestion algorithm, Analytics: Flow tracking"
+    },
+    implementationApproach: {
+      tooltip: "How will this solution be built? What's the technical approach and methodology?",
+      placeholder: "Progressive disclosure UI pattern with smart defaults, A/B test different flows, iterative user testing"
+    },
+     dependencies: {
       tooltip: "What other work, teams, or systems does this solution depend on?",
       placeholder: "Depends on: Category data analysis (Analytics team), Design system updates (Design team), API changes (Backend team)"
     },
@@ -299,7 +300,7 @@ const TEMPLATE_GUIDANCE = {
     },
     riceEffortRationale: {
       tooltip: "How much person-time will this solution require? Consider all team efforts.",
-      placeholder: "Medium effort: 2 weeks design, 3 weeks development, 1 week testing (6 person-weeks total)"
+      placeholder: "How much person-time will this solution require? Consider all team efforts. 1 = few days, 2 = max 2 weeks, 3 = max 1 month, 4 = max 2 months, 5 = more than 2 months"
     }
   },
   assumption: {
@@ -519,6 +520,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
   // Calculate ICE score
   const iceScore = useMemo(() => {
     const { iceImpact = 0, iceConfidence = 0, iceEase = 0 } = formData.templateData;
+    if (iceEase === 0) return 0;
     return iceImpact * iceConfidence * iceEase;
   }, [formData.templateData.iceImpact, formData.templateData.iceConfidence, formData.templateData.iceEase]);
 
@@ -1058,14 +1060,14 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
   calculatedScore: number;
 }) {
   const getScoreColor = (score: number) => {
-    if (score < 2) return "text-red-600";
-    if (score < 4) return "text-yellow-600";
+    if (score < 15) return "text-red-600";
+    if (score < 60) return "text-yellow-600";
     return "text-green-600";
   };
 
   const getScoreLabel = (score: number) => {
-    if (score < 2) return "Low";
-    if (score < 4) return "Medium";
+    if (score < 15) return "Low";
+    if (score < 60) return "Medium";
     return "High";
   };
 
@@ -1079,7 +1081,7 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
         </div>
         <div className="text-right">
           <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
-            {calculatedScore}
+            {calculatedScore.toFixed(1)}
           </div>
           <div className="text-xs text-gray-500">
             {getScoreLabel(calculatedScore)}
@@ -1166,7 +1168,9 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
       </div>
 
       <div className="pt-2 border-t text-xs text-gray-600">
-        <strong>Calculation:</strong> {data.iceImpact || 1} × {data.iceConfidence || 1} × {data.iceEase || 1} = <strong>{calculatedScore}</strong>
+        <strong>Calculation:</strong> {data.iceImpact || 1} × {data.iceConfidence || 1} * {data.iceEase || 1} = <strong>{calculatedScore.toFixed(1)}</strong>
+
+        
       </div>
     </div>
   );
@@ -1193,22 +1197,22 @@ function SolutionTemplate({ data, onFieldChange, node, onStatusChange }: {
         rows={3}
       />
       <TemplateField
-        id="implementationApproach"
-        label="Implementation Approach"
-        value={data.implementationApproach || ''}
-        placeholder={TEMPLATE_GUIDANCE.solution.implementationApproach.placeholder}
-        tooltip={TEMPLATE_GUIDANCE.solution.implementationApproach.tooltip}
-        onChange={(value) => onFieldChange('template.implementationApproach', value)}
-        type="textarea"
-        rows={3}
-      />
-      <TemplateField
         id="keyFeatures"
         label="Key Features & Capabilities"
         value={data.keyFeatures || ''}
         placeholder={TEMPLATE_GUIDANCE.solution.keyFeatures.placeholder}
         tooltip={TEMPLATE_GUIDANCE.solution.keyFeatures.tooltip}
         onChange={(value) => onFieldChange('template.keyFeatures', value)}
+        type="textarea"
+        rows={3}
+      />
+      <TemplateField
+        id="userExperience"
+        label="User Experience Design"
+        value={data.userExperience || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.userExperience.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.userExperience.tooltip}
+        onChange={(value) => onFieldChange('template.userExperience', value)}
         type="textarea"
         rows={3}
       />
@@ -1220,17 +1224,17 @@ function SolutionTemplate({ data, onFieldChange, node, onStatusChange }: {
         tooltip={TEMPLATE_GUIDANCE.solution.technicalRequirements.tooltip}
         onChange={(value) => onFieldChange('template.technicalRequirements', value)}
         type="textarea"
-        rows={2}
+        rows={3}
       />
       <TemplateField
-        id="userExperience"
-        label="User Experience Design"
-        value={data.userExperience || ''}
-        placeholder={TEMPLATE_GUIDANCE.solution.userExperience.placeholder}
-        tooltip={TEMPLATE_GUIDANCE.solution.userExperience.tooltip}
-        onChange={(value) => onFieldChange('template.userExperience', value)}
+        id="implementationApproach"
+        label="Implementation Approach"
+        value={data.implementationApproach || ''}
+        placeholder={TEMPLATE_GUIDANCE.solution.implementationApproach.placeholder}
+        tooltip={TEMPLATE_GUIDANCE.solution.implementationApproach.tooltip}
+        onChange={(value) => onFieldChange('template.implementationApproach', value)}
         type="textarea"
-        rows={2}
+        rows={3}
       />
       <TemplateField
         id="dependencies"
@@ -1507,14 +1511,14 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
   calculatedScore: number;
 }) {
   const getScoreColor = (score: number) => {
-    if (score < 10) return "text-red-600";
-    if (score < 50) return "text-yellow-600";
+    if (score < 1) return "text-red-600";
+    if (score < 5) return "text-yellow-600";
     return "text-green-600";
   };
 
   const getScoreLabel = (score: number) => {
-    if (score < 10) return "Low";
-    if (score < 50) return "Medium";
+    if (score < 1) return "Low";
+    if (score < 5) return "Medium";
     return "High";
   };
 
@@ -1527,7 +1531,7 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
           <span className="font-medium">RICE Score</span>
         </div>
         <div className="text-right">
-          <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
+        <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
             {calculatedScore.toFixed(1)}
           </div>
           <div className="text-xs text-gray-500">
@@ -1616,7 +1620,7 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
         {/* Effort */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Effort (Person-Weeks)</Label>
+            <Label className="text-sm font-medium">Effort</Label>
             <span className="text-sm text-gray-500">
               {data.riceEffort || 1}
             </span>
@@ -1624,7 +1628,7 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
           <Slider
             value={[data.riceEffort || 1]}
             onValueChange={([value]) => onFieldChange('template.riceEffort', value)}
-            max={50}
+            max={5}
             min={1}
             step={1}
             className="w-full"
