@@ -808,6 +808,8 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                     <AssumptionTemplate 
                       data={formData.templateData}
                       onFieldChange={handleFieldChange}
+                      node={node}
+                      onStatusChange={handleStatusChange}
                     />
                   </CollapsibleContent>
                 </Collapsible>
