@@ -402,14 +402,18 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
   // Initialize form data when node changes
   useEffect(() => {
     if (node) {
+      const templateData = { ...(node as any).templateData };
+      
+      // Only add assumptionType for assumption nodes
+      if (node.type === 'assumption') {
+        templateData.assumptionType = node.testCategory || 'value';
+      }
+      
       setFormData({
         type: node.type,
         title: node.title,
         description: node.description,
-        templateData: {
-          ...(node as any).templateData,
-          assumptionType: node.testCategory || 'value',
-        }
+        templateData
       });
       setIsDirty(false);
     }
@@ -439,13 +443,19 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
   const handleSave = useCallback(() => {
     if (!node) return;
 
+    // Clean template data - remove assumptionType for non-assumption nodes
+    const cleanTemplateData = { ...formData.templateData };
+    if (formData.type !== 'assumption' && 'assumptionType' in cleanTemplateData) {
+      delete cleanTemplateData.assumptionType;
+    }
+
     const updatedNode: TreeNode = {
       ...node,
       type: formData.type,
       title: formData.title,
       description: formData.description,
       testCategory: formData.type === 'assumption' ? (formData.templateData.assumptionType as TestCategory) : undefined,
-      templateData: formData.templateData
+      templateData: cleanTemplateData
     } as any;
 
     onSave(updatedNode);
