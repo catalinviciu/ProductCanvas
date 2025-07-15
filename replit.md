@@ -168,6 +168,12 @@ Environment variables required:
 - January 11, 2025. **RESOLVED**: Fixed DOM nesting validation warnings in React components using asChild prop
 - January 11, 2025. **ENHANCEMENT**: Added comprehensive Quality Prevention Guidelines to documentation framework
 - January 11, 2025. **ENHANCEMENT**: Enhanced workflow_guide.md with specific React + Node.js issue prevention patterns
+- January 15, 2025. **FEATURE**: Implemented ICE & RICE Score Badge Display feature for visual prioritization
+- January 15, 2025. **ENHANCEMENT**: Added ScoreBadge component with color-coded scoring (green/yellow/red) appearing on node bottom-left
+- January 15, 2025. **ENHANCEMENT**: Integrated score calculation service with proper ICE and RICE formulas
+- January 15, 2025. **ENHANCEMENT**: Added real-time score updates and conditional badge display (only when all required fields complete)
+- January 15, 2025. **ENHANCEMENT**: Refined badge design to subtle color-coded borders with backdrop blur effect
+- January 15, 2025. **ENHANCEMENT**: Aligned color thresholds with side drawer (ICE: <15 red, <60 yellow, ≥60 green; RICE: <1 red, <5 yellow, ≥5 green)
 
 ## User Preferences
 

@@ -12,19 +12,18 @@ export const ScoreBadge: React.FC<ScoreBadgeProps> = ({
   type, 
   className 
 }) => {
-  // Determine badge border color based on score
+  // Determine badge border color based on score (aligned with side drawer)
   const getScoreColor = (score: number, type: string) => {
     if (type === 'ICE') {
-      // ICE scores: 0-27 range (3 * 3 * 3), normalize to 0-10
-      const normalizedScore = (score / 27) * 10;
-      if (normalizedScore >= 7) return 'border-green-500 text-green-700';
-      if (normalizedScore >= 4) return 'border-yellow-500 text-yellow-700';
-      return 'border-red-500 text-red-700';
+      // ICE thresholds: <15 red, <60 yellow, ≥60 green
+      if (score < 15) return 'border-red-500 text-red-700';
+      if (score < 60) return 'border-yellow-500 text-yellow-700';
+      return 'border-green-500 text-green-700';
     } else {
-      // RICE scores: variable scale, use relative thresholds
-      if (score >= 10) return 'border-green-500 text-green-700';
-      if (score >= 5) return 'border-yellow-500 text-yellow-700';
-      return 'border-red-500 text-red-700';
+      // RICE thresholds: <1 red, <5 yellow, ≥5 green
+      if (score < 1) return 'border-red-500 text-red-700';
+      if (score < 5) return 'border-yellow-500 text-yellow-700';
+      return 'border-green-500 text-green-700';
     }
   };
 
