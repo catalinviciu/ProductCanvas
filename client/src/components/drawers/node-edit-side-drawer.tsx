@@ -948,7 +948,8 @@ function ObjectiveTemplate({ data, onFieldChange, node, onStatusChange }: {
         placeholder={TEMPLATE_GUIDANCE.objective.targetAudience.placeholder}
         tooltip={TEMPLATE_GUIDANCE.objective.targetAudience.tooltip}
         onChange={(value) => onFieldChange('template.targetAudience', value)}
-        type="text"
+        type="textarea"
+        rows={2}
       />
       <TemplateField
         id="exclusionCriteria"
@@ -1095,7 +1096,8 @@ function OpportunityTemplate({ data, onFieldChange, node, onStatusChange }: {
         placeholder={TEMPLATE_GUIDANCE.opportunity.customerSegments.placeholder}
         tooltip={TEMPLATE_GUIDANCE.opportunity.customerSegments.tooltip}
         onChange={(value) => onFieldChange('template.customerSegments', value)}
-        type="text"
+        type="textarea"
+        rows={2}
       />
     </div>
   );
