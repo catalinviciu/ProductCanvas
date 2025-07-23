@@ -437,9 +437,46 @@
 }
 
 .side-drawer-button:hover {
-  background: var(--drawer-hover-bg);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+
+/* Specific button variants for better text visibility */
+.side-drawer-button[data-variant="destructive"] {
+  background: hsl(0 84.2% 60.2%);
+  color: hsl(210 40% 98%);
+  border: 1px solid hsl(0 84.2% 60.2%);
+}
+
+.side-drawer-button[data-variant="destructive"]:hover {
+  background: hsl(0 84.2% 55%);
+  color: hsl(210 40% 98%);
+  border-color: hsl(0 84.2% 55%);
+}
+
+.side-drawer-button[data-variant="outline"] {
+  background: hsl(0 0% 100%);
+  color: hsl(222.2 84% 4.9%);
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+}
+
+.side-drawer-button[data-variant="outline"]:hover {
+  background: hsl(210 40% 96%);
+  color: hsl(222.2 84% 4.9%);
+  border-color: hsl(214.3 31.8% 85%);
+}
+
+.side-drawer-button[data-variant="default"]:not([data-variant="destructive"]):not([data-variant="outline"]) {
+  background: hsl(222.2 47.4% 11.2%);
+  color: hsl(210 40% 98%);
+  border: 1px solid hsl(222.2 47.4% 11.2%);
+}
+
+.side-drawer-button[data-variant="default"]:not([data-variant="destructive"]):not([data-variant="outline"]):hover {
+  background: hsl(222.2 47.4% 15%);
+  color: hsl(210 40% 98%);
+  border-color: hsl(222.2 47.4% 15%);
 }
 
 .side-drawer-button:focus {

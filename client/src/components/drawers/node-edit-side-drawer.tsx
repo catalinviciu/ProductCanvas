@@ -867,6 +867,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                 size="sm" 
                 onClick={handleDelete}
                 className="side-drawer-button"
+                data-variant="destructive"
                 aria-label="Delete node"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
@@ -879,6 +880,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
               variant="outline" 
               onClick={handleCancel}
               className="side-drawer-button"
+              data-variant="outline"
             >
               Cancel
             </Button>
@@ -886,6 +888,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
               onClick={handleSave} 
               disabled={!formData.title.trim()}
               className="side-drawer-button"
+              data-variant="default"
               aria-label="Save changes"
             >
               <Save className="w-4 h-4 mr-2" />
