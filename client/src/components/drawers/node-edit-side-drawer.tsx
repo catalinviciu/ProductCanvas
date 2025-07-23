@@ -1928,7 +1928,7 @@ function TemplateField({
             id={id}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
+            placeholder={`Example: ${placeholder}`}
             rows={rows}
             className="side-drawer-textarea"
             aria-describedby={tooltip ? `${id}-help` : undefined}
@@ -1939,15 +1939,10 @@ function TemplateField({
             type={type}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
+            placeholder={`Example: ${placeholder}`}
             className="side-drawer-input h-10"
             aria-describedby={tooltip ? `${id}-help` : undefined}
           />
-        )}
-        {tooltip && (
-          <p id={`${id}-help`} className="side-drawer-help-text">
-            {placeholder}
-          </p>
         )}
       </div>
     </TooltipProvider>
