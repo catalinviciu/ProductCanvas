@@ -178,6 +178,9 @@ Environment variables required:
 - January 23, 2025. **ENHANCEMENT**: Added smooth slide animations without gray background flashing using custom CSS styling
 - January 23, 2025. **ENHANCEMENT**: Fixed duplicate placeholder text issue by removing redundant display and adding "Example:" prefix
 - January 23, 2025. **ENHANCEMENT**: Improved input/textarea styling with better contrast and enhanced interaction states
+- January 23, 2025. **ENHANCEMENT**: Fixed button text visibility on hover with proper color contrast for Save, Cancel, and Delete buttons
+- January 23, 2025. **ENHANCEMENT**: Implemented auto-resizing text fields that adjust height based on content length automatically
+- January 23, 2025. **ENHANCEMENT**: Added AutoResizeTextarea component for responsive text input across all template fields and rationale sections
 
 ## User Preferences
 

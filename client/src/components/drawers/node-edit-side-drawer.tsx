@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { X, Save, Trash2, Type, Target, BarChart3, Lightbulb, ChevronDown, ChevronRight, Calculator, HelpCircle, Cog, FlaskConical, TrendingUp, Search } from "lucide-react";
 import { TreeNode, NodeType, TestCategory, OpportunityWorkflowStatus, WorkflowStatus } from "@shared/schema";
 import { OpportunityStatusIndicator } from "@/components/opportunity-status-indicator";
@@ -1154,11 +1154,12 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <Textarea
+          <AutoResizeTextarea
             value={data.iceImpactRationale || ''}
             onChange={(e) => onFieldChange('template.iceImpactRationale', e.target.value)}
             placeholder={TEMPLATE_GUIDANCE.opportunity.iceImpactRationale.placeholder}
-            rows={1}
+            minRows={1}
+            maxRows={4}
             className="text-xs"
           />
         </div>
@@ -1179,11 +1180,12 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <Textarea
+          <AutoResizeTextarea
             value={data.iceConfidenceRationale || ''}
             onChange={(e) => onFieldChange('template.iceConfidenceRationale', e.target.value)}
             placeholder={TEMPLATE_GUIDANCE.opportunity.iceConfidenceRationale.placeholder}
-            rows={1}
+            minRows={1}
+            maxRows={4}
             className="text-xs"
           />
         </div>
@@ -1204,11 +1206,12 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <Textarea
+          <AutoResizeTextarea
             value={data.iceEaseRationale || ''}
             onChange={(e) => onFieldChange('template.iceEaseRationale', e.target.value)}
             placeholder={TEMPLATE_GUIDANCE.opportunity.iceEaseRationale.placeholder}
-            rows={1}
+            minRows={1}
+            maxRows={4}
             className="text-xs"
           />
         </div>
@@ -1605,11 +1608,12 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <Textarea
+          <AutoResizeTextarea
             value={data.riceReachRationale || ''}
             onChange={(e) => onFieldChange('template.riceReachRationale', e.target.value)}
             placeholder={TEMPLATE_GUIDANCE.solution.riceReachRationale.placeholder}
-            rows={1}
+            minRows={1}
+            maxRows={4}
             className="text-xs"
           />
         </div>
@@ -1630,11 +1634,12 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <Textarea
+          <AutoResizeTextarea
             value={data.riceImpactRationale || ''}
             onChange={(e) => onFieldChange('template.riceImpactRationale', e.target.value)}
             placeholder={TEMPLATE_GUIDANCE.solution.riceImpactRationale.placeholder}
-            rows={1}
+            minRows={1}
+            maxRows={4}
             className="text-xs"
           />
         </div>
@@ -1655,11 +1660,12 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={0.01}
             className="w-full"
           />
-          <Textarea
+          <AutoResizeTextarea
             value={data.riceConfidenceRationale || ''}
             onChange={(e) => onFieldChange('template.riceConfidenceRationale', e.target.value)}
             placeholder={TEMPLATE_GUIDANCE.solution.riceConfidenceRationale.placeholder}
-            rows={1}
+            minRows={1}
+            maxRows={4}
             className="text-xs"
           />
         </div>
@@ -1680,11 +1686,12 @@ function RICEScoringWidget({ data, onFieldChange, calculatedScore }: {
             step={1}
             className="w-full"
           />
-          <Textarea
+          <AutoResizeTextarea
             value={data.riceEffortRationale || ''}
             onChange={(e) => onFieldChange('template.riceEffortRationale', e.target.value)}
             placeholder={TEMPLATE_GUIDANCE.solution.riceEffortRationale.placeholder}
-            rows={1}
+            minRows={1}
+            maxRows={4}
             className="text-xs"
           />
         </div>
@@ -1845,11 +1852,12 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
             <span>3 - Some data</span>
             <span>5 - Validated</span>
           </div>
-          <Textarea
+          <AutoResizeTextarea
             value={data.evidenceRationale || ''}
             onChange={(e) => onFieldChange('template.evidenceRationale', e.target.value)}
             placeholder="Why did you choose this evidence level?"
-            rows={2}
+            minRows={2}
+            maxRows={6}
             className="text-sm"
           />
         </div>
@@ -1876,16 +1884,74 @@ function EvidenceImpactWidget({ data, onFieldChange, calculatedScore }: {
             <span>3 - Moderate risk</span>
             <span>5 - Major failure</span>
           </div>
-          <Textarea
+          <AutoResizeTextarea
             value={data.impactRationale || ''}
             onChange={(e) => onFieldChange('template.impactRationale', e.target.value)}
             placeholder="What happens if this assumption is wrong?"
-            rows={2}
+            minRows={2}
+            maxRows={6}
             className="text-sm"
           />
         </div>
       </div>
     </div>
+  );
+}
+
+// Auto-resizing textarea component
+function AutoResizeTextarea({ 
+  value, 
+  onChange, 
+  placeholder, 
+  className = "",
+  minRows = 1,
+  maxRows = 10,
+  ...props 
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+  className?: string;
+  minRows?: number;
+  maxRows?: number;
+  [key: string]: any;
+}) {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const calculateRows = React.useCallback((text: string) => {
+    if (!text) return minRows;
+    
+    // Count line breaks and estimate rows needed
+    const lineBreaks = (text.match(/\n/g) || []).length;
+    const textLength = text.length;
+    const estimatedRows = Math.ceil(textLength / 50) + lineBreaks; // Rough estimate: 50 chars per row
+    
+    return Math.min(Math.max(estimatedRows, minRows), maxRows);
+  }, [minRows, maxRows]);
+
+  const rows = React.useMemo(() => {
+    const textToMeasure = value || placeholder;
+    return calculateRows(textToMeasure);
+  }, [value, placeholder, calculateRows]);
+
+  React.useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return (
+    <Textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={rows}
+      className={`side-drawer-textarea resize-none overflow-hidden ${className}`}
+      style={{ minHeight: `${minRows * 1.5}rem` }}
+      {...props}
+    />
   );
 }
 
@@ -1927,13 +1993,13 @@ function TemplateField({
           )}
         </div>
         {type === 'textarea' ? (
-          <Textarea
+          <AutoResizeTextarea
             id={id}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={`Example: ${placeholder}`}
-            rows={rows}
-            className="side-drawer-textarea"
+            minRows={Math.max(rows, 1)}
+            maxRows={10}
             aria-describedby={tooltip ? `${id}-help` : undefined}
           />
         ) : (
