@@ -137,7 +137,7 @@ interface TemplateData {
   calculationMethod?: string;
   dataSource?: string;
   reportingFrequency?: string;
-  target?: string;
+  metricTarget?: string;
   
   // Research fields
   researchQuestions?: string;
@@ -595,7 +595,7 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
       {/* Overlay */}
       <div 
         className={cn(
-          "fixed inset-0 bg-black/50 transition-opacity",
+          "fixed inset-0 bg-black/50 transition-opacity duration-300 ease-out",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
@@ -603,53 +603,63 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
       
       {/* Drawer */}
       <div className={cn(
-        "relative bg-white shadow-2xl w-[600px] max-w-[90vw] transition-transform duration-300 ease-out",
-        isOpen ? "translate-x-0" : "translate-x-full"
+        "relative side-drawer-enhanced shadow-2xl w-[600px] max-w-[90vw] transition-all duration-300 ease-out",
+        isOpen ? "translate-x-0 drawer-slide-in" : "translate-x-full drawer-slide-out"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-          <div className="flex items-center gap-3">
+        <div className="side-drawer-header flex items-center justify-between p-6 border-b">
+          <div className="flex items-center gap-4">
             <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center",
+              "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105",
               NODE_TYPE_COLORS[formData.type]
             )}>
-              <NodeIcon className="w-4 h-4" />
+              <NodeIcon className="w-5 h-5" />
             </div>
-            <div>
-              <h2 className="text-lg font-semibold">Edit Node</h2>
-              <Badge variant="outline" className={cn("text-xs", NODE_TYPE_COLORS[formData.type])}>
+            <div className="space-y-1">
+              <h2 className="side-drawer-title">Edit Node</h2>
+              <Badge variant="outline" className={cn("text-xs font-medium", NODE_TYPE_COLORS[formData.type])}>
                 {formData.type.charAt(0).toUpperCase() + formData.type.slice(1)}
               </Badge>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {isDirty && (
-              <div className="w-2 h-2 bg-orange-500 rounded-full" title="Unsaved changes" />
+              <div 
+                className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse" 
+                title="Unsaved changes"
+                aria-label="Unsaved changes indicator"
+              />
             )}
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="w-4 h-4" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="side-drawer-button h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Close drawer"
+            >
+              <X className="w-5 h-5" />
             </Button>
           </div>
         </div>
 
         {/* Content */}
-        <ScrollArea className="flex-1 h-[calc(100vh-140px)]">
-          <div className="p-4 space-y-6">
+        <ScrollArea className="side-drawer-scroll flex-1 h-[calc(100vh-160px)]">
+          <div className="p-6 space-y-6">
             {/* Basic Information */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Type className="w-4 h-4" />
-                <Label className="text-sm font-medium">Basic Information</Label>
+            <div className="side-drawer-section p-4 space-y-4">
+              <div className="flex items-center gap-3">
+                <Type className="w-5 h-5 text-primary" />
+                <Label className="side-drawer-section-header">Basic Information</Label>
               </div>
               
               <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="node-type">Node Type</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="node-type" className="side-drawer-label">Node Type</Label>
                   <Select
                     value={formData.type}
                     onValueChange={handleTypeChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="side-drawer-input h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -664,15 +674,22 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="node-title">Title <span className="text-red-500">*</span></Label>
+                <div className="space-y-3">
+                  <Label htmlFor="node-title" className="side-drawer-label">
+                    Title <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="node-title"
                     value={formData.title}
                     onChange={(e) => handleFieldChange('title', e.target.value)}
                     placeholder="Enter node title..."
+                    className="side-drawer-input h-10"
                     required
+                    aria-describedby="title-help"
                   />
+                  <p id="title-help" className="side-drawer-help-text">
+                    Provide a clear, descriptive title for this node
+                  </p>
                 </div>
               </div>
             </div>
@@ -683,14 +700,14 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
             {(formData.type === 'objective' || formData.type === 'outcome' || formData.type === 'opportunity' || formData.type === 'solution' || formData.type === 'metric' || formData.type === 'research') && (
               <>
                 <Collapsible open={isTemplateExpanded} onOpenChange={setIsTemplateExpanded}>
-                  <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
-                    {isTemplateExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                    <NodeIcon className="w-4 h-4" />
-                    <Label className="text-sm font-medium cursor-pointer">
+                  <CollapsibleTrigger className="side-drawer-collapsible-trigger flex items-center gap-3 w-full text-left">
+                    {isTemplateExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    <NodeIcon className="w-5 h-5" />
+                    <Label className="side-drawer-section-header cursor-pointer">
                       {formData.type.charAt(0).toUpperCase() + formData.type.slice(1)} Template
                     </Label>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-4 mt-4">
+                  <CollapsibleContent className="side-drawer-section p-4 space-y-4 mt-4">
                     {formData.type === 'objective' && (
                       <ObjectiveTemplate 
                         data={formData.templateData}
@@ -745,10 +762,10 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
                   <>
                     <Separator />
                     <Collapsible open={isIceExpanded} onOpenChange={setIsIceExpanded}>
-                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
-                        {isIceExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                        <Calculator className="w-4 h-4" />
-                        <Label className="text-sm font-medium cursor-pointer">ICE Prioritization Score</Label>
+                      <CollapsibleTrigger className="side-drawer-collapsible-trigger flex items-center gap-3 w-full text-left">
+                        {isIceExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                        <Calculator className="w-5 h-5" />
+                        <Label className="side-drawer-section-header cursor-pointer">ICE Prioritization Score</Label>
                         {iceScore > 0 && (
                           <Badge variant="secondary" className="ml-auto">
                             Score: {iceScore}
@@ -842,20 +859,35 @@ export function NodeEditSideDrawer({ node, isOpen, onClose, onSave, onDelete, on
         </ScrollArea>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between p-4 border-t bg-gray-50">
-          <div className="flex items-center gap-2">
+        <div className="side-drawer-header flex items-center justify-between p-6 border-t">
+          <div className="flex items-center gap-3">
             {onDelete && (
-              <Button variant="destructive" size="sm" onClick={handleDelete}>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={handleDelete}
+                className="side-drawer-button"
+                aria-label="Delete node"
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleCancel}>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={handleCancel}
+              className="side-drawer-button"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.title.trim()}>
+            <Button 
+              onClick={handleSave} 
+              disabled={!formData.title.trim()}
+              className="side-drawer-button"
+              aria-label="Save changes"
+            >
               <Save className="w-4 h-4 mr-2" />
               Save
             </Button>
@@ -1084,12 +1116,12 @@ function ICEScoringWidget({ data, onFieldChange, calculatedScore }: {
   };
 
   return (
-    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+    <div className="side-drawer-section space-y-4 p-4">
       {/* Header with Score */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Calculator className="w-4 h-4" />
-          <span className="font-medium">ICE Score</span>
+        <div className="flex items-center gap-3">
+          <Calculator className="w-5 h-5 text-primary" />
+          <span className="side-drawer-section-header">ICE Score</span>
         </div>
         <div className="text-right">
           <div className={cn("text-xl font-bold", getScoreColor(calculatedScore))}>
@@ -1875,18 +1907,18 @@ function TemplateField({
 }) {
   return (
     <TooltipProvider>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Label htmlFor={id} className="text-sm font-medium">
+          <Label htmlFor={id} className="side-drawer-label">
             {label}
           </Label>
           {tooltip && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                <HelpCircle className="w-4 h-4 text-gray-400 cursor-help hover:text-primary transition-colors" />
               </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p className="text-sm">{tooltip}</p>
+              <TooltipContent className="max-w-sm">
+                <p className="side-drawer-help-text text-white">{tooltip}</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -1898,7 +1930,8 @@ function TemplateField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={rows}
-            className="text-sm"
+            className="side-drawer-textarea"
+            aria-describedby={tooltip ? `${id}-help` : undefined}
           />
         ) : (
           <Input
@@ -1907,8 +1940,14 @@ function TemplateField({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="text-sm"
+            className="side-drawer-input h-10"
+            aria-describedby={tooltip ? `${id}-help` : undefined}
           />
+        )}
+        {tooltip && (
+          <p id={`${id}-help`} className="side-drawer-help-text">
+            {placeholder}
+          </p>
         )}
       </div>
     </TooltipProvider>

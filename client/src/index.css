@@ -39,11 +39,23 @@
 :root {
   /* Base color system */
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(220, 9%, 46%);
+  --foreground: hsl(216, 80%, 11%);
   --muted: hsl(210, 40%, 98%);
-  --muted-foreground: hsl(215, 16%, 47%);
+  --muted-foreground: hsl(215, 16%, 58%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(224, 71%, 4%);
+  --popover-foreground: hsl(216, 80%, 11%);
+  
+  /* Enhanced side drawer colors */
+  --drawer-background: hsl(0, 0%, 100%);
+  --drawer-header-bg: hsl(210, 40%, 98%);
+  --drawer-border: hsl(214, 32%, 91%);
+  --drawer-text-primary: hsl(216, 80%, 11%);
+  --drawer-text-secondary: hsl(215, 16%, 47%);
+  --drawer-text-placeholder: hsl(215, 16%, 65%);
+  --drawer-section-bg: hsl(210, 40%, 98%);
+  --drawer-hover-bg: hsl(210, 40%, 96%);
+  --drawer-active-bg: hsl(262, 83%, 96%);
+  --drawer-focus-ring: hsl(262, 83%, 58%);
   
   /* Card color system - Updated for modernized design */
   --card: hsl(0, 0%, 100%);
@@ -351,6 +363,231 @@
   user-select: none;
 }
 
+/* Enhanced Side Drawer Styles */
+.side-drawer-enhanced {
+  background: var(--drawer-background);
+  color: var(--drawer-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.side-drawer-header {
+  background: var(--drawer-header-bg);
+  border-bottom: 1px solid var(--drawer-border);
+  backdrop-filter: blur(10px);
+}
+
+.side-drawer-section {
+  background: var(--drawer-section-bg);
+  border-radius: 8px;
+  border: 1px solid var(--drawer-border);
+  transition: all 0.2s ease;
+}
+
+.side-drawer-section:hover {
+  background: var(--drawer-hover-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.side-drawer-section.active {
+  background: var(--drawer-active-bg);
+  border-color: var(--primary);
+}
+
+.side-drawer-section-header {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--drawer-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.side-drawer-label {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--drawer-text-primary);
+  letter-spacing: -0.005em;
+  margin-bottom: 6px;
+}
+
+.side-drawer-text {
+  color: var(--drawer-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.side-drawer-placeholder {
+  color: var(--drawer-text-placeholder);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.side-drawer-help-text {
+  color: var(--drawer-text-placeholder);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+/* Enhanced Interactive Elements */
+.side-drawer-button {
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 6px;
+}
+
+.side-drawer-button:hover {
+  background: var(--drawer-hover-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.side-drawer-button:focus {
+  outline: 2px solid var(--drawer-focus-ring);
+  outline-offset: 2px;
+}
+
+.side-drawer-button:active {
+  transform: translateY(0);
+}
+
+/* Enhanced Input Styling */
+.side-drawer-input {
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 6px;
+  border: 1px solid var(--drawer-border);
+  transition: all 0.2s ease;
+  font-weight: 400;
+}
+
+.side-drawer-input:focus {
+  border-color: var(--drawer-focus-ring);
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+  outline: none;
+}
+
+.side-drawer-input::placeholder {
+  color: var(--drawer-text-placeholder);
+  font-weight: 400;
+}
+
+.side-drawer-textarea {
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 6px;
+  border: 1px solid var(--drawer-border);
+  transition: all 0.2s ease;
+  font-weight: 400;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.side-drawer-textarea:focus {
+  border-color: var(--drawer-focus-ring);
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+  outline: none;
+}
+
+.side-drawer-textarea::placeholder {
+  color: var(--drawer-text-placeholder);
+  font-weight: 400;
+}
+
+/* Enhanced Collapsible Sections */
+.side-drawer-collapsible-trigger {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--drawer-text-primary);
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.side-drawer-collapsible-trigger:hover {
+  background: var(--drawer-hover-bg);
+  color: var(--primary);
+}
+
+.side-drawer-collapsible-trigger[data-state="open"] {
+  background: var(--drawer-active-bg);
+  color: var(--primary);
+}
+
+/* Enhanced Animation Classes */
+@keyframes drawerSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes drawerSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.drawer-slide-in {
+  animation: drawerSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawer-slide-out {
+  animation: drawerSlideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Scrollbar Styling */
+.side-drawer-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.side-drawer-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.side-drawer-scroll::-webkit-scrollbar-thumb {
+  background: var(--drawer-border);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.side-drawer-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--drawer-text-placeholder);
+}
+
+/* Enhanced Typography Hierarchy */
+.side-drawer-title {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--drawer-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.side-drawer-subtitle {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--drawer-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.side-drawer-subtext {
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--drawer-text-secondary);
+}
+
 .action-button-bottom-right:hover {
   background: rgba(34, 197, 94, 0.1);
   border-color: rgba(34, 197, 94, 0.3);
@@ -616,6 +853,18 @@
   --destructive: hsl(0, 63%, 31%);
   --destructive-foreground: hsl(213, 31%, 91%);
   --ring: hsl(262, 83%, 58%);
+  
+  /* Enhanced dark mode side drawer colors */
+  --drawer-background: hsl(224, 71%, 4%);
+  --drawer-header-bg: hsl(223, 47%, 11%);
+  --drawer-border: hsl(216, 34%, 17%);
+  --drawer-text-primary: hsl(213, 31%, 91%);
+  --drawer-text-secondary: hsl(215, 16%, 65%);
+  --drawer-text-placeholder: hsl(215, 16%, 45%);
+  --drawer-section-bg: hsl(223, 47%, 11%);
+  --drawer-hover-bg: hsl(216, 34%, 17%);
+  --drawer-active-bg: hsl(262, 83%, 15%);
+  --drawer-focus-ring: hsl(262, 83%, 58%);
 }
 
 /* Collision detection visual feedback */
